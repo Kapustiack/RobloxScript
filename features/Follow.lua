@@ -78,5 +78,15 @@ getgenv().AutoSwitchBtn.MouseButton1Click:Connect(function()
     getgenv().AutoSwitchBtn.BackgroundColor3 = getgenv().autoSwitchEnabled and getgenv().COL_ON or getgenv().COL_OFF
 end)
 
+getgenv().ClickCheckBtn.MouseButton1Click:Connect(function()
+    getgenv().clickCheckEnabled = not getgenv().clickCheckEnabled
+    getgenv().ClickCheckBtn.Text = "Click Check: " .. (getgenv().clickCheckEnabled and "ON" or "OFF")
+    getgenv().ClickCheckBtn.BackgroundColor3 = getgenv().clickCheckEnabled and getgenv().COL_ON or getgenv().COL_OFF
+end)
+
+getgenv().SwitchTargetBtn.MouseButton1Click:Connect(function()
+    if getgenv().switchTarget then getgenv().switchTarget() end
+end)
+
 getgenv().startFollow = startFollow
 getgenv().stopFollow = stopFollow

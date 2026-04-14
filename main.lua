@@ -47,7 +47,37 @@ getgenv().destroyScript = function()
     if getgenv().ScreenGui then getgenv().ScreenGui:Destroy(); getgenv().ScreenGui = nil end
 end
 
--- 4. VERBATIM BACKGROUND LOOPS
+-- 4. SWITCH TARGET LOGIC
+getgenv().pushHistory = function(p)
+    if not p then return end
+    for i = #getgenv().targetHistory, 1, -1 do if getgenv().targetHistory[i] == p then table.remove(getgenv().targetHistory, i) end end
+    table.insert(getgenv().targetHistory, p)
+    while #getgenv().targetHistory > 2 do table.remove(getgenv().targetHistory, 1) end
+end
+
+getgenv().switchTarget = function()
+    if not getgenv().followEnabled then return end
+    local candidates = {}
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p ~= getgenv().followTarget and p.Character then
+            local hum = p.Character:FindFirstChildOfClass("Humanoid")
+            if hum and hum.Health > 0 then table.insert(candidates, p) end
+        end
+    end
+    if #candidates == 0 then return end
+    local inHistory = {}
+    for _, p in ipairs(getgenv().targetHistory) do inHistory[p] = true end
+    local chosen = nil
+    for _, p in ipairs(candidates) do if not inHistory[p] then chosen = p; break end end
+    if not chosen then chosen = candidates[1] end
+    getgenv().pushHistory(getgenv().followTarget)
+    if getgenv().stopFollow and getgenv().startFollow then
+        getgenv().startFollow(chosen)
+        if getgenv().Utils then getgenv().Utils:Notify("Follow", "Switched to " .. chosen.Name, Color3.fromRGB(80, 200, 255)) end
+    end
+end
+
+-- 5. VERBATIM BACKGROUND LOOPS
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -57,8 +87,13 @@ RunService.Heartbeat:Connect(function()
     if getgenv().updateSpeedLoop then getgenv().updateSpeedLoop() end
     if getgenv().updateESP then getgenv().updateESP() end
     if getgenv().applyHitboxExpansion then getgenv().applyHitboxExpansion() end
-    if getgenv().checkFlight then getgenv().checkFlight() end   -- NEW: RELIABILITY CHECK
-    if getgenv().updateFlight then getgenv().updateFlight() end -- WASD UPDATE
+    if getgenv().updateFlight then getgenv().updateFlight() end
+    
+    -- CLICK CHECK LINGER LOGIC
+    local now = os.clock()
+    if getgenv().leftMouseClicked then
+        getgenv().clickLingerUntil = 0
+    end
     
     if getgenv().deathCheckEnabled and getgenv().followEnabled and getgenv().followTarget then
         local targetDead = false
@@ -66,6 +101,16 @@ RunService.Heartbeat:Connect(function()
         else local hum = getgenv().followTarget.Character:FindFirstChildOfClass("Humanoid")
              if not hum or hum.Health <= 0 then targetDead = true end end
         if targetDead then if getgenv().autoSwitchEnabled then getgenv().switchTarget() else getgenv().stopFollow() end end
+    end
+end)
+
+-- 4. GUI TOGGLE (Shift + C)
+local UserInputService = game:GetService("UserInputService")
+UserInputService.InputBegan:Connect(function(input, processed)
+    if not processed and input.KeyCode == Enum.KeyCode.C and UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+        if getgenv().MainFrame then
+            getgenv().MainFrame.Visible = not getgenv().MainFrame.Visible
+        end
     end
 end)
 

@@ -2,7 +2,7 @@ local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
 
 -- [[ RAW UI CREATION - Migrated 1:1 from rb.lua ]]
--- This file handles VISUALS ONLY. Logic is in feature files.
+-- This file handles VISUALS. Logic is centralized in feature files.
 
 getgenv().ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "CheatGUI"; ScreenGui.Parent = CoreGui; ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling; ScreenGui.IgnoreGuiInset = true
@@ -60,6 +60,11 @@ getgenv().SaveButton         = makeBtn("SaveButton",         "Save Settings",   
 getgenv().NoDamageButton     = makeBtn("NoDamageButton",     "No Damage: OFF",  1, 8)
 getgenv().RejoinButton       = makeBtn("RejoinButton",       "Rejoin Server",   2, 8)
 getgenv().JoinInstanceButton = makeBtn("JoinInstanceButton", "Join Instance",   1, 9)
+
+local PAD, BH, GAP = 12, 28, 8
+local function rowY(r) return PAD + (r-1)*(BH+GAP) end
+getgenv().TipLabel = Instance.new("TextLabel"); TipLabel.Parent = ContentScroll; TipLabel.BackgroundTransparency = 1; TipLabel.Position = UDim2.new(0, 12, 0, rowY(10)); TipLabel.Size = UDim2.new(1, -24, 0, 20); TipLabel.Font = Enum.Font.Gotham; TipLabel.Text = "Ctrl+Click = Teleport | Right-click = Settings | Shift+C = Hide"; TipLabel.TextColor3 = getgenv().COL_MUTE; TipLabel.TextSize = 10; TipLabel.TextXAlignment = Enum.TextXAlignment.Center
+ContentScroll.CanvasSize = UDim2.new(0, 0, 0, rowY(10) + 30)
 
 local function makePanel(name, title, w, h)
     local f = Instance.new("Frame"); f.Name = name; f.Parent = ScreenGui; f.BackgroundColor3 = Color3.fromRGB(16, 16, 23); f.BorderSizePixel = 0; f.Position = UDim2.new(0.5, -w/2, 0.5, -h/2); f.Size = UDim2.new(0, w, 0, h); f.Visible = false; f.Active = true; f.Draggable = true; Instance.new("UICorner", f).CornerRadius = UDim.new(0, 8); local s = Instance.new("UIStroke", f); s.Color = Color3.fromRGB(38, 38, 54); s.Thickness = 1
@@ -127,3 +132,11 @@ getgenv().TogglePanel = function(target)
     for _, p in pairs(panels) do p.Visible = false end
     target.Visible = newState
 end
+
+-- Top Bar Logic
+getgenv().HideButton.MouseButton1Click:Connect(function()
+    getgenv().MainFrame.Visible = not getgenv().MainFrame.Visible
+end)
+getgenv().CloseButton.MouseButton1Click:Connect(function()
+    if getgenv().destroyScript then getgenv().destroyScript() end
+end)

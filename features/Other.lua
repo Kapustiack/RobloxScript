@@ -95,5 +95,38 @@ getgenv().InfiniteJumpButton.MouseButton1Click:Connect(function()
     else if getgenv().infiniteJumpConnection then getgenv().infiniteJumpConnection:Disconnect(); getgenv().infiniteJumpConnection = nil end end
 end)
 
+-- NO DAMAGE
+local function installNoDamageHook()
+    local ok, mt = pcall(getrawmetatable, game)
+    if not ok or not mt then return nil end
+    pcall(setreadonly, mt, false)
+    local old_ni = rawget(mt, "__newindex")
+    if not old_ni then pcall(setreadonly, mt, true); return nil end
+    local function hookedNewindex(self, key, value)
+        if getgenv().noDamageEnabled and getgenv().scriptEnabled and key == "Health" and typeof(self) == "Instance" and self:IsA("Humanoid") then
+            local myHum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if myHum and self == myHum and typeof(value) == "number" and value < myHum.MaxHealth then return old_ni(self, key, myHum.MaxHealth) end
+        end
+        return old_ni(self, key, value)
+    end
+    rawset(mt, "__newindex", (newcclosure and newcclosure(hookedNewindex)) or hookedNewindex)
+    pcall(setreadonly, mt, true)
+    return function() local ok2, mt2 = pcall(getrawmetatable, game); if ok2 and mt2 then pcall(setreadonly, mt2, false); rawset(mt2, "__newindex", old_ni); pcall(setreadonly, mt2, true) end end
+end
+
+getgenv().NoDamageButton.MouseButton1Click:Connect(function()
+    getgenv().noDamageEnabled = not getgenv().noDamageEnabled
+    getgenv().NoDamageButton.Text = "No Damage: " .. (getgenv().noDamageEnabled and "ON" or "OFF")
+    getgenv().NoDamageButton.BackgroundColor3 = getgenv().noDamageEnabled and getgenv().COL_ON or getgenv().COL_OFF
+    if getgenv().noDamageEnabled then
+        if not getgenv().noDamageRestoreFunc then getgenv().noDamageRestoreFunc = installNoDamageHook() end
+        if getgenv().noDamageLoop then getgenv().noDamageLoop:Disconnect() end
+        getgenv().noDamageLoop = RunService.Heartbeat:Connect(function() if getgenv().noDamageEnabled and getgenv().scriptEnabled then local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") if hum and hum.Health < hum.MaxHealth then hum.Health = hum.MaxHealth end end end)
+    else
+        if getgenv().noDamageLoop then getgenv().noDamageLoop:Disconnect(); getgenv().noDamageLoop = nil end
+        if getgenv().noDamageRestoreFunc then pcall(getgenv().noDamageRestoreFunc); getgenv().noDamageRestoreFunc = nil end
+    end
+end)
+
 getgenv().updateFlight = updateFlight
 getgenv().checkFlight = checkFlight

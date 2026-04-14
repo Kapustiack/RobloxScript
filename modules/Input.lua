@@ -63,9 +63,23 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- Teleport functionality (Ctrl+Click)
+-- Teleport functionality (Ctrl+Click) & Click Check
 Mouse.Button1Down:Connect(function()
     if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) and getgenv().Utils and getgenv().Utils.TeleportToMouse then
         getgenv().Utils.TeleportToMouse()
+        return
+    end
+    if getgenv().clickCheckEnabled and getgenv().followEnabled and getgenv().followTarget then
+        getgenv().leftMouseClicked = true
+        getgenv().clickLingerUntil = 0
+    end
+end)
+
+Mouse.Button1Up:Connect(function()
+    if getgenv().clickCheckEnabled and getgenv().leftMouseClicked then
+        getgenv().leftMouseClicked = false
+        getgenv().clickLingerUntil = os.clock() + 0.45
+    else
+        getgenv().leftMouseClicked = false
     end
 end)
