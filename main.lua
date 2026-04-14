@@ -1,5 +1,5 @@
 -- [[ RB MODULAR HUB - ABSOLUTE LITERAL RESTORATION ]]
--- This is the fixed loader that perfectly mirrors the original rb.lua.
+-- FIXED V2: Restored Sliders, Flight, and UI buttons.
 
 local baseUrl = "https://raw.githubusercontent.com/Kapustiak-maker/RobloxScript/main/"
 local function loadRemote(path)
@@ -15,6 +15,7 @@ loadRemote("modules/Utils.lua")
 loadRemote("modules/Hooks.lua")
 loadRemote("modules/State.lua")  -- Populates getgenv
 loadRemote("modules/UI.lua")     -- Creates GUI
+loadRemote("modules/Input.lua")  -- Handles Sliders & Teleport (NEW)
 
 -- 2. LOAD FEATURES (Contains verbatim connections)
 loadRemote("features/Hitbox.lua")
@@ -23,11 +24,42 @@ loadRemote("features/Follow.lua")
 loadRemote("features/ESP.lua")
 loadRemote("features/Speed.lua")
 loadRemote("features/Misc.lua")
-loadRemote("features/Other.lua")
+loadRemote("features/Other.lua") -- Contains Flight
 
--- 3. VERBATIM BACKGROUND LOOPS
--- Lines 2531 - 2666 in rb.lua
+-- 3. VERBATIM DESTROY SCRIPT logic
+-- Lines 1809 - 1843 in rb.lua
 
+getgenv().destroyScript = function()
+    getgenv().scriptEnabled = false
+    if getgenv().stopFollow then getgenv().stopFollow() end
+    if getgenv().disableReach then getgenv().disableReach() end
+    if getgenv().removeHitboxExpansion then getgenv().removeHitboxExpansion() end
+    
+    -- Feature Cleanups
+    if getgenv().disableFlight then getgenv().disableFlight() end
+    if getgenv().disableWallhack then getgenv().disableWallhack() end
+    if getgenv().disableSpeedhack then getgenv().disableSpeedhack() end
+    if getgenv().disableNoclip then getgenv().disableNoclip() end
+    if getgenv().disableInfiniteJump then getgenv().disableInfiniteJump() end
+    if getgenv().disableFullbright then getgenv().disableFullbright() end
+    if getgenv().disableFOVChanger then getgenv().disableFOVChanger() end
+    
+    -- Stop background loops
+    if getgenv().fullbrightLoop then getgenv().fullbrightLoop:Disconnect(); getgenv().fullbrightLoop = nil end
+    if getgenv().noDamageLoop then getgenv().noDamageLoop:Disconnect(); getgenv().noDamageLoop = nil end
+    
+    -- Metatable restoration
+    if getgenv().hitboxRestoreFunc then pcall(getgenv().hitboxRestoreFunc); getgenv().hitboxRestoreFunc = nil end
+    if getgenv().noDamageRestoreFunc then pcall(getgenv().noDamageRestoreFunc); getgenv().noDamageRestoreFunc = nil end
+    
+    -- Clear ESP
+    if getgenv().ESPContainer then getgenv().ESPContainer:Destroy(); getgenv().ESPContainer = nil end
+    
+    -- Destroy GUI
+    if getgenv().ScreenGui then getgenv().ScreenGui:Destroy(); getgenv().ScreenGui = nil end
+end
+
+-- 4. VERBATIM BACKGROUND LOOPS
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -37,6 +69,7 @@ RunService.Heartbeat:Connect(function()
     if getgenv().updateSpeedLoop then getgenv().updateSpeedLoop() end
     if getgenv().updateESP then getgenv().updateESP() end
     if getgenv().applyHitboxExpansion then getgenv().applyHitboxExpansion() end
+    if getgenv().updateFlight then getgenv().updateFlight() end -- ADDED FLIGHT LOOP
     
     -- Death Check logic
     if getgenv().deathCheckEnabled and getgenv().followEnabled and getgenv().followTarget then
@@ -64,7 +97,6 @@ RunService.RenderStepped:Connect(function(dt)
     local fpsCol = fpsInt >= 50 and Color3.fromRGB(60, 220, 100) or (fpsInt >= 30 and Color3.fromRGB(255, 165, 0) or Color3.fromRGB(220, 60, 60))
 
     if getgenv().HudLabel then
-        getgenv().HudLabel.RichText = true
         getgenv().HudLabel.Text = string.format(
             "<font color=\"#%02x%02x%02x\">FPS: %d</font> <font color=\"#606070\">|</font> <font color=\"#%02x%02x%02x\">%dms</font>",
             math.floor(fpsCol.R*255), math.floor(fpsCol.G*255), math.floor(fpsCol.B*255), fpsInt,
@@ -74,4 +106,6 @@ RunService.RenderStepped:Connect(function(dt)
 end)
 
 -- Finish
-getgenv().Utils:Notify("RB Hub", "ABSOLUTE RESTORATION - FIXED.", Color3.fromRGB(0, 200, 120))
+if getgenv().Utils and getgenv().Utils.Notify then
+    getgenv().Utils:Notify("RB Hub", "V2 RESTORED - SLIDERS/FLIGHT FIXED.", Color3.fromRGB(155, 89, 182))
+end

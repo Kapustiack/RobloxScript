@@ -2,7 +2,7 @@ local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
 
 -- [[ RAW UI CREATION - Migrated 1:1 from rb.lua ]]
--- Lines 76 - 413
+-- Lines 76 - 413 + Requested Flight Panel
 
 getgenv().ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "CheatGUI"; ScreenGui.Parent = CoreGui; ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling; ScreenGui.IgnoreGuiInset = true
@@ -12,7 +12,7 @@ local HudFrame = Instance.new("Frame")
 HudFrame.Name = "FPSPingHUD"; HudFrame.Parent = ScreenGui; HudFrame.Size = UDim2.new(0, 145, 0, 24); HudFrame.Position = UDim2.new(1, -153, 0, 8); HudFrame.BackgroundColor3 = Color3.fromRGB(9, 9, 15); HudFrame.BackgroundTransparency = 0.3; HudFrame.BorderSizePixel = 0
 Instance.new("UICorner", HudFrame).CornerRadius = UDim.new(1, 0)
 local HudStroke = Instance.new("UIStroke", HudFrame); HudStroke.Color = Color3.fromRGB(40, 40, 60); HudStroke.Thickness = 1
-getgenv().HudLabel = Instance.new("TextLabel"); HudLabel.Parent = HudFrame; HudLabel.BackgroundTransparency = 1; HudLabel.Size = UDim2.new(1, 0, 1, 0); HudLabel.Font = Enum.Font.GothamBold; HudLabel.TextSize = 11; HudLabel.TextColor3 = getgenv().COL_TXT; HudLabel.Text = "FPS: -- | Ping: --ms"; HudLabel.TextXAlignment = Enum.TextXAlignment.Center
+getgenv().HudLabel = Instance.new("TextLabel"); HudLabel.Parent = HudFrame; HudLabel.BackgroundTransparency = 1; HudLabel.Size = UDim2.new(1, 0, 1, 0); HudLabel.Font = Enum.Font.GothamBold; HudLabel.TextSize = 11; HudLabel.TextColor3 = getgenv().COL_TXT; HudLabel.RichText = true; HudLabel.TextXAlignment = Enum.TextXAlignment.Center
 
 -- Main Frame
 getgenv().MainFrame = Instance.new("Frame")
@@ -24,7 +24,7 @@ local Title = Instance.new("Frame")
 Title.Name = "Title"; Title.Parent = MainFrame; Title.BackgroundColor3 = getgenv().COL_BAR; Title.BorderSizePixel = 0; Title.Size = UDim2.new(1, 0, 0, 32); Instance.new("UICorner", Title).CornerRadius = UDim.new(0, 10)
 local TitleLabel = Instance.new("TextLabel"); TitleLabel.Parent = Title; TitleLabel.BackgroundTransparency = 1; TitleLabel.Size = UDim2.new(1, -58, 1, 0); TitleLabel.Position = UDim2.new(0, 10, 0, 0); TitleLabel.Font = Enum.Font.GothamBold; TitleLabel.Text = "RB Cheat · right-click = settings"; TitleLabel.TextColor3 = getgenv().COL_TXT; TitleLabel.TextSize = 11; TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-local HideButton = Instance.new("TextButton")
+getgenv().HideButton = Instance.new("TextButton")
 HideButton.Name = "HideButton"; HideButton.Parent = Title; HideButton.BackgroundColor3 = Color3.fromRGB(50, 50, 68); HideButton.BorderSizePixel = 0; HideButton.Position = UDim2.new(1, -50, 0.5, -9); HideButton.Size = UDim2.new(0, 18, 0, 18); HideButton.Font = Enum.Font.GothamBold; HideButton.Text = "-"; HideButton.TextColor3 = Color3.fromRGB(200, 200, 220); HideButton.TextSize = 16; Instance.new("UICorner", HideButton).CornerRadius = UDim.new(0, 4)
 
 getgenv().CloseButton = Instance.new("TextButton")
@@ -63,7 +63,6 @@ getgenv().JoinInstanceButton = makeBtn("JoinInstanceButton", "Join Instance",   
 
 local TipLabel = Instance.new("TextLabel"); TipLabel.Parent = ContentScroll; TipLabel.BackgroundTransparency = 1; TipLabel.Position = UDim2.new(0, 12, 0, (12 + (9-1)*(28+8)) + 28 + 6); TipLabel.Size = UDim2.new(1, -24, 0, 14); TipLabel.Font = Enum.Font.Gotham; TipLabel.Text = "Ctrl+Click = Teleport | Right-click = Settings | Shift+C = Hide"; TipLabel.TextColor3 = getgenv().COL_MUTE; TipLabel.TextSize = 10; TipLabel.TextXAlignment = Enum.TextXAlignment.Center
 
--- VERBATIM CANVAS MATH
 local PAD, BH, GAP = 12, 28, 8
 local function rowY(r) return PAD + (r-1)*(BH+GAP) end
 ContentScroll.CanvasSize = UDim2.new(0, 0, 0, rowY(9) + BH + 28)
@@ -125,3 +124,31 @@ getgenv().HitboxSettingsFrame = makePanel("HitboxSettingsFrame", "Hitbox Setting
 getgenv().HitboxSizeLabel     = pLabel(HitboxSettingsFrame, "HitboxSizeLabel",  "Hitbox Size: 10", 12, 40, 276, 24)
 getgenv().HitboxSizeSlider    = pSlider(HitboxSettingsFrame, "HitboxSizeSlider", 12, 72, 276)
 getgenv().HitboxVisualBtn     = pBtn(HitboxSettingsFrame, "HitboxVisualBtn", "Visual: ON",  12, 98, 130, 26)
+
+getgenv().FlightSettingsFrame = makePanel("FlightSettingsFrame", "Flight Settings", 300, 100)
+getgenv().FlightSpeedLabel    = pLabel(FlightSettingsFrame, "FlightSpeedLabel", "Flight Speed: 50", 12, 40, 276, 24)
+getgenv().FlightSpeedSlider   = pSlider(FlightSettingsFrame, "FlightSpeedSlider", 12, 74, 276)
+
+-- Main button connections
+getgenv().HideButton.MouseButton1Click:Connect(function()
+    getgenv().MainFrame.Visible = not getgenv().MainFrame.Visible
+end)
+getgenv().CloseButton.MouseButton1Click:Connect(function()
+    if getgenv().destroyScript then getgenv().destroyScript() end
+end)
+
+-- Panel toggle logic
+local function hideAll()
+    getgenv().ESPSettingsFrame.Visible = false; getgenv().SpeedSettingsFrame.Visible = false
+    getgenv().FOVSettingsFrame.Visible = false; getgenv().FollowSettingsFrame.Visible = false
+    getgenv().ReachSettingsFrame.Visible = false; getgenv().HitboxSettingsFrame.Visible = false
+    getgenv().FlightSettingsFrame.Visible = false
+end
+
+getgenv().ESPButton.MouseButton2Click:Connect(function() local v = not getgenv().ESPSettingsFrame.Visible; hideAll(); getgenv().ESPSettingsFrame.Visible = v end)
+getgenv().SpeedButton.MouseButton2Click:Connect(function() local v = not getgenv().SpeedSettingsFrame.Visible; hideAll(); getgenv().SpeedSettingsFrame.Visible = v end)
+getgenv().FOVButton.MouseButton2Click:Connect(function() local v = not getgenv().FOVSettingsFrame.Visible; hideAll(); getgenv().FOVSettingsFrame.Visible = v end)
+getgenv().FollowButton.MouseButton2Click:Connect(function() local v = not getgenv().FollowSettingsFrame.Visible; hideAll(); getgenv().FollowSettingsFrame.Visible = v end)
+getgenv().ReachButton.MouseButton2Click:Connect(function() local v = not getgenv().ReachSettingsFrame.Visible; hideAll(); getgenv().ReachSettingsFrame.Visible = v end)
+getgenv().HitboxButton.MouseButton2Click:Connect(function() local v = not getgenv().HitboxSettingsFrame.Visible; hideAll(); getgenv().HitboxSettingsFrame.Visible = v end)
+getgenv().FlightButton.MouseButton2Click:Connect(function() local v = not getgenv().FlightSettingsFrame.Visible; hideAll(); getgenv().FlightSettingsFrame.Visible = v end)

@@ -2,9 +2,56 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 
 -- [[ RAW OTHER LOGIC - Migrated 1:1 from rb.lua ]]
--- Lines 1809 - 1830 (Destroy), 904 - 937 (Noclip), 939 - 959 (InfJump), 961 - 1029 (NoDamage)
+-- Noclip (904-937), InfJump (939-959), NoDamage (961-1029), Flight (1458-1543)
+
+local function enableFlight()
+    if not getgenv().scriptEnabled then return end
+    local char = LocalPlayer.Character; if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    getgenv().flying = true; local hum = char:FindFirstChildOfClass("Humanoid")
+    if hum then hum.PlatformStand = true end
+    
+    getgenv().flyVelocity = Instance.new("BodyVelocity")
+    getgenv().flyVelocity.Name = "FlyVelocity"; getgenv().flyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    getgenv().flyVelocity.Velocity = Vector3.new(0, 0, 0); getgenv().flyVelocity.Parent = char.HumanoidRootPart
+    
+    getgenv().bodyGyro = Instance.new("BodyGyro")
+    getgenv().bodyGyro.Name = "FlyGyro"; getgenv().bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+    getgenv().bodyGyro.P = 10000; getgenv().bodyGyro.CFrame = char.HumanoidRootPart.CFrame; getgenv().bodyGyro.Parent = char.HumanoidRootPart
+end
+
+local function disableFlight()
+    getgenv().flying = false; local char = LocalPlayer.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        if getgenv().flyVelocity then getgenv().flyVelocity:Destroy(); getgenv().flyVelocity = nil end
+        if getgenv().bodyGyro then getgenv().bodyGyro:Destroy(); getgenv().bodyGyro = nil end
+        local hum = char:FindFirstChildOfClass("Humanoid"); if hum then hum.PlatformStand = false end
+    end
+end
+
+local function updateFlight()
+    if not getgenv().flying or not getgenv().scriptEnabled then return end
+    local char = LocalPlayer.Character; if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    if getgenv().flyVelocity and getgenv().bodyGyro then
+        local moveVector = Vector3.new(0, 0, 0)
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveVector = moveVector + Camera.CFrame.LookVector * getgenv().flightSpeed end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveVector = moveVector - Camera.CFrame.LookVector * getgenv().flightSpeed end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveVector = moveVector - Camera.CFrame.RightVector * getgenv().flightSpeed end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveVector = moveVector + Camera.CFrame.RightVector * getgenv().flightSpeed end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveVector = moveVector + Vector3.new(0, getgenv().flightSpeed, 0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveVector = moveVector - Vector3.new(0, getgenv().flightSpeed, 0) end
+        getgenv().flyVelocity.Velocity = moveVector; getgenv().bodyGyro.CFrame = Camera.CFrame
+    end
+end
+
+getgenv().FlightButton.MouseButton1Click:Connect(function()
+    if not getgenv().scriptEnabled then return end
+    getgenv().flightEnabled = not getgenv().flightEnabled
+    if getgenv().flightEnabled then getgenv().FlightButton.Text = "Flight: ON"; getgenv().FlightButton.BackgroundColor3 = getgenv().COL_ON; enableFlight()
+    else getgenv().FlightButton.Text = "Flight: OFF"; getgenv().FlightButton.BackgroundColor3 = getgenv().COL_OFF; disableFlight() end
+end)
 
 getgenv().NoclipButton.MouseButton1Click:Connect(function()
     if not getgenv().scriptEnabled then return end
@@ -45,7 +92,6 @@ local function installNoDamageHook()
     if not ok or not mt then return nil end
     pcall(setreadonly, mt, false); local old_ni = rawget(mt, "__newindex")
     if not old_ni then pcall(setreadonly, mt, true); return nil end
-
     local function hookedNewindex(self, key, value)
         if getgenv().noDamageEnabled and getgenv().scriptEnabled and key == "Health" and typeof(self) == "Instance" and self:IsA("Humanoid") then
             local char = LocalPlayer.Character; local myHum = char and char:FindFirstChildOfClass("Humanoid")
@@ -55,7 +101,7 @@ local function installNoDamageHook()
     end
     rawset(mt, "__newindex", (newcclosure and newcclosure(hookedNewindex)) or hookedNewindex)
     pcall(setreadonly, mt, true)
-    return function() local ok2, mt2 = pcall(getrawmetatable, game); if ok2 and mt2 then pcall(setreadonly, mt2, false); rawset(mt2, "__index", old_ni); pcall(setreadonly, mt2, true) end end
+    return function() local ok2, mt2 = pcall(getrawmetatable, game); if ok2 and mt2 then pcall(setreadonly, mt2, false); rawset(mt2, "__newindex", old_ni); pcall(setreadonly, mt2, true) end end
 end
 
 getgenv().NoDamageButton.MouseButton1Click:Connect(function()
@@ -75,3 +121,5 @@ getgenv().NoDamageButton.MouseButton1Click:Connect(function()
         if getgenv().noDamageRestoreFunc then pcall(getgenv().noDamageRestoreFunc); getgenv().noDamageRestoreFunc = nil end
     end
 end)
+
+getgenv().updateFlight = updateFlight

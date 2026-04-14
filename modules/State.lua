@@ -63,6 +63,16 @@ getgenv().noDamageLoop = nil
 getgenv().fullbrightLoop = nil
 getgenv().originalLightingSettings = { saved = false }
 
+-- Sliders dragging (NEW)
+getgenv().draggingESPDistance = false
+getgenv().draggingSpeed = false
+getgenv().draggingFOV = false
+getgenv().draggingFollowDistance = false
+getgenv().draggingFollowHeight = false
+getgenv().draggingReachDist = false
+getgenv().draggingHitboxSize = false
+getgenv().draggingFlightSpeed = false -- Extra for Requested flight settings
+
 -- UI Globals (Pre-assigned to nil)
 getgenv().ScreenGui = nil
 getgenv().MainFrame = nil
@@ -93,6 +103,7 @@ getgenv().FOVSettingsFrame = nil
 getgenv().FollowSettingsFrame = nil
 getgenv().ReachSettingsFrame = nil
 getgenv().HitboxSettingsFrame = nil
+getgenv().FlightSettingsFrame = nil -- NEW
 
 -- Colors
 getgenv().COL_BG   = Color3.fromRGB(13, 13, 20)
