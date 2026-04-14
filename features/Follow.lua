@@ -50,19 +50,41 @@ local function startFollow(targetPlayer)
     end)
 end
 
-getgenv().FollowButton.MouseButton1Click:Connect(function()
+-- Force-Binding: Switch to MouseButton1Down for Reliability
+getgenv().FollowButton.MouseButton1Down:Connect(function()
     if not getgenv().scriptEnabled then return end
-    if getgenv().followEnabled then stopFollow()
+    if getgenv().followEnabled then
+        stopFollow()
     else
-        local nearest = getgenv().Utils:FindNearestAlivePlayer(nil)
-            if nearest then
-                getgenv().followEnabled = true; getgenv().FollowButton.Text = "Follow: ON"; getgenv().FollowButton.BackgroundColor3 = getgenv().COL_ON
-                startFollow(nearest)
-            else
-                if getgenv().Utils and getgenv().Utils.Notify then
-                    getgenv().Utils:Notify("Follow", "No nearby player found.", Color3.fromRGB(220, 60, 60))
+        -- 1:1 Nearest Player Logic
+        local nearestPlayer = nil
+        local nearestDistance = math.huge
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                local character = LocalPlayer.Character
+                if character and character:FindFirstChild("HumanoidRootPart") then
+                    local distance = (player.Character.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude
+                    if distance < nearestDistance then
+                        nearestDistance = distance
+                        nearestPlayer = player
+                    end
                 end
             end
+        end
+
+        if nearestPlayer then
+            getgenv().followEnabled = true
+            getgenv().FollowButton.Text = "Follow: ON"
+            getgenv().FollowButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+            startFollow(nearestPlayer)
+            if getgenv().Utils and getgenv().Utils.Notify then
+                getgenv().Utils:Notify("Follow", "Now following " .. nearestPlayer.Name, Color3.fromRGB(0, 255, 0))
+            end
+        else
+            if getgenv().Utils and getgenv().Utils.Notify then
+                getgenv().Utils:Notify("Follow", "No nearby player found.", Color3.fromRGB(220, 60, 60))
+            end
+        end
     end
 end)
 

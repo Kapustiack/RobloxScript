@@ -1,5 +1,5 @@
 -- [[ RB MODULAR HUB - ABSOLUTE LITERAL RESTORATION ]]
--- FIXED V5: VERBOSE LOADING + RE-ORDERED CONNECTIVITY
+-- FIXED V6: CACHE-BUSTING + FORCE-CONNECT (MouseButton1Down)
 
 -- 0. CLEAN BOOT
 local lastGUI = game:GetService("CoreGui"):FindFirstChild("CheatGUI")
@@ -8,23 +8,28 @@ if getgenv().destroyScript then pcall(getgenv().destroyScript) end
 
 local baseUrl = "https://raw.githubusercontent.com/Kapustiak-maker/RobloxScript/main/"
 local function loadRemote(path)
-    local success, content = pcall(function() return game:HttpGet(baseUrl .. path) end)
+    -- CACHE BYPASSING: Add a unique timestamp to every request
+    local cacheBypass = "?t=" .. tostring(os.time()) .. tostring(math.random(1, 100000))
+    local success, content = pcall(function() return game:HttpGet(baseUrl .. path .. cacheBypass) end)
+    
     if not success or not content or content == "" then 
-        warn("[RB Hub] Failed to download: " .. path)
+        warn("[RB Hub] Download Error: " .. path)
         return nil 
     end
+    
     local func, err = loadstring(content)
     if not func then 
-        warn("[RB Hub] Syntax Error in " .. path .. ": " .. tostring(err))
+        warn("[RB Hub] Syntax Error: " .. path .. " | " .. tostring(err))
         return nil 
     end
+    
     local runSuccess, runErr = pcall(func)
     if not runSuccess then
-        warn("[RB Hub] Execution Error in " .. path .. ": " .. tostring(runErr))
+        warn("[RB Hub] Execution Error: " .. path .. " | " .. tostring(runErr))
     end
 end
 
--- 3. VERBATIM DESTROY SCRIPT logic
+-- 3. VERBATIM DESTROY SCRIPT
 getgenv().destroyScript = function()
     getgenv().scriptEnabled = false
     if getgenv().stopFollow then getgenv().stopFollow() end
@@ -45,14 +50,14 @@ getgenv().destroyScript = function()
     if getgenv().ScreenGui then getgenv().ScreenGui:Destroy(); getgenv().ScreenGui = nil end
 end
 
--- 1. LOAD CORE COMPONENETS
+-- 1. LOAD COMPONENTS
 loadRemote("modules/Utils.lua")
 loadRemote("modules/Hooks.lua")
 loadRemote("modules/State.lua")
 loadRemote("modules/UI.lua")
 loadRemote("modules/Input.lua")
 
--- 2. LOAD FEATURES (Contains verbatim connections)
+-- 2. LOAD FEATURES
 loadRemote("features/Hitbox.lua")
 loadRemote("features/Reach.lua")
 loadRemote("features/Follow.lua")
@@ -91,17 +96,20 @@ getgenv().switchTarget = function()
     end
 end
 
--- 5. BUTTON CONNECTIONS (FORCE FINAL)
-if getgenv().HideButton then
-    getgenv().HideButton.MouseButton1Click:Connect(function()
+-- 5. BUTTON CONNECTIONS (FORCE FINAL - MouseButton1Down for Reliability)
+task.spawn(function()
+    while task.wait(0.1) do
+        if getgenv().HideButton and getgenv().CloseButton then break end
+    end
+    
+    getgenv().HideButton.MouseButton1Down:Connect(function()
         if getgenv().MainFrame then getgenv().MainFrame.Visible = not getgenv().MainFrame.Visible end
     end)
-end
-if getgenv().CloseButton then
-    getgenv().CloseButton.MouseButton1Click:Connect(function()
+    
+    getgenv().CloseButton.MouseButton1Down:Connect(function()
         if getgenv().destroyScript then getgenv().destroyScript() end
     end)
-end
+end)
 
 -- 6. BACKGROUND LOOPS
 local RunService = game:GetService("RunService")
@@ -136,7 +144,7 @@ end)
 
 RunService.RenderStepped:Connect(function(dt)
     if not getgenv().scriptEnabled then return end
-    local rawFPS = dt > 0 and (1 / dt) or getgenv().smoothFPS
+    local rawFPS = dt > 0 and (1 / dt) or 1
     getgenv().smoothFPS = getgenv().smoothFPS * 0.9 + rawFPS * 0.1
     local fpsInt = math.floor(getgenv().smoothFPS + 0.5)
     local now = os.clock()
@@ -152,5 +160,5 @@ RunService.RenderStepped:Connect(function(dt)
 end)
 
 if getgenv().Utils and getgenv().Utils.Notify then
-    getgenv().Utils:Notify("RB Hub", "Ready. Hotkey: Shift + C", Color3.fromRGB(13, 110, 253))
+    getgenv().Utils:Notify("RB Hub", "V6 Loaded. Cache Bypassed.", Color3.fromRGB(13, 110, 253))
 end
