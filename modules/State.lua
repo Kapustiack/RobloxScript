@@ -1,5 +1,5 @@
--- [[ RB GLOBAL STATE & VARIABLES - LITERAL 1:1 ]]
--- Migrated from rb.lua (All variables found in the script)
+-- [[ RB GLOBAL STATE - ABSOLUTE 1:1 RESTORATION ]]
+-- Migrated from rb.lua (All constants, variables, and toggles)
 
 getgenv().scriptEnabled = true
 getgenv().flightEnabled = false
@@ -20,7 +20,7 @@ getgenv().reachEnabled = false
 getgenv().hitboxEnabled = false
 getgenv().noDamageEnabled = false
 
--- Feature settings
+-- Settings & Limits
 getgenv().followDistance = 5
 getgenv().followHeight = 0
 getgenv().followTarget = nil
@@ -38,14 +38,13 @@ getgenv().walkSpeed = 16
 getgenv().jumpPower = 50
 getgenv().speedMultiplier = 1
 getgenv().currentFOV = 70
+getgenv().defaultFOV = 70
 
--- Flight internals
+-- Internals (Flight / Loops / Display)
 getgenv().flightSpeed = 50
 getgenv().flying = false
 getgenv().flyVelocity = nil
 getgenv().bodyGyro = nil
-
--- Loop & Display internals
 getgenv().smoothFPS = 60
 getgenv().lastPingMs = 0
 getgenv().nextPingTime = 0
@@ -59,4 +58,47 @@ getgenv().reachActivatedConn = nil
 getgenv().reachToolWatcher = nil
 getgenv().hitboxAdornments = {}
 getgenv().hitboxRestoreFunc = nil
-getgenv().originalLightingSettings = {}
+getgenv().noDamageRestoreFunc = nil
+getgenv().noDamageLoop = nil
+getgenv().fullbrightLoop = nil
+getgenv().originalLightingSettings = { saved = false }
+
+-- UI Globals (Pre-assigned to nil)
+getgenv().ScreenGui = nil
+getgenv().MainFrame = nil
+getgenv().ContentScroll = nil
+getgenv().HudLabel = nil
+getgenv().FlightButton = nil
+getgenv().WallhackButton = nil
+getgenv().ESPButton = nil
+getgenv().SpeedButton = nil
+getgenv().NoclipButton = nil
+getgenv().InfiniteJumpButton = nil
+getgenv().FullbrightButton = nil
+getgenv().FOVButton = nil
+getgenv().ShiftLockButton = nil
+getgenv().CtrlLockButton = nil
+getgenv().FollowButton = nil
+getgenv().HitboxButton = nil
+getgenv().ReachButton = nil
+getgenv().SaveButton = nil
+getgenv().NoDamageButton = nil
+getgenv().RejoinButton = nil
+getgenv().JoinInstanceButton = nil
+
+-- UI Settings panels
+getgenv().ESPSettingsFrame = nil
+getgenv().SpeedSettingsFrame = nil
+getgenv().FOVSettingsFrame = nil
+getgenv().FollowSettingsFrame = nil
+getgenv().ReachSettingsFrame = nil
+getgenv().HitboxSettingsFrame = nil
+
+-- Colors
+getgenv().COL_BG   = Color3.fromRGB(13, 13, 20)
+getgenv().COL_BAR  = Color3.fromRGB(9,  9, 15)
+getgenv().COL_OFF  = Color3.fromRGB(30, 30, 44)
+getgenv().COL_ON   = Color3.fromRGB(25, 145, 80)
+getgenv().COL_TXT  = Color3.fromRGB(205, 205, 222)
+getgenv().COL_MUTE = Color3.fromRGB(80, 80, 100)
+getgenv().COL_CLO  = Color3.fromRGB(155, 32, 46)

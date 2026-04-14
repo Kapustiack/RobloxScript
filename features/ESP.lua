@@ -1,65 +1,50 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 
 -- [[ RAW ESP LOGIC - Migrated 1:1 from rb.lua ]]
--- Lines 1403 - 1570, 2310 - 2338, 2699 - 2723
+-- Lines 1226 - 1570
 
 getgenv().ESPContainer = Instance.new("Folder")
 getgenv().ESPContainer.Name = "ESPContainer"; getgenv().ESPContainer.Parent = getgenv().ScreenGui
 
-local function clearESP()
-    for _, item in pairs(getgenv().ESPContainer:GetChildren()) do item:Destroy() end
-end
-
 local function createESP(player)
-    if not getgenv().espEnabled or not getgenv().scriptEnabled or player == LocalPlayer then return end
-    local char = player.Character
-    if not char then return end
-    local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
+    if not getgenv().espEnabled or not getgenv().scriptEnabled then return end
+    local char = player.Character; if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    
+    local box = getgenv().ESPContainer:FindFirstChild(player.Name .. "_Box") or Instance.new("BoxHandleAdornment")
+    box.Name = player.Name .. "_Box"; box.Parent = getgenv().ESPContainer; box.Size = Vector3.new(4, 5, 2); box.Color3 = Color3.fromRGB(255, 0, 0); box.Transparency = 0.7; box.AlwaysOnTop = true; box.ZIndex = 10; box.Adornee = char.HumanoidRootPart; box.Visible = getgenv().espShowBoxes and not getgenv().espUse2DBoxes
 
-    if getgenv().espShowBoxes and not getgenv().espUse2DBoxes then
-        local box = Instance.new("BoxHandleAdornment")
-        box.Name = "ESP_Box_" .. player.Name
-        box.Size = char:GetExtentsSize()
-        box.AlwaysOnTop = true; box.ZIndex = 5; box.Transparency = 0.6; box.Color3 = Color3.fromRGB(255, 255, 255); box.Adornee = hrp; box.Parent = getgenv().ESPContainer
-    end
-
-    local textGui = Instance.new("BillboardGui")
-    textGui.Name = "ESP_Text_" .. player.Name
-    textGui.AlwaysOnTop = true; textGui.Size = UDim2.new(0, 200, 0, 50); textGui.Adornee = hrp; textGui.Parent = getgenv().ESPContainer
-    local label = Instance.new("TextLabel")
-    label.BackgroundTransparency = 1; label.Size = UDim2.new(1, 0, 1, 0); label.Font = Enum.Font.GothamBold; label.TextColor3 = Color3.new(1, 1, 1); label.TextSize = 14; label.Parent = textGui
+    local textGui = getgenv().ScreenGui:FindFirstChild(player.Name .. "_ESPText") or Instance.new("BillboardGui")
+    textGui.Name = player.Name .. "_ESPText"; textGui.AlwaysOnTop = true; textGui.Size = UDim2.new(0, 200, 0, 50); textGui.Adornee = char.HumanoidRootPart; textGui.Parent = getgenv().ScreenGui
+    local label = textGui:FindFirstChildOfClass("TextLabel") or Instance.new("TextLabel")
+    label.BackgroundTransparency = 1; label.Size = UDim2.new(1, 0, 1, 0); label.Font = Enum.Font.GothamBold; label.TextColor3 = Color3.new(1, 1, 1); label.TextSize = 13; label.Parent = textGui
 end
 
 local function updateESP()
-    if not getgenv().espEnabled or not getgenv().scriptEnabled then return end
-    local myChar = LocalPlayer.Character
-    if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then return end
-
+    if not getgenv().espEnabled or not getgenv().scriptEnabled then 
+        for _, v in pairs(getgenv().ESPContainer:GetChildren()) do v:Destroy() end
+        return 
+    end
     for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character then
-            local hrp = player.Character:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                local d = (hrp.Position - myChar.HumanoidRootPart.Position).Magnitude
-                if d <= getgenv().espDrawDistance then
-                    local gui = getgenv().ESPContainer:FindFirstChild("ESP_Text_" .. player.Name)
-                    if not gui then createESP(player); gui = getgenv().ESPContainer:FindFirstChild("ESP_Text_" .. player.Name) end
-                    if gui then
-                        local l = gui:FindFirstChildOfClass("TextLabel")
-                        if l then
-                            local s = ""
-                            if getgenv().espShowNames then s = player.Name end
-                            if getgenv().espShowDistance then s = s .. (s == "" and "" or " ") .. "[" .. math.floor(d) .. "m]" end
-                            l.Text = s
-                        end
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = player.Character.HumanoidRootPart
+            local dist = (hrp.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+            if dist <= getgenv().espDrawDistance then
+                createESP(player)
+                local gui = getgenv().ScreenGui:FindFirstChild(player.Name .. "_ESPText")
+                if gui then
+                    local l = gui:FindFirstChildOfClass("TextLabel")
+                    if l then
+                        local str = ""
+                        if getgenv().espShowNames then str = player.Name end
+                        if getgenv().espShowDistance then str = str .. (str=="" and "" or " ") .. "[" .. math.floor(dist) .. "m]" end
+                        l.Text = str
                     end
-                else
-                    local gui = getgenv().ESPContainer:FindFirstChild("ESP_Text_" .. player.Name)
-                    if gui then gui:Destroy() end
-                    local box = getgenv().ESPContainer:FindFirstChild("ESP_Box_" .. player.Name)
-                    if box then box:Destroy() end
                 end
+            else
+                local b = getgenv().ESPContainer:FindFirstChild(player.Name .. "_Box"); if b then b:Destroy() end
+                local g = getgenv().ScreenGui:FindFirstChild(player.Name .. "_ESPText"); if g then g:Destroy() end
             end
         end
     end
@@ -69,7 +54,7 @@ getgenv().ESPButton.MouseButton1Click:Connect(function()
     getgenv().espEnabled = not getgenv().espEnabled
     getgenv().ESPButton.Text = "ESP: " .. (getgenv().espEnabled and "ON" or "OFF")
     getgenv().ESPButton.BackgroundColor3 = getgenv().espEnabled and getgenv().COL_ON or getgenv().COL_OFF
-    if not getgenv().espEnabled then clearESP() end
+    if not getgenv().espEnabled then for _, v in pairs(getgenv().ESPContainer:GetChildren()) do v:Destroy() end end
 end)
 
 getgenv().ESPButton.MouseButton2Click:Connect(function()
@@ -82,24 +67,5 @@ getgenv().ESPShowNamesBtn.MouseButton1Click:Connect(function()
     getgenv().ESPShowNamesBtn.BackgroundColor3 = getgenv().espShowNames and getgenv().COL_ON or getgenv().COL_OFF
 end)
 
-getgenv().ESPShowDistBtn.MouseButton1Click:Connect(function()
-    getgenv().espShowDistance = not getgenv().espShowDistance
-    getgenv().ESPShowDistBtn.Text = "Distance: " .. (getgenv().espShowDistance and "ON" or "OFF")
-    getgenv().ESPShowDistBtn.BackgroundColor3 = getgenv().espShowDistance and getgenv().COL_ON or getgenv().COL_OFF
-end)
-
-getgenv().ESPShowBoxesBtn.MouseButton1Click:Connect(function()
-    getgenv().espShowBoxes = not getgenv().espShowBoxes
-    getgenv().ESPShowBoxesBtn.Text = "3D Boxes: " .. (getgenv().espShowBoxes and "ON" or "OFF")
-    getgenv().ESPShowBoxesBtn.BackgroundColor3 = getgenv().espShowBoxes and getgenv().COL_ON or getgenv().COL_OFF
-end)
-
-getgenv().ESP2DBoxesBtn.MouseButton1Click:Connect(function()
-    getgenv().espUse2DBoxes = not getgenv().espUse2DBoxes
-    getgenv().ESP2DBoxesBtn.Text = "2D Boxes: " .. (getgenv().espUse2DBoxes and "ON" or "OFF")
-    getgenv().ESP2DBoxesBtn.BackgroundColor3 = getgenv().espUse2DBoxes and getgenv().COL_ON or getgenv().COL_OFF
-end)
-
-getgenv().clearESP = clearESP
-getgenv().createESP = createESP
 getgenv().updateESP = updateESP
+getgenv().createESP = createESP

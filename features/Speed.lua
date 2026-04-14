@@ -1,7 +1,7 @@
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
 -- [[ RAW SPEED LOGIC - Migrated 1:1 from rb.lua ]]
--- Lines 1269 - 1301, 1984 - 2011, 2300 - 2308 (part), 2536 - 2550
+-- Lines 1545 - 1564, 2537 - 2550
 
 local function updateSpeed()
     if not getgenv().scriptEnabled then return end
@@ -23,13 +23,10 @@ getgenv().SpeedButton.MouseButton1Click:Connect(function()
     if not getgenv().scriptEnabled then return end
     getgenv().speedhackEnabled = not getgenv().speedhackEnabled
     if getgenv().speedhackEnabled then
-        getgenv().SpeedButton.Text = "Speed: ON"
-        getgenv().SpeedButton.BackgroundColor3 = getgenv().COL_ON
+        getgenv().SpeedButton.Text = "Speed: ON"; getgenv().SpeedButton.BackgroundColor3 = getgenv().COL_ON
     else
-        getgenv().SpeedButton.Text = "Speed: OFF"
-        getgenv().SpeedButton.BackgroundColor3 = getgenv().COL_OFF
-        local char = LocalPlayer.Character
-        if char then local hum = char:FindFirstChildOfClass("Humanoid") if hum then hum.WalkSpeed = getgenv().walkSpeed; hum.JumpPower = getgenv().jumpPower end end
+        getgenv().SpeedButton.Text = "Speed: OFF"; getgenv().SpeedButton.BackgroundColor3 = getgenv().COL_OFF
+        local char = LocalPlayer.Character; if char then local hum = char:FindFirstChildOfClass("Humanoid") if hum then hum.WalkSpeed = getgenv().walkSpeed; hum.JumpPower = getgenv().jumpPower end end
     end
 end)
 
