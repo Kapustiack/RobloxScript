@@ -133,10 +133,4 @@ getgenv().TogglePanel = function(target)
     target.Visible = newState
 end
 
--- Top Bar Logic
-getgenv().HideButton.MouseButton1Click:Connect(function()
-    getgenv().MainFrame.Visible = not getgenv().MainFrame.Visible
-end)
-getgenv().CloseButton.MouseButton1Click:Connect(function()
-    if getgenv().destroyScript then getgenv().destroyScript() end
-end)
+-- Logic is now handled in main.lua to ensure global state availability

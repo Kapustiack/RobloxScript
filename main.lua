@@ -1,7 +1,7 @@
 -- [[ RB MODULAR HUB - ABSOLUTE LITERAL RESTORATION ]]
--- FIXED V4: UI RELIABILITY (CLEAN BOOT) + FOLLOW FEEDBACK
+-- FIXED V5: VERBOSE LOADING + RE-ORDERED CONNECTIVITY
 
--- 0. CLEAN BOOT (Destroy old instances before starting)
+-- 0. CLEAN BOOT
 local lastGUI = game:GetService("CoreGui"):FindFirstChild("CheatGUI")
 if lastGUI then lastGUI:Destroy() end
 if getgenv().destroyScript then pcall(getgenv().destroyScript) end
@@ -9,13 +9,22 @@ if getgenv().destroyScript then pcall(getgenv().destroyScript) end
 local baseUrl = "https://raw.githubusercontent.com/Kapustiak-maker/RobloxScript/main/"
 local function loadRemote(path)
     local success, content = pcall(function() return game:HttpGet(baseUrl .. path) end)
-    if not success or not content or content == "" then return nil end
+    if not success or not content or content == "" then 
+        warn("[RB Hub] Failed to download: " .. path)
+        return nil 
+    end
     local func, err = loadstring(content)
-    if not func then return nil end
-    pcall(func)
+    if not func then 
+        warn("[RB Hub] Syntax Error in " .. path .. ": " .. tostring(err))
+        return nil 
+    end
+    local runSuccess, runErr = pcall(func)
+    if not runSuccess then
+        warn("[RB Hub] Execution Error in " .. path .. ": " .. tostring(runErr))
+    end
 end
 
--- 3. VERBATIM DESTROY SCRIPT logic (Define early so UI can bind to it)
+-- 3. VERBATIM DESTROY SCRIPT logic
 getgenv().destroyScript = function()
     getgenv().scriptEnabled = false
     if getgenv().stopFollow then getgenv().stopFollow() end
@@ -39,9 +48,9 @@ end
 -- 1. LOAD CORE COMPONENETS
 loadRemote("modules/Utils.lua")
 loadRemote("modules/Hooks.lua")
-loadRemote("modules/State.lua")  -- Populates getgenv
-loadRemote("modules/UI.lua")     -- Creates GUI
-loadRemote("modules/Input.lua")  -- Handles Sliders & Teleport
+loadRemote("modules/State.lua")
+loadRemote("modules/UI.lua")
+loadRemote("modules/Input.lua")
 
 -- 2. LOAD FEATURES (Contains verbatim connections)
 loadRemote("features/Hitbox.lua")
@@ -50,9 +59,9 @@ loadRemote("features/Follow.lua")
 loadRemote("features/ESP.lua")
 loadRemote("features/Speed.lua")
 loadRemote("features/Misc.lua")
-loadRemote("features/Other.lua") -- Contains Flight
+loadRemote("features/Other.lua")
 
--- 4. SWITCH TARGET LOGIC
+-- 4. LOGIC COORDINATION
 getgenv().pushHistory = function(p)
     if not p then return end
     for i = #getgenv().targetHistory, 1, -1 do if getgenv().targetHistory[i] == p then table.remove(getgenv().targetHistory, i) end end
@@ -82,7 +91,19 @@ getgenv().switchTarget = function()
     end
 end
 
--- 5. VERBATIM BACKGROUND LOOPS
+-- 5. BUTTON CONNECTIONS (FORCE FINAL)
+if getgenv().HideButton then
+    getgenv().HideButton.MouseButton1Click:Connect(function()
+        if getgenv().MainFrame then getgenv().MainFrame.Visible = not getgenv().MainFrame.Visible end
+    end)
+end
+if getgenv().CloseButton then
+    getgenv().CloseButton.MouseButton1Click:Connect(function()
+        if getgenv().destroyScript then getgenv().destroyScript() end
+    end)
+end
+
+-- 6. BACKGROUND LOOPS
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -94,11 +115,8 @@ RunService.Heartbeat:Connect(function()
     if getgenv().applyHitboxExpansion then getgenv().applyHitboxExpansion() end
     if getgenv().updateFlight then getgenv().updateFlight() end
     
-    -- CLICK CHECK LINGER LOGIC
     local now = os.clock()
-    if getgenv().leftMouseClicked then
-        getgenv().clickLingerUntil = 0
-    end
+    if getgenv().leftMouseClicked then getgenv().clickLingerUntil = 0 end
     
     if getgenv().deathCheckEnabled and getgenv().followEnabled and getgenv().followTarget then
         local targetDead = false
@@ -109,13 +127,10 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- 6. GUI TOGGLE (Shift + C)
 local UserInputService = game:GetService("UserInputService")
 UserInputService.InputBegan:Connect(function(input, processed)
     if not processed and input.KeyCode == Enum.KeyCode.C and UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-        if getgenv().MainFrame then
-            getgenv().MainFrame.Visible = not getgenv().MainFrame.Visible
-        end
+        if getgenv().MainFrame then getgenv().MainFrame.Visible = not getgenv().MainFrame.Visible end
     end
 end)
 
@@ -132,11 +147,7 @@ RunService.RenderStepped:Connect(function(dt)
     local pingCol = getgenv().lastPingMs < 80 and Color3.fromRGB(60, 220, 100) or (getgenv().lastPingMs < 150 and Color3.fromRGB(255, 165, 0) or Color3.fromRGB(220, 60, 60))
     local fpsCol = fpsInt >= 50 and Color3.fromRGB(60, 220, 100) or (fpsInt >= 30 and Color3.fromRGB(255, 165, 0) or Color3.fromRGB(220, 60, 60))
     if getgenv().HudLabel then
-        getgenv().HudLabel.Text = string.format(
-            "<font color=\"#%02x%02x%02x\">FPS: %d</font> <font color=\"#606070\">|</font> <font color=\"#%02x%02x%02x\">%dms</font>",
-            math.floor(fpsCol.R*255), math.floor(fpsCol.G*255), math.floor(fpsCol.B*255), fpsInt,
-            math.floor(pingCol.R*255), math.floor(pingCol.G*255), math.floor(pingCol.B*255), getgenv().lastPingMs
-        )
+        getgenv().HudLabel.Text = string.format("<font color=\"#%02x%02x%02x\">FPS: %d</font> <font color=\"#606070\">|</font> <font color=\"#%02x%02x%02x\">%dms</font>", math.floor(fpsCol.R*255), math.floor(fpsCol.G*255), math.floor(fpsCol.B*255), fpsInt, math.floor(pingCol.R*255), math.floor(pingCol.G*255), math.floor(pingCol.B*255), getgenv().lastPingMs)
     end
 end)
 
