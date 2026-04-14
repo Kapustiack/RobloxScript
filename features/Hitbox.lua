@@ -93,7 +93,7 @@ getgenv().HitboxButton.MouseButton1Click:Connect(function()
 end)
 
 getgenv().HitboxButton.MouseButton2Click:Connect(function()
-    getgenv().HitboxSettingsFrame.Visible = not getgenv().HitboxSettingsFrame.Visible
+    if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().HitboxSettingsFrame) end
 end)
 
 getgenv().HitboxVisualBtn.MouseButton1Click:Connect(function()

@@ -31,7 +31,7 @@ getgenv().SpeedButton.MouseButton1Click:Connect(function()
 end)
 
 getgenv().SpeedButton.MouseButton2Click:Connect(function()
-    getgenv().SpeedSettingsFrame.Visible = not getgenv().SpeedSettingsFrame.Visible
+    if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().SpeedSettingsFrame) end
 end)
 
 getgenv().updateSpeedLoop = updateSpeed

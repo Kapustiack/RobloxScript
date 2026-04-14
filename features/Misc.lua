@@ -54,4 +54,6 @@ UserInputService.InputBegan:Connect(function(input, processed)
     end
 end)
 
-getgenv().FOVButton.MouseButton2Click:Connect(function() getgenv().FOVSettingsFrame.Visible = not getgenv().FOVSettingsFrame.Visible end)
+getgenv().FOVButton.MouseButton2Click:Connect(function()
+    if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().FOVSettingsFrame) end
+end)

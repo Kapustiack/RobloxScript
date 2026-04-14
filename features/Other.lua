@@ -70,6 +70,10 @@ getgenv().FlightButton.MouseButton1Click:Connect(function()
     end
 end)
 
+getgenv().FlightButton.MouseButton2Click:Connect(function()
+    if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().FlightSettingsFrame) end
+end)
+
 -- InfJump & Noclip restoration (already 1:1 in prev step)
 getgenv().NoclipButton.MouseButton1Click:Connect(function()
     getgenv().noclipEnabled = not getgenv().noclipEnabled

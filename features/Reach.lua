@@ -66,7 +66,7 @@ getgenv().ReachButton.MouseButton1Click:Connect(function()
 end)
 
 getgenv().ReachButton.MouseButton2Click:Connect(function()
-    getgenv().ReachSettingsFrame.Visible = not getgenv().ReachSettingsFrame.Visible
+    if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().ReachSettingsFrame) end
 end)
 
 getgenv().ReachVisualBtn.MouseButton1Click:Connect(function()

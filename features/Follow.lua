@@ -63,7 +63,7 @@ getgenv().FollowButton.MouseButton1Click:Connect(function()
 end)
 
 getgenv().FollowButton.MouseButton2Click:Connect(function()
-    getgenv().FollowSettingsFrame.Visible = not getgenv().FollowSettingsFrame.Visible
+    if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().FollowSettingsFrame) end
 end)
 
 getgenv().DeathCheckBtn.MouseButton1Click:Connect(function()

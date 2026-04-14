@@ -2,7 +2,7 @@ local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
 
 -- [[ RAW UI CREATION - Migrated 1:1 from rb.lua ]]
--- Lines 76 - 413 + Requested Flight Panel
+-- This file handles VISUALS ONLY. Logic is in feature files.
 
 getgenv().ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "CheatGUI"; ScreenGui.Parent = CoreGui; ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling; ScreenGui.IgnoreGuiInset = true
@@ -16,7 +16,7 @@ getgenv().HudLabel = Instance.new("TextLabel"); HudLabel.Parent = HudFrame; HudL
 
 -- Main Frame
 getgenv().MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"; MainFrame.Parent = ScreenGui; MainFrame.BackgroundColor3 = getgenv().COL_BG; MainFrame.BorderSizePixel = 0; MainFrame.Position = UDim2.new(0, 18, 0.5, -190); MainFrame.Size = UDim2.new(0, 380, 0, 100); MainFrame.Active = true; MainFrame.Draggable = true
+MainFrame.Name = "MainFrame"; MainFrame.Parent = ScreenGui; MainFrame.BackgroundColor3 = getgenv().COL_BG; MainFrame.BorderSizePixel = 0; MainFrame.Position = UDim2.new(0, 18, 0.5, -190); MainFrame.Size = UDim2.new(0, 380, 0, 226); MainFrame.Active = true; MainFrame.Draggable = true
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 local MStroke = Instance.new("UIStroke", MainFrame); MStroke.Color = Color3.fromRGB(40, 40, 56); MStroke.Thickness = 1
 
@@ -31,7 +31,7 @@ getgenv().CloseButton = Instance.new("TextButton")
 CloseButton.Name = "CloseButton"; CloseButton.Parent = Title; CloseButton.BackgroundColor3 = getgenv().COL_CLO; CloseButton.BorderSizePixel = 0; CloseButton.Position = UDim2.new(1, -26, 0.5, -9); CloseButton.Size = UDim2.new(0, 18, 0, 18); CloseButton.Font = Enum.Font.GothamBold; CloseButton.Text = "X"; CloseButton.TextColor3 = Color3.new(1,1,1); CloseButton.TextSize = 11; Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(0, 4)
 
 getgenv().ContentScroll = Instance.new("ScrollingFrame")
-ContentScroll.Name = "ContentScroll"; ContentScroll.Parent = MainFrame; ContentScroll.BackgroundTransparency = 1; ContentScroll.BorderSizePixel = 0; ContentScroll.Position = UDim2.new(0, 0, 0, 32); ContentScroll.Size = UDim2.new(1, 0, 1, -32); ContentScroll.ScrollBarThickness = 3; ContentScroll.ScrollBarImageColor3 = getgenv().COL_MUTE; ContentScroll.ScrollingDirection = Enum.ScrollingDirection.Y; ContentScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+ContentScroll.Name = "ContentScroll"; ContentScroll.Parent = MainFrame; ContentScroll.BackgroundTransparency = 1; ContentScroll.BorderSizePixel = 0; ContentScroll.Position = UDim2.new(0, 0, 0, 32); ContentScroll.Size = UDim2.new(1, 0, 1, -32); ContentScroll.ScrollBarThickness = 3; ContentScroll.ScrollBarImageColor3 = getgenv().COL_MUTE; ContentScroll.ScrollingDirection = Enum.ScrollingDirection.Y; ContentScroll.CanvasSize = UDim2.new(0, 0, 0, 400)
 
 local function makeBtn(n, t, c, r)
     local PAD, BH, BW, GAP = 12, 28, (380 - 12*2 - 8) / 2, 8
@@ -61,14 +61,6 @@ getgenv().NoDamageButton     = makeBtn("NoDamageButton",     "No Damage: OFF",  
 getgenv().RejoinButton       = makeBtn("RejoinButton",       "Rejoin Server",   2, 8)
 getgenv().JoinInstanceButton = makeBtn("JoinInstanceButton", "Join Instance",   1, 9)
 
-local TipLabel = Instance.new("TextLabel"); TipLabel.Parent = ContentScroll; TipLabel.BackgroundTransparency = 1; TipLabel.Position = UDim2.new(0, 12, 0, (12 + (9-1)*(28+8)) + 28 + 6); TipLabel.Size = UDim2.new(1, -24, 0, 14); TipLabel.Font = Enum.Font.Gotham; TipLabel.Text = "Ctrl+Click = Teleport | Right-click = Settings | Shift+C = Hide"; TipLabel.TextColor3 = getgenv().COL_MUTE; TipLabel.TextSize = 10; TipLabel.TextXAlignment = Enum.TextXAlignment.Center
-
-local PAD, BH, GAP = 12, 28, 8
-local function rowY(r) return PAD + (r-1)*(BH+GAP) end
-ContentScroll.CanvasSize = UDim2.new(0, 0, 0, rowY(9) + BH + 28)
-MainFrame.Size = UDim2.new(0, 380, 0, 32 + rowY(5) + BH + 10)
-
--- Sub-panel factory
 local function makePanel(name, title, w, h)
     local f = Instance.new("Frame"); f.Name = name; f.Parent = ScreenGui; f.BackgroundColor3 = Color3.fromRGB(16, 16, 23); f.BorderSizePixel = 0; f.Position = UDim2.new(0.5, -w/2, 0.5, -h/2); f.Size = UDim2.new(0, w, 0, h); f.Visible = false; f.Active = true; f.Draggable = true; Instance.new("UICorner", f).CornerRadius = UDim.new(0, 8); local s = Instance.new("UIStroke", f); s.Color = Color3.fromRGB(38, 38, 54); s.Thickness = 1
     local tb = Instance.new("Frame"); tb.Parent = f; tb.BackgroundColor3 = Color3.fromRGB(10, 10, 16); tb.BorderSizePixel = 0; tb.Size = UDim2.new(1, 0, 0, 30); Instance.new("UICorner", tb).CornerRadius = UDim.new(0, 8)
@@ -94,7 +86,7 @@ getgenv().ESPShowNamesBtn     = pBtn(ESPSettingsFrame, "ESPShowNamesBtn",    "Na
 getgenv().ESPShowDistBtn      = pBtn(ESPSettingsFrame, "ESPShowDistBtn",     "Distance: ON",  158, 40, 130, 26)
 getgenv().ESPShowBoxesBtn     = pBtn(ESPSettingsFrame, "ESPShowBoxesBtn",    "3D Boxes: ON",  12, 76, 130, 26)
 getgenv().ESP2DBoxesBtn       = pBtn(ESPSettingsFrame, "ESP2DBoxesBtn",      "2D Boxes: OFF", 158, 76, 130, 26)
-getgenv().ESPDistanceLabel    = pLabel(ESPSettingsFrame, "ESPDistanceLabel", "Draw Distance: 1000", 12, 112, 276, 24)
+getgenv().ESPDistanceLabel    = pLabel(ESPSettingsFrame, "ESPDistanceLabel", "Distance: 1000", 12, 112, 276, 24)
 getgenv().ESPDistanceSlider   = pSlider(ESPSettingsFrame, "ESPDistanceSlider", 12, 146, 276)
 
 getgenv().SpeedSettingsFrame  = makePanel("SpeedSettingsFrame", "Speed Settings", 300, 100)
@@ -129,26 +121,9 @@ getgenv().FlightSettingsFrame = makePanel("FlightSettingsFrame", "Flight Setting
 getgenv().FlightSpeedLabel    = pLabel(FlightSettingsFrame, "FlightSpeedLabel", "Flight Speed: 50", 12, 40, 276, 24)
 getgenv().FlightSpeedSlider   = pSlider(FlightSettingsFrame, "FlightSpeedSlider", 12, 74, 276)
 
--- Main button connections
-getgenv().HideButton.MouseButton1Click:Connect(function()
-    getgenv().MainFrame.Visible = not getgenv().MainFrame.Visible
-end)
-getgenv().CloseButton.MouseButton1Click:Connect(function()
-    if getgenv().destroyScript then getgenv().destroyScript() end
-end)
-
--- Panel toggle logic
-local function hideAll()
-    getgenv().ESPSettingsFrame.Visible = false; getgenv().SpeedSettingsFrame.Visible = false
-    getgenv().FOVSettingsFrame.Visible = false; getgenv().FollowSettingsFrame.Visible = false
-    getgenv().ReachSettingsFrame.Visible = false; getgenv().HitboxSettingsFrame.Visible = false
-    getgenv().FlightSettingsFrame.Visible = false
+getgenv().TogglePanel = function(target)
+    local panels = {ESPSettingsFrame, SpeedSettingsFrame, FOVSettingsFrame, FollowSettingsFrame, ReachSettingsFrame, HitboxSettingsFrame, FlightSettingsFrame}
+    local newState = not target.Visible
+    for _, p in pairs(panels) do p.Visible = false end
+    target.Visible = newState
 end
-
-getgenv().ESPButton.MouseButton2Click:Connect(function() local v = not getgenv().ESPSettingsFrame.Visible; hideAll(); getgenv().ESPSettingsFrame.Visible = v end)
-getgenv().SpeedButton.MouseButton2Click:Connect(function() local v = not getgenv().SpeedSettingsFrame.Visible; hideAll(); getgenv().SpeedSettingsFrame.Visible = v end)
-getgenv().FOVButton.MouseButton2Click:Connect(function() local v = not getgenv().FOVSettingsFrame.Visible; hideAll(); getgenv().FOVSettingsFrame.Visible = v end)
-getgenv().FollowButton.MouseButton2Click:Connect(function() local v = not getgenv().FollowSettingsFrame.Visible; hideAll(); getgenv().FollowSettingsFrame.Visible = v end)
-getgenv().ReachButton.MouseButton2Click:Connect(function() local v = not getgenv().ReachSettingsFrame.Visible; hideAll(); getgenv().ReachSettingsFrame.Visible = v end)
-getgenv().HitboxButton.MouseButton2Click:Connect(function() local v = not getgenv().HitboxSettingsFrame.Visible; hideAll(); getgenv().HitboxSettingsFrame.Visible = v end)
-getgenv().FlightButton.MouseButton2Click:Connect(function() local v = not getgenv().FlightSettingsFrame.Visible; hideAll(); getgenv().FlightSettingsFrame.Visible = v end)
