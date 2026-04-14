@@ -1,6 +1,5 @@
--- [[ RB GLOBAL STATE & VARIABLES ]]
--- Migrated 1:1 from rb.lua (Lines 1-75 and 415-431)
--- Added to getgenv() so all modular scripts can see them exactly like the original.
+-- [[ RB GLOBAL STATE & VARIABLES - LITERAL 1:1 ]]
+-- Migrated from rb.lua (All variables found in the script)
 
 getgenv().scriptEnabled = true
 getgenv().flightEnabled = false
@@ -15,61 +14,49 @@ getgenv().shiftLockDisabled = false
 getgenv().ctrlLockDisabled = false
 getgenv().followEnabled = false
 getgenv().clickCheckEnabled = false
+getgenv().deathCheckEnabled = false
+getgenv().autoSwitchEnabled = false
 getgenv().reachEnabled = false
 getgenv().hitboxEnabled = false
 getgenv().noDamageEnabled = false
 
--- Follow settings
+-- Feature settings
 getgenv().followDistance = 5
 getgenv().followHeight = 0
 getgenv().followTarget = nil
-getgenv().originalPosition = nil
-getgenv().followConnection = nil
-getgenv().deathCheckEnabled = false
-getgenv().autoSwitchEnabled = false
 getgenv().targetHistory = {}
-
--- Reach Extender settings
 getgenv().reachDistance = 15
 getgenv().reachVisual = true
-getgenv().reachIndicator = nil
-getgenv().reachActivatedConn = nil
-getgenv().reachToolWatcher = nil
-
--- Hitbox Expander settings
 getgenv().hitboxSize = 10
 getgenv().hitboxVisual = true
-getgenv().hitboxAdornments = {}
-getgenv().hitboxRestoreFunc = nil
-
--- ESP Settings
 getgenv().espDrawDistance = 1000
 getgenv().espShowNames = true
 getgenv().espShowDistance = true
 getgenv().espShowBoxes = true
 getgenv().espUse2DBoxes = false
-
--- Speed settings
 getgenv().walkSpeed = 16
 getgenv().jumpPower = 50
 getgenv().speedMultiplier = 1
-
--- FOV settings
-getgenv().defaultFOV = 70
 getgenv().currentFOV = 70
 
--- Teleport settings
-getgenv().teleportEnabled = true
+-- Flight internals
+getgenv().flightSpeed = 50
+getgenv().flying = false
+getgenv().flyVelocity = nil
+getgenv().bodyGyro = nil
 
--- Fullbright settings
-getgenv().originalLightingSettings = {}
-
--- Loops & internal
-getgenv().noclipConnection = nil
-getgenv().infiniteJumpConnection = nil
-getgenv().fovDragging = false
+-- Loop & Display internals
+getgenv().smoothFPS = 60
+getgenv().lastPingMs = 0
+getgenv().nextPingTime = 0
 getgenv().guiHidden = false
-getgenv().followDragging = false
-getgenv().followHeightDragging = false
 getgenv().leftMouseClicked = false
 getgenv().clickLingerUntil = 0
+getgenv().noclipConnection = nil
+getgenv().infiniteJumpConnection = nil
+getgenv().followConnection = nil
+getgenv().reachActivatedConn = nil
+getgenv().reachToolWatcher = nil
+getgenv().hitboxAdornments = {}
+getgenv().hitboxRestoreFunc = nil
+getgenv().originalLightingSettings = {}
