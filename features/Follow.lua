@@ -55,10 +55,14 @@ getgenv().FollowButton.MouseButton1Click:Connect(function()
     if getgenv().followEnabled then stopFollow()
     else
         local nearest = getgenv().Utils:FindNearestAlivePlayer(nil)
-        if nearest then
-            getgenv().followEnabled = true; getgenv().FollowButton.Text = "Follow: ON"; getgenv().FollowButton.BackgroundColor3 = getgenv().COL_ON
-            startFollow(nearest)
-        end
+            if nearest then
+                getgenv().followEnabled = true; getgenv().FollowButton.Text = "Follow: ON"; getgenv().FollowButton.BackgroundColor3 = getgenv().COL_ON
+                startFollow(nearest)
+            else
+                if getgenv().Utils and getgenv().Utils.Notify then
+                    getgenv().Utils:Notify("Follow", "No nearby player found.", Color3.fromRGB(220, 60, 60))
+                end
+            end
     end
 end)
 

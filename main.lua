@@ -1,5 +1,10 @@
 -- [[ RB MODULAR HUB - ABSOLUTE LITERAL RESTORATION ]]
--- FIXED V3: ESP 2D/3D Toggling + Flight Reliability (Auto-re-hook)
+-- FIXED V4: UI RELIABILITY (CLEAN BOOT) + FOLLOW FEEDBACK
+
+-- 0. CLEAN BOOT (Destroy old instances before starting)
+local lastGUI = game:GetService("CoreGui"):FindFirstChild("CheatGUI")
+if lastGUI then lastGUI:Destroy() end
+if getgenv().destroyScript then pcall(getgenv().destroyScript) end
 
 local baseUrl = "https://raw.githubusercontent.com/Kapustiak-maker/RobloxScript/main/"
 local function loadRemote(path)
@@ -10,23 +15,7 @@ local function loadRemote(path)
     pcall(func)
 end
 
--- 1. LOAD CORE COMPONENETS
-loadRemote("modules/Utils.lua")
-loadRemote("modules/Hooks.lua")
-loadRemote("modules/State.lua")  -- Populates getgenv
-loadRemote("modules/UI.lua")     -- Creates GUI
-loadRemote("modules/Input.lua")  -- Handles Sliders & Teleport
-
--- 2. LOAD FEATURES (Contains verbatim connections)
-loadRemote("features/Hitbox.lua")
-loadRemote("features/Reach.lua")
-loadRemote("features/Follow.lua")
-loadRemote("features/ESP.lua")
-loadRemote("features/Speed.lua")
-loadRemote("features/Misc.lua")
-loadRemote("features/Other.lua") -- Contains Flight
-
--- 3. VERBATIM DESTROY SCRIPT logic
+-- 3. VERBATIM DESTROY SCRIPT logic (Define early so UI can bind to it)
 getgenv().destroyScript = function()
     getgenv().scriptEnabled = false
     if getgenv().stopFollow then getgenv().stopFollow() end
@@ -47,6 +36,22 @@ getgenv().destroyScript = function()
     if getgenv().ScreenGui then getgenv().ScreenGui:Destroy(); getgenv().ScreenGui = nil end
 end
 
+-- 1. LOAD CORE COMPONENETS
+loadRemote("modules/Utils.lua")
+loadRemote("modules/Hooks.lua")
+loadRemote("modules/State.lua")  -- Populates getgenv
+loadRemote("modules/UI.lua")     -- Creates GUI
+loadRemote("modules/Input.lua")  -- Handles Sliders & Teleport
+
+-- 2. LOAD FEATURES (Contains verbatim connections)
+loadRemote("features/Hitbox.lua")
+loadRemote("features/Reach.lua")
+loadRemote("features/Follow.lua")
+loadRemote("features/ESP.lua")
+loadRemote("features/Speed.lua")
+loadRemote("features/Misc.lua")
+loadRemote("features/Other.lua") -- Contains Flight
+
 -- 4. SWITCH TARGET LOGIC
 getgenv().pushHistory = function(p)
     if not p then return end
@@ -58,8 +63,8 @@ end
 getgenv().switchTarget = function()
     if not getgenv().followEnabled then return end
     local candidates = {}
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p ~= getgenv().followTarget and p.Character then
+    for _, p in pairs(game:GetService("Players"):GetPlayers()) do
+        if p ~= game:GetService("Players").LocalPlayer and p ~= getgenv().followTarget and p.Character then
             local hum = p.Character:FindFirstChildOfClass("Humanoid")
             if hum and hum.Health > 0 then table.insert(candidates, p) end
         end
@@ -104,7 +109,7 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- 4. GUI TOGGLE (Shift + C)
+-- 6. GUI TOGGLE (Shift + C)
 local UserInputService = game:GetService("UserInputService")
 UserInputService.InputBegan:Connect(function(input, processed)
     if not processed and input.KeyCode == Enum.KeyCode.C and UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
@@ -136,5 +141,5 @@ RunService.RenderStepped:Connect(function(dt)
 end)
 
 if getgenv().Utils and getgenv().Utils.Notify then
-    getgenv().Utils:Notify("RB Hub", "V3 RESTORED - ESP/FLIGHT FIXED.", Color3.fromRGB(13, 110, 253))
+    getgenv().Utils:Notify("RB Hub", "Ready. Hotkey: Shift + C", Color3.fromRGB(13, 110, 253))
 end
