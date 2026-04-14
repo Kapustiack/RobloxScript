@@ -1,75 +1,75 @@
--- [[ RB GLOBAL STATE - Migrated 1:1 from rb.lua ]]
--- This table is stored in getgenv() so all modules can "see" and "edit" the same variables.
+-- [[ RB GLOBAL STATE & VARIABLES ]]
+-- Migrated 1:1 from rb.lua (Lines 1-75 and 415-431)
+-- Added to getgenv() so all modular scripts can see them exactly like the original.
 
-if not getgenv().RB_STATE then
-    getgenv().RB_STATE = {
-        scriptEnabled = true,
-        flightEnabled = false,
-        wallhackEnabled = false,
-        espEnabled = false,
-        speedhackEnabled = false,
-        noclipEnabled = false,
-        infiniteJumpEnabled = false,
-        fullbrightEnabled = false,
-        fovChangerEnabled = false,
-        shiftLockDisabled = false,
-        ctrlLockDisabled = false,
-        followEnabled = false,
-        clickCheckEnabled = false,
-        reachEnabled = false,
-        hitboxEnabled = false,
-        noDamageEnabled = false,
+getgenv().scriptEnabled = true
+getgenv().flightEnabled = false
+getgenv().wallhackEnabled = false
+getgenv().espEnabled = false
+getgenv().speedhackEnabled = false
+getgenv().noclipEnabled = false
+getgenv().infiniteJumpEnabled = false
+getgenv().fullbrightEnabled = false
+getgenv().fovChangerEnabled = false
+getgenv().shiftLockDisabled = false
+getgenv().ctrlLockDisabled = false
+getgenv().followEnabled = false
+getgenv().clickCheckEnabled = false
+getgenv().reachEnabled = false
+getgenv().hitboxEnabled = false
+getgenv().noDamageEnabled = false
 
-        -- Follow settings
-        followDistance = 5,
-        followHeight = 0,
-        followTarget = nil,
-        originalPosition = nil,
-        followConnection = nil,
-        deathCheckEnabled = false,
-        autoSwitchEnabled = false,
-        targetHistory = {},
+-- Follow settings
+getgenv().followDistance = 5
+getgenv().followHeight = 0
+getgenv().followTarget = nil
+getgenv().originalPosition = nil
+getgenv().followConnection = nil
+getgenv().deathCheckEnabled = false
+getgenv().autoSwitchEnabled = false
+getgenv().targetHistory = {}
 
-        -- Reach Extender settings
-        reachDistance = 15,
-        reachVisual = true,
-        reachIndicator = nil,
-        reachActivatedConn = nil,
-        reachToolWatcher = nil,
+-- Reach Extender settings
+getgenv().reachDistance = 15
+getgenv().reachVisual = true
+getgenv().reachIndicator = nil
+getgenv().reachActivatedConn = nil
+getgenv().reachToolWatcher = nil
 
-        -- Hitbox Expander settings
-        hitboxSize = 10,
-        hitboxVisual = true,
-        hitboxAdornments = {},
-        hitboxRestoreFunc = nil,
+-- Hitbox Expander settings
+getgenv().hitboxSize = 10
+getgenv().hitboxVisual = true
+getgenv().hitboxAdornments = {}
+getgenv().hitboxRestoreFunc = nil
 
-        -- ESP Settings
-        espDrawDistance = 1000,
-        espShowNames = true,
-        espShowDistance = true,
-        espShowBoxes = true,
-        espUse2DBoxes = false,
+-- ESP Settings
+getgenv().espDrawDistance = 1000
+getgenv().espShowNames = true
+getgenv().espShowDistance = true
+getgenv().espShowBoxes = true
+getgenv().espUse2DBoxes = false
 
-        -- Speed settings
-        walkSpeed = 16,
-        jumpPower = 50,
-        speedMultiplier = 1,
+-- Speed settings
+getgenv().walkSpeed = 16
+getgenv().jumpPower = 50
+getgenv().speedMultiplier = 1
 
-        -- FOV settings
-        defaultFOV = 70,
-        currentFOV = 70,
+-- FOV settings
+getgenv().defaultFOV = 70
+getgenv().currentFOV = 70
 
-        -- Teleport settings
-        teleportEnabled = true,
+-- Teleport settings
+getgenv().teleportEnabled = true
 
-        -- Fullbright settings
-        originalLightingSettings = {},
-        
-        -- UI State
-        guiHidden = false,
-        leftMouseClicked = false,
-        clickLingerUntil = 0
-    }
-end
+-- Fullbright settings
+getgenv().originalLightingSettings = {}
 
-return getgenv().RB_STATE
+-- Loops & internal
+getgenv().noclipConnection = nil
+getgenv().infiniteJumpConnection = nil
+getgenv().fovDragging = false
+getgenv().guiHidden = false
+getgenv().followDragging = false
+getgenv().followHeightDragging = false
+getgenv().leftMouseClicked = false
+getgenv().clickLingerUntil = 0

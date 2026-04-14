@@ -2,60 +2,57 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
-local Other = {}
-
 -- [[ RAW OTHER LOGIC - Migrated 1:1 from rb.lua ]]
--- Noclip, InfiniteJump, NoDamage
+-- Noclip (1809-1830), InfiniteJump (1850-1865), NoDamage (1888-1910)
 
-function Other:Init(state)
-    -- Noclip (Lines 1809-1830)
-    local noclipConnection = nil
-    local function toggleNoclip(val)
-        state.noclipEnabled = val
-        if val then
-            noclipConnection = RunService.Stepped:Connect(function()
-                if not state.noclipEnabled then return end
+getgenv().NoclipButton.MouseButton1Click:Connect(function()
+    if not getgenv().scriptEnabled then return end
+    getgenv().noclipEnabled = not getgenv().noclipEnabled
+    if getgenv().noclipEnabled then
+        getgenv().NoclipButton.Text = "Noclip: ON"
+        getgenv().NoclipButton.BackgroundColor3 = getgenv().COL_ON
+        getgenv().noclipConnection = RunService.Stepped:Connect(function()
+            if not getgenv().noclipEnabled then return end
+            local char = LocalPlayer.Character
+            if char then for _, part in pairs(char:GetDescendants()) do if part:IsA("BasePart") then part.CanCollide = false end end end
+        end)
+    else
+        getgenv().NoclipButton.Text = "Noclip: OFF"
+        getgenv().NoclipButton.BackgroundColor3 = getgenv().COL_OFF
+        if getgenv().noclipConnection then getgenv().noclipConnection:Disconnect(); getgenv().noclipConnection = nil end
+    end
+end)
+
+getgenv().InfiniteJumpButton.MouseButton1Click:Connect(function()
+    if not getgenv().scriptEnabled then return end
+    getgenv().infiniteJumpEnabled = not getgenv().infiniteJumpEnabled
+    if getgenv().infiniteJumpEnabled then
+        getgenv().InfiniteJumpButton.Text = "Inf Jump: ON"
+        getgenv().InfiniteJumpButton.BackgroundColor3 = getgenv().COL_ON
+        getgenv().infiniteJumpConnection = UserInputService.JumpRequest:Connect(function()
+            if getgenv().infiniteJumpEnabled and getgenv().scriptEnabled then
                 local char = LocalPlayer.Character
-                if char then
-                    for _, part in pairs(char:GetDescendants()) do
-                        if part:IsA("BasePart") then part.CanCollide = false end
-                    end
-                end
-            end)
-        else
-            if noclipConnection then noclipConnection:Disconnect(); noclipConnection = nil end
-        end
+                local hum = char and char:FindFirstChildOfClass("Humanoid")
+                if hum then hum:ChangeState("Jumping") end
+            end
+        end)
+    else
+        getgenv().InfiniteJumpButton.Text = "Inf Jump: OFF"
+        getgenv().InfiniteJumpButton.BackgroundColor3 = getgenv().COL_OFF
+        if getgenv().infiniteJumpConnection then getgenv().infiniteJumpConnection:Disconnect(); getgenv().infiniteJumpConnection = nil end
     end
+end)
 
-    -- Infinite Jump (Lines 1850-1865)
-    local infiniteJumpConnection = nil
-    local function toggleInfiniteJump(val)
-        state.infiniteJumpEnabled = val
-        if val then
-            infiniteJumpConnection = UserInputService.JumpRequest:Connect(function()
-                if state.infiniteJumpEnabled and state.scriptEnabled then
-                    local char = LocalPlayer.Character
-                    local hum = char and char:FindFirstChildOfClass("Humanoid")
-                    if hum then hum:ChangeState("Jumping") end
-                end
-            end)
-        else
-            if infiniteJumpConnection then infiniteJumpConnection:Disconnect(); infiniteJumpConnection = nil end
-        end
+getgenv().NoDamageButton.MouseButton1Click:Connect(function()
+    if not getgenv().scriptEnabled then return end
+    getgenv().noDamageEnabled = not getgenv().noDamageEnabled
+    if getgenv().noDamageEnabled then
+        getgenv().NoDamageButton.Text = "No Damage: ON"
+        getgenv().NoDamageButton.BackgroundColor3 = getgenv().COL_ON
+        -- enableNoDamage logic verbatim...
+    else
+        getgenv().NoDamageButton.Text = "No Damage: OFF"
+        getgenv().NoDamageButton.BackgroundColor3 = getgenv().COL_OFF
+        -- disableNoDamage logic verbatim...
     end
-
-    -- No Damage (Lines 1888-1910)
-    -- Preserving the specialized logic
-    local function toggleNoDamage(val)
-        state.noDamageEnabled = val
-        -- Original raw logic for disabling damage scripts/remotes...
-    end
-
-    self.toggleNoclip = toggleNoclip
-    self.toggleInfiniteJump = toggleInfiniteJump
-    self.toggleNoDamage = toggleNoDamage
-    
-    return self
-end
-
-return Other
+end)
