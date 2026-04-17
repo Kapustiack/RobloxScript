@@ -213,7 +213,7 @@ getgenv().LowGravitySlider = pSlider(LowGravitySettingsFrame, "LowGravitySlider"
 
 -- Teleport Settings: scrollable player list + refresh
 getgenv().TeleportSettingsFrame = makePanel("TeleportSettingsFrame", "Teleport To Player", 300, 200)
-local teleportRefreshBtn = pBtn(TeleportSettingsFrame, "TeleportRefreshBtn", "\u21bb Refresh", 12, 40, 276, 26)
+local teleportRefreshBtn = pBtn(TeleportSettingsFrame, "TeleportRefreshBtn", "Refresh List", 12, 40, 276, 26)
 getgenv().TeleportRefreshBtn = teleportRefreshBtn
 
 local tpScroll = Instance.new("ScrollingFrame")
