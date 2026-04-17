@@ -274,7 +274,6 @@ local function updateESP()
                     end
 
                 else
-                else
                     -- Off screen — hide everything
                     if nameL then nameL.Visible = false end
                     if distL then distL.Visible = false end
