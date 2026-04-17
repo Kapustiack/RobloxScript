@@ -51,7 +51,9 @@ loadRemote("features/Misc.lua")          -- Fullbright, Locks, FOV, Wallhack, Se
 loadRemote("features/Wallhack.lua")      -- stub (implementation in Misc.lua)
 loadRemote("features/Fullbright.lua")    -- stub (implementation in Misc.lua)
 loadRemote("features/FOVChanger.lua")    -- stub (implementation in Misc.lua)
+loadRemote("features/FreeCamera.lua")    -- FreeCam: Free Fly / Spectate / Minimap
 loadRemote("features/Other.lua")         -- empty (was causing duplicate button binds)
+
 
 -- 3. DESTROY SCRIPT — cleans up everything
 getgenv().destroyScript = function()
@@ -67,6 +69,8 @@ getgenv().destroyScript = function()
     if getgenv().disableFullbright then pcall(getgenv().disableFullbright)    end
     if getgenv().disableFOVChanger then pcall(getgenv().disableFOVChanger)    end
     if getgenv().removeHitboxExpansion then pcall(getgenv().removeHitboxExpansion) end
+    if getgenv().disableFreeCamera then pcall(getgenv().disableFreeCamera)    end
+
     -- Restore camera locks
     pcall(function()
         local cas = game:GetService("ContextActionService")

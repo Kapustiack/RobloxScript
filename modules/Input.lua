@@ -58,6 +58,9 @@ getgenv().ReachDistSlider.MouseButton1Down:Connect(function()      getgenv().dra
 getgenv().HitboxSizeSlider.MouseButton1Down:Connect(function()     getgenv().draggingHitboxSize     = true end)
 getgenv().FlightSpeedSlider.MouseButton1Down:Connect(function()    getgenv().draggingFlightSpeed    = true end)
 getgenv().WallhackTranspSlider.MouseButton1Down:Connect(function() getgenv().draggingWallhackTransp = true end)
+getgenv().FreeCamSpeedSlider.MouseButton1Down:Connect(function()   getgenv().draggingFreeCamSpeed   = true end)
+getgenv().FreeCamFOVSlider.MouseButton1Down:Connect(function()     getgenv().draggingFreeCamFOV     = true end)
+
 
 
 -- ── Slider drag end ───────────────────────────────────────────────
@@ -72,18 +75,22 @@ UserInputService.InputEnded:Connect(function(input)
         getgenv().draggingHitboxSize     = false
         getgenv().draggingFlightSpeed    = false
         getgenv().draggingWallhackTransp = false
+        getgenv().draggingFreeCamSpeed   = false
+        getgenv().draggingFreeCamFOV     = false
     end
 end)
+
 
 
 -- ── Slider update while dragging ─────────────────────────────────
 UserInputService.InputChanged:Connect(function(input)
     if input.UserInputType ~= Enum.UserInputType.MouseMovement then return end
 
-    -- ESP draw distance: 100 – 2100 studs
+    -- ESP draw distance: 100 – 15000 studs (extended from 2100)
     if getgenv().draggingESPDistance then
-        updateSlider(getgenv().ESPDistanceSlider, getgenv().ESPDistanceLabel, "Distance: ", 100, 2100, "espDrawDistance")
+        updateSlider(getgenv().ESPDistanceSlider, getgenv().ESPDistanceLabel, "Distance: ", 100, 15000, "espDrawDistance")
     end
+
     -- Speed multiplier: 0.5x – 10.0x (user requested larger range)
     if getgenv().draggingSpeed then
         updateSlider(getgenv().SpeedSlider, getgenv().SpeedLabel, "Speed Multiplier: ", 0.5, 10, "speedMultiplier", true)
@@ -112,15 +119,14 @@ UserInputService.InputChanged:Connect(function(input)
     if getgenv().draggingFlightSpeed then
         updateSlider(getgenv().FlightSpeedSlider, getgenv().FlightSpeedLabel, "Flight Speed: ", 10, 300, "flightSpeed")
     end
-    -- Wallhack transparency: 10% to 90% (0.1 to 0.9)
+    -- Wallhack transparency: 10% to 90%
     if getgenv().draggingWallhackTransp then
         local mousePos = UserInputService:GetMouseLocation()
         local sl = getgenv().WallhackTranspSlider
         local relX = math.clamp((mousePos.X - sl.AbsolutePosition.X) / sl.AbsoluteSize.X, 0, 1)
-        local transp = math.floor((0.1 + relX * 0.8) * 100 + 0.5) / 100  -- 0.10 to 0.90
+        local transp = math.floor((0.1 + relX * 0.8) * 100 + 0.5) / 100
         getgenv().wallhackTransparency = transp
         getgenv().WallhackTranspLabel.Text = "Transparency: " .. math.floor(transp * 100) .. "%"
-        -- Update fill
         local fill = sl:FindFirstChild("Fill")
         if not fill then
             fill = Instance.new("Frame"); fill.Name = "Fill"; fill.Parent = sl
@@ -129,8 +135,21 @@ UserInputService.InputChanged:Connect(function(input)
         end
         fill.Size = UDim2.new(relX, 0, 1, 0)
     end
+    -- FreeCam speed: 5 – 300 studs/s
+    if getgenv().draggingFreeCamSpeed then
+        updateSlider(getgenv().FreeCamSpeedSlider, getgenv().FreeCamSpeedLabel, "Fly Speed: ", 5, 300, "freeCamSpeed")
+    end
+    -- FreeCam FOV: 20° – 120°
+    if getgenv().draggingFreeCamFOV then
+        updateSlider(getgenv().FreeCamFOVSlider, getgenv().FreeCamFOVLabel, "FreeCam FOV: ", 20, 120, "freeCamFOV")
+        -- Apply live if freecam active
+        if getgenv().freeCamEnabled and getgenv().freeCamMode ~= "minimap" then
+            workspace.CurrentCamera.FieldOfView = getgenv().freeCamFOV
+        end
+    end
 
 end)
+
 
 -- ── Ctrl+Click teleport & Click Check ────────────────────────────
 Mouse.Button1Down:Connect(function()

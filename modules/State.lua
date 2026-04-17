@@ -19,12 +19,20 @@ getgenv().autoSwitchEnabled = false
 getgenv().reachEnabled = false
 getgenv().hitboxEnabled = false
 getgenv().noDamageEnabled = false
--- NEW: Inf Jump mode (false = instant on every JumpRequest, true = hold Space)
+-- NEW: Inf Jump mode
 getgenv().infJumpHoldMode = false
 getgenv().infJumpHoldConnection = nil
 -- NEW: Wallhack options
-getgenv().wallhackTransparency = 0.5  -- 0.3 (barely visible) to 0.9 (almost invisible)
-getgenv().wallhackTeamCheck = false   -- if true, skip teammates
+getgenv().wallhackTransparency = 0.5
+getgenv().wallhackTeamCheck = false
+-- NEW: FreeCamera
+getgenv().freeCamEnabled = false
+getgenv().freeCamMode = "fly"     -- "fly" | "spectate" | "minimap"
+getgenv().freeCamSpeed = 50
+getgenv().freeCamFOV = 70
+getgenv().freeCamTarget = nil
+getgenv().freeCamShowCrosshair = true
+
 
 
 -- Settings & Limits
@@ -79,7 +87,10 @@ getgenv().draggingFollowHeight   = false
 getgenv().draggingReachDist      = false
 getgenv().draggingHitboxSize     = false
 getgenv().draggingFlightSpeed    = false
-getgenv().draggingWallhackTransp = false  -- NEW: wallhack transparency slider
+getgenv().draggingWallhackTransp = false
+getgenv().draggingFreeCamSpeed   = false  -- NEW
+getgenv().draggingFreeCamFOV     = false  -- NEW
+
 
 
 -- UI Globals (Pre-assigned to nil)
@@ -113,8 +124,22 @@ getgenv().FollowSettingsFrame       = nil
 getgenv().ReachSettingsFrame        = nil
 getgenv().HitboxSettingsFrame       = nil
 getgenv().FlightSettingsFrame       = nil
-getgenv().InfiniteJumpSettingsFrame = nil  -- NEW
-getgenv().WallhackSettingsFrame     = nil  -- NEW
+getgenv().InfiniteJumpSettingsFrame = nil
+getgenv().WallhackSettingsFrame     = nil
+getgenv().FreeCameraSettingsFrame   = nil  -- NEW
+-- FreeCam panel elements
+getgenv().FreeCameraButton    = nil
+getgenv().FreeCamFlyBtn       = nil
+getgenv().FreeCamSpectateBtn  = nil
+getgenv().FreeCamMinimapBtn   = nil
+getgenv().FreeCamCrosshairBtn = nil
+getgenv().FreeCamRefreshBtn   = nil
+getgenv().FreeCamPlayerList   = nil
+getgenv().FreeCamSpeedLabel   = nil
+getgenv().FreeCamSpeedSlider  = nil
+getgenv().FreeCamFOVLabel     = nil
+getgenv().FreeCamFOVSlider    = nil
+
 
 
 -- Colors

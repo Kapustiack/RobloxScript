@@ -60,6 +60,8 @@ getgenv().SaveButton         = makeBtn("SaveButton",         "Save Settings",   
 getgenv().NoDamageButton     = makeBtn("NoDamageButton",     "No Damage: OFF",  1, 8)
 getgenv().RejoinButton       = makeBtn("RejoinButton",       "Rejoin Server",   2, 8)
 getgenv().JoinInstanceButton = makeBtn("JoinInstanceButton", "Join Instance",   1, 9)
+getgenv().FreeCameraButton   = makeBtn("FreeCameraButton",   "FreeCam: OFF",    2, 9)
+
 
 local PAD, BH, GAP = 12, 28, 8
 local function rowY(r) return PAD + (r-1)*(BH+GAP) end
@@ -91,8 +93,9 @@ getgenv().ESPShowNamesBtn     = pBtn(ESPSettingsFrame, "ESPShowNamesBtn",    "Na
 getgenv().ESPShowDistBtn      = pBtn(ESPSettingsFrame, "ESPShowDistBtn",     "Distance: ON",  158, 40, 130, 26)
 getgenv().ESPShowBoxesBtn     = pBtn(ESPSettingsFrame, "ESPShowBoxesBtn",    "3D Boxes: ON",  12, 76, 130, 26)
 getgenv().ESP2DBoxesBtn       = pBtn(ESPSettingsFrame, "ESP2DBoxesBtn",      "2D Boxes: OFF", 158, 76, 130, 26)
-getgenv().ESPDistanceLabel    = pLabel(ESPSettingsFrame, "ESPDistanceLabel", "Distance: 1000", 12, 112, 276, 24)
+getgenv().ESPDistanceLabel    = pLabel(ESPSettingsFrame, "ESPDistanceLabel", "Distance: 1000",  12, 112, 276, 24)
 getgenv().ESPDistanceSlider   = pSlider(ESPSettingsFrame, "ESPDistanceSlider", 12, 146, 276)
+
 
 getgenv().SpeedSettingsFrame  = makePanel("SpeedSettingsFrame", "Speed Settings", 300, 100)
 getgenv().SpeedLabel          = pLabel(SpeedSettingsFrame, "SpeedLabel", "Speed Multiplier: 1.0x", 12, 40, 276, 24)
@@ -137,17 +140,72 @@ getgenv().WallhackTranspLabel     = pLabel(WallhackSettingsFrame, "WallhackTrans
 getgenv().WallhackTranspSlider    = pSlider(WallhackSettingsFrame, "WallhackTranspSlider", 12, 72, 276)
 getgenv().WallhackTeamCheckBtn    = pBtn(WallhackSettingsFrame, "WallhackTeamCheckBtn", "Skip Teammates: OFF", 12, 98, 276, 26)
 
+-- FreeCam Settings: mode select, player list, sliders, crosshair
+-- Panel height: 330px to fit the player list for Spectate mode
+getgenv().FreeCameraSettingsFrame = makePanel("FreeCameraSettingsFrame", "Free Camera Settings", 320, 330)
+local fcf = getgenv().FreeCameraSettingsFrame
+
+-- Mode buttons: [Free Fly] [Spectate] [Minimap] — row y=40
+getgenv().FreeCamFlyBtn      = pBtn(fcf, "FreeCamFlyBtn",      "Free Fly",   12,  40, 88,  26)
+getgenv().FreeCamSpectateBtn = pBtn(fcf, "FreeCamSpectateBtn", "Spectate",  112,  40, 88,  26)
+getgenv().FreeCamMinimapBtn  = pBtn(fcf, "FreeCamMinimapBtn",  "Minimap",   212,  40, 88,  26)
+-- Highlight default mode
+getgenv().FreeCamFlyBtn.BackgroundColor3 = getgenv().COL_ON
+
+-- Speed slider y=76
+getgenv().FreeCamSpeedLabel  = pLabel(fcf,  "FreeCamSpeedLabel",  "Fly Speed: 50",  12,  74, 296, 24)
+getgenv().FreeCamSpeedSlider = pSlider(fcf, "FreeCamSpeedSlider",               12, 106, 296)
+
+-- FOV slider y=128
+getgenv().FreeCamFOVLabel    = pLabel(fcf,  "FreeCamFOVLabel",    "FreeCam FOV: 70°", 12, 128, 296, 24)
+getgenv().FreeCamFOVSlider   = pSlider(fcf, "FreeCamFOVSlider",                  12, 160, 296)
+
+-- Crosshair toggle + Refresh button y=182
+getgenv().FreeCamCrosshairBtn = pBtn(fcf, "FreeCamCrosshairBtn", "Crosshair: ON",  12, 182, 140, 26)
+getgenv().FreeCamRefreshBtn   = pBtn(fcf, "FreeCamRefreshBtn",   "↻ Refresh List", 164, 182, 144, 26)
+getgenv().FreeCamCrosshairBtn.BackgroundColor3 = getgenv().COL_ON  -- default ON
+
+-- Spectate player list label y=216
+local playerListLabel = pLabel(fcf, "PlayerListLbl", "— Target Player (Spectate) —", 12, 216, 296, 18)
+playerListLabel.TextColor3 = getgenv().COL_MUTE
+
+-- Scrollable player list: visible only in spectate mode
+local playerScroll = Instance.new("ScrollingFrame")
+playerScroll.Name = "FreeCamPlayerList"
+playerScroll.Parent = fcf
+playerScroll.Position = UDim2.new(0, 12, 0, 238)
+playerScroll.Size = UDim2.new(0, 296, 0, 80)
+playerScroll.BackgroundColor3 = Color3.fromRGB(12, 12, 18)
+playerScroll.BorderSizePixel = 0
+playerScroll.ScrollBarThickness = 3
+playerScroll.ScrollBarImageColor3 = getgenv().COL_MUTE
+playerScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+playerScroll.Visible = true  -- FreeCamera.lua controls visibility
+Instance.new("UICorner", playerScroll).CornerRadius = UDim.new(0, 6)
+local listLayout = Instance.new("UIListLayout", playerScroll)
+listLayout.Padding = UDim.new(0, 3)
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- Tip text y=326
+local fcTip = pLabel(fcf, "FreeCamTip", "[P] = quick toggle  |  Hold Shift = fly down", 12, 326, 296, 18)
+fcTip.BackgroundTransparency = 1; fcTip.TextColor3 = getgenv().COL_MUTE; fcTip.TextSize = 9
+
+getgenv().FreeCamPlayerList = playerScroll
+
+
+
 
 getgenv().TogglePanel = function(target)
     local panels = {
         ESPSettingsFrame, SpeedSettingsFrame, FOVSettingsFrame, FollowSettingsFrame,
         ReachSettingsFrame, HitboxSettingsFrame, FlightSettingsFrame,
-        InfiniteJumpSettingsFrame, WallhackSettingsFrame
+        InfiniteJumpSettingsFrame, WallhackSettingsFrame, FreeCameraSettingsFrame
     }
     local newState = not target.Visible
     for _, p in pairs(panels) do p.Visible = false end
     target.Visible = newState
 end
+
 
 
 -- Logic is now handled in main.lua to ensure global state availability
