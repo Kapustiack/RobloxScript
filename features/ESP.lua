@@ -155,6 +155,7 @@ local function updateESP()
     local showHealthBars = env.espShowHealthBars
     local drawObjsDict   = drawObjects
     local hasDrawLib     = hasDrawing
+    local creationsDone  = 0
 
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and p.Character
@@ -166,19 +167,31 @@ local function updateESP()
 
             if dist <= drawDist then
                 -- Ensure base ESP is created
-                if not env.ScreenGui:FindFirstChild(p.Name.."_Name") then
-                    createESP(p)
-                end
-
                 local nameL = env.ScreenGui:FindFirstChild(p.Name.."_Name")
-                local distL = env.ScreenGui:FindFirstChild(p.Name.."_Distance")
-                local b2d   = env.ScreenGui:FindFirstChild(p.Name.."_2DBox")
-                local b3d   = env.ESPContainer:FindFirstChild(p.Name.."_Box")
+                if not nameL then
+                    if creationsDone >= 2 then
+                        -- Throttle heavy UI creation to prevent massive lag spikes. 
+                        -- It will process this player securely on the next frame.
+                        clearESPForPlayer(p) 
+                    else
+                        createESP(p)
+                        creationsDone = creationsDone + 1
+                        nameL = env.ScreenGui:FindFirstChild(p.Name.."_Name")
+                    end
+                end
+                
+                -- If we still don't have it (because we skipped), skip drawing loop
+                if not nameL then
+                    local fakeDist = 0 -- just bypassing this loop step for Lua 5.1 without 'continue'
+                else
+                    local distL = env.ScreenGui:FindFirstChild(p.Name.."_Distance")
+                    local b2d   = env.ScreenGui:FindFirstChild(p.Name.."_2DBox")
+                    local b3d   = env.ESPContainer:FindFirstChild(p.Name.."_Box")
 
-                local scrC, onScreen = Camera:WorldToViewportPoint(hrp.Position)
-                local scrH           = Camera:WorldToViewportPoint(hrp.Position + Vector3.new(0,3,0))
-                local scrF           = Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0,3,0))
-                local visible = onScreen and scrC.Z > 0
+                    local scrC, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+                    local scrH           = Camera:WorldToViewportPoint(hrp.Position + Vector3.new(0,3,0))
+                    local scrF           = Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0,3,0))
+                    local visible = onScreen and scrC.Z > 0
 
                 if visible then
                     local boxH = math.abs(scrH.Y - scrF.Y); local boxW = math.max(boxH*0.5, 20)
@@ -287,6 +300,7 @@ local function updateESP()
                         if d.skeleton then for _,l in pairs(d.skeleton) do l.Visible=false end end
                     end
                 end
+                end -- Close the bypass block
             else
                 -- Out of distance range — hide everything instead of destroying to save FPS
                 local nameL = env.ScreenGui:FindFirstChild(p.Name.."_Name")
