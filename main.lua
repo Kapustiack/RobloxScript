@@ -37,41 +37,55 @@ loadRemote("modules/State.lua")
 loadRemote("modules/UI.lua")
 loadRemote("modules/Input.lua")
 
--- 2. LOAD FEATURES
-loadRemote("features/Hitbox.lua")
-loadRemote("features/Reach.lua")
-loadRemote("features/Follow.lua")
-loadRemote("features/ESP.lua")
-loadRemote("features/Speed.lua")
-loadRemote("features/Misc.lua")
-loadRemote("features/Other.lua")
+-- 2. LOAD FEATURES (full list — every file is now directly wired)
+loadRemote("features/Flight.lua")        -- FlightButton toggle + right-click settings
+loadRemote("features/Noclip.lua")        -- NoclipButton toggle
+loadRemote("features/InfiniteJump.lua")  -- InfiniteJumpButton toggle
+loadRemote("features/NoDamage.lua")      -- NoDamageButton toggle (dual-layer)
+loadRemote("features/Hitbox.lua")        -- HitboxButton + namecall hook
+loadRemote("features/Reach.lua")         -- ReachButton + RenderStepped indicator
+loadRemote("features/Follow.lua")        -- FollowButton + settings panel
+loadRemote("features/ESP.lua")           -- ESPButton + settings panel
+loadRemote("features/Speed.lua")         -- SpeedButton + right-click settings
+loadRemote("features/Misc.lua")          -- Fullbright, Locks, FOV, Wallhack, Server utils
+loadRemote("features/Wallhack.lua")      -- stub (implementation in Misc.lua)
+loadRemote("features/Fullbright.lua")    -- stub (implementation in Misc.lua)
+loadRemote("features/FOVChanger.lua")    -- stub (implementation in Misc.lua)
+loadRemote("features/Other.lua")         -- empty (was causing duplicate button binds)
 
--- 3. VERBATIM DESTROY SCRIPT
+-- 3. DESTROY SCRIPT — cleans up everything
 getgenv().destroyScript = function()
     getgenv().scriptEnabled = false
-    if getgenv().stopFollow then getgenv().stopFollow() end
-    if getgenv().disableReach then getgenv().disableReach() end
-    if getgenv().removeHitboxExpansion then getgenv().removeHitboxExpansion() end
-    if getgenv().disableFlight then getgenv().disableFlight() end
-    if getgenv().disableWallhack then getgenv().disableWallhack() end
-    if getgenv().disableSpeedhack then getgenv().disableSpeedhack() end
-    if getgenv().disableNoclip then getgenv().disableNoclip() end
-    if getgenv().disableInfiniteJump then getgenv().disableInfiniteJump() end
-    if getgenv().disableFullbright then getgenv().disableFullbright() end
-    if getgenv().disableFOVChanger then getgenv().disableFOVChanger() end
+    -- Stop all features
+    if getgenv().stopFollow        then pcall(getgenv().stopFollow)           end
+    if getgenv().disableReach      then pcall(getgenv().disableReach)         end
+    if getgenv().disableFlight     then pcall(getgenv().disableFlight)        end
+    if getgenv().disableWallhack   then pcall(getgenv().disableWallhack)      end
+    if getgenv().disableSpeedhack  then pcall(getgenv().disableSpeedhack)     end
+    if getgenv().disableNoclip     then pcall(getgenv().disableNoclip)        end
+    if getgenv().disableInfiniteJump then pcall(getgenv().disableInfiniteJump) end
+    if getgenv().disableFullbright then pcall(getgenv().disableFullbright)    end
+    if getgenv().disableFOVChanger then pcall(getgenv().disableFOVChanger)    end
+    if getgenv().removeHitboxExpansion then pcall(getgenv().removeHitboxExpansion) end
     -- Restore camera locks
     pcall(function()
         local cas = game:GetService("ContextActionService")
         cas:UnbindAction("DisableShiftLock")
         cas:UnbindAction("DisableCtrlSwitch")
     end)
-    if getgenv().wallhackLoop then getgenv().wallhackLoop:Disconnect(); getgenv().wallhackLoop = nil end
-    if getgenv().fullbrightLoop then getgenv().fullbrightLoop:Disconnect(); getgenv().fullbrightLoop = nil end
-    if getgenv().noDamageLoop then getgenv().noDamageLoop:Disconnect(); getgenv().noDamageLoop = nil end
-    if getgenv().hitboxRestoreFunc then pcall(getgenv().hitboxRestoreFunc); getgenv().hitboxRestoreFunc = nil end
-    if getgenv().noDamageRestoreFunc then pcall(getgenv().noDamageRestoreFunc); getgenv().noDamageRestoreFunc = nil end
-    if getgenv().ESPContainer then getgenv().ESPContainer:Destroy(); getgenv().ESPContainer = nil end
-    if getgenv().ScreenGui then getgenv().ScreenGui:Destroy(); getgenv().ScreenGui = nil end
+    -- Stop all loops
+    if getgenv().wallhackLoop         then getgenv().wallhackLoop:Disconnect();         getgenv().wallhackLoop = nil end
+    if getgenv().fullbrightLoop       then getgenv().fullbrightLoop:Disconnect();       getgenv().fullbrightLoop = nil end
+    if getgenv().noDamageLoop         then getgenv().noDamageLoop:Disconnect();         getgenv().noDamageLoop = nil end
+    if getgenv().followConnection     then getgenv().followConnection:Disconnect();     getgenv().followConnection = nil end
+    if getgenv().noclipConnection     then getgenv().noclipConnection:Disconnect();     getgenv().noclipConnection = nil end
+    if getgenv().infiniteJumpConnection then getgenv().infiniteJumpConnection:Disconnect(); getgenv().infiniteJumpConnection = nil end
+    -- Restore hooks
+    if getgenv().hitboxRestoreFunc    then pcall(getgenv().hitboxRestoreFunc);          getgenv().hitboxRestoreFunc = nil end
+    if getgenv().noDamageRestoreFunc  then pcall(getgenv().noDamageRestoreFunc);        getgenv().noDamageRestoreFunc = nil end
+    -- Destroy UI
+    if getgenv().ESPContainer         then pcall(function() getgenv().ESPContainer:Destroy() end); getgenv().ESPContainer = nil end
+    if getgenv().ScreenGui            then pcall(function() getgenv().ScreenGui:Destroy()    end); getgenv().ScreenGui    = nil end
 end
 
 -- 4. SAVE / LOAD SETTINGS — BUG 11 FIX: completely missing from modular version
@@ -180,20 +194,20 @@ getgenv().switchTarget = function()
     end
 end
 
--- 6. BUTTON CONNECTIONS
-task.spawn(function()
-    while task.wait(0.1) do
-        if getgenv().HideButton and getgenv().CloseButton then break end
-    end
-
-    getgenv().HideButton.MouseButton1Down:Connect(function()
-        if getgenv().MainFrame then getgenv().MainFrame.Visible = not getgenv().MainFrame.Visible end
+-- 6. WIRE HIDE / CLOSE BUTTONS (UI already loaded above — direct connection is safe)
+if getgenv().HideButton then
+    getgenv().HideButton.MouseButton1Click:Connect(function()
+        if getgenv().MainFrame then
+            getgenv().MainFrame.Visible = not getgenv().MainFrame.Visible
+        end
     end)
+end
 
-    getgenv().CloseButton.MouseButton1Down:Connect(function()
-        if getgenv().destroyScript then getgenv().destroyScript() end
+if getgenv().CloseButton then
+    getgenv().CloseButton.MouseButton1Click:Connect(function()
+        if getgenv().destroyScript then pcall(getgenv().destroyScript) end
     end)
-end)
+end
 
 -- 7. BACKGROUND LOOPS
 local RunService = game:GetService("RunService")

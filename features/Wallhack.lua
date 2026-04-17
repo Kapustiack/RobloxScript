@@ -1,21 +1,8 @@
+-- [[ WALLHACK — Fully wired, using LocalTransparencyModifier (1:1 from rb.lua) ]]
+local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-local Wallhack = {}
-Wallhack.Enabled = false
-
-function Wallhack:Toggle(state)
-    self.Enabled = state
-    
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character then
-            for _, part in pairs(player.Character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.LocalTransparencyModifier = state and 0.5 or 0
-                end
-            end
-        end
-    end
-end
-
-return Wallhack
+-- Note: Wallhack logic is also in Misc.lua which handles the button.
+-- This file is kept as a stub so loadRemote("features/Wallhack.lua") doesn't fail.
+-- All actual Wallhack wiring is in features/Misc.lua.

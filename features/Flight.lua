@@ -1,80 +1,80 @@
+-- [[ FLIGHT — Fully wired, 1:1 from rb.lua ]]
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
-local Flight = {}
-Flight.Enabled = false
-Flight.Speed = 50
-Flight.Connection = nil
+local function enableFlight()
+    if not getgenv().scriptEnabled then return end
+    local char = LocalPlayer.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    getgenv().flying = true
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if hum then hum.PlatformStand = true end
+
+    local fv = char.HumanoidRootPart:FindFirstChild("FlyVelocity") or Instance.new("BodyVelocity")
+    fv.Name = "FlyVelocity"; fv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    fv.Velocity = Vector3.new(0, 0, 0); fv.Parent = char.HumanoidRootPart
+    getgenv().flyVelocity = fv
+
+    local bg = char.HumanoidRootPart:FindFirstChild("FlyGyro") or Instance.new("BodyGyro")
+    bg.Name = "FlyGyro"; bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+    bg.P = 10000; bg.CFrame = char.HumanoidRootPart.CFrame; bg.Parent = char.HumanoidRootPart
+    getgenv().bodyGyro = bg
+end
+
+local function disableFlight()
+    getgenv().flying = false
+    local char = LocalPlayer.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        local fv = char.HumanoidRootPart:FindFirstChild("FlyVelocity"); if fv then fv:Destroy() end
+        local bg = char.HumanoidRootPart:FindFirstChild("FlyGyro"); if bg then bg:Destroy() end
+        local hum = char:FindFirstChildOfClass("Humanoid"); if hum then hum.PlatformStand = false end
+    end
+    getgenv().flyVelocity = nil; getgenv().bodyGyro = nil
+end
 
 local function updateFlight()
-    if not Flight.Enabled then return end
-    local character = LocalPlayer.Character
-    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-    
-    local hrp = character.HumanoidRootPart
-    local flyVel = hrp:FindFirstChild("FlyVelocity")
-    local flyGyro = hrp:FindFirstChild("FlyGyro")
-    
-    if flyVel and flyGyro then
-        local moveVector = Vector3.new(0, 0, 0)
-        
-        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-            moveVector = moveVector + Camera.CFrame.LookVector * Flight.Speed
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-            moveVector = moveVector - Camera.CFrame.LookVector * Flight.Speed
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-            moveVector = moveVector - Camera.CFrame.RightVector * Flight.Speed
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-            moveVector = moveVector + Camera.CFrame.RightVector * Flight.Speed
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-            moveVector = moveVector + Vector3.new(0, Flight.Speed, 0)
-        end
-        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-            moveVector = moveVector - Vector3.new(0, Flight.Speed, 0)
-        end
-        
-        flyVel.Velocity = moveVector
-        flyGyro.CFrame = Camera.CFrame
+    if not getgenv().flying or not getgenv().scriptEnabled then return end
+    local char = LocalPlayer.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    -- Re-create BodyVelocity if it got deleted (respawn, anti-cheat, etc.)
+    if not getgenv().flyVelocity or not getgenv().flyVelocity.Parent then
+        enableFlight(); return
+    end
+    if getgenv().flyVelocity and getgenv().bodyGyro then
+        local mv = Vector3.new(0, 0, 0)
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then mv = mv + Camera.CFrame.LookVector * getgenv().flightSpeed end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then mv = mv - Camera.CFrame.LookVector * getgenv().flightSpeed end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then mv = mv - Camera.CFrame.RightVector * getgenv().flightSpeed end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then mv = mv + Camera.CFrame.RightVector * getgenv().flightSpeed end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then mv = mv + Vector3.new(0, getgenv().flightSpeed, 0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then mv = mv - Vector3.new(0, getgenv().flightSpeed, 0) end
+        getgenv().flyVelocity.Velocity = mv; getgenv().bodyGyro.CFrame = Camera.CFrame
     end
 end
 
-function Flight:Toggle(state)
-    self.Enabled = state
-    local character = LocalPlayer.Character
-    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-    local hrp = character.HumanoidRootPart
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
-
-    if state then
-        if humanoid then humanoid.PlatformStand = true end
-        
-        local flyVelocity = Instance.new("BodyVelocity")
-        flyVelocity.Name = "FlyVelocity"
-        flyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        flyVelocity.Velocity = Vector3.new(0, 0, 0)
-        flyVelocity.Parent = hrp
-        
-        local bodyGyro = Instance.new("BodyGyro")
-        bodyGyro.Name = "FlyGyro"
-        bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-        bodyGyro.P = 10000
-        bodyGyro.CFrame = hrp.CFrame
-        bodyGyro.Parent = hrp
-
-        self.Connection = RunService.RenderStepped:Connect(updateFlight)
+-- FlightButton: left click = toggle, right click = open Flight Settings
+getgenv().FlightButton.MouseButton1Click:Connect(function()
+    if not getgenv().scriptEnabled then return end
+    getgenv().flightEnabled = not getgenv().flightEnabled
+    if getgenv().flightEnabled then
+        getgenv().FlightButton.Text = "Flight: ON"
+        getgenv().FlightButton.BackgroundColor3 = getgenv().COL_ON
+        enableFlight()
     else
-        if humanoid then humanoid.PlatformStand = false end
-        if hrp:FindFirstChild("FlyVelocity") then hrp.FlyVelocity:Destroy() end
-        if hrp:FindFirstChild("FlyGyro") then hrp.FlyGyro:Destroy() end
-        if self.Connection then self.Connection:Disconnect(); self.Connection = nil end
+        getgenv().FlightButton.Text = "Flight: OFF"
+        getgenv().FlightButton.BackgroundColor3 = getgenv().COL_OFF
+        disableFlight()
     end
-end
+end)
 
-return Flight
+getgenv().FlightButton.MouseButton2Click:Connect(function()
+    if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().FlightSettingsFrame) end
+end)
+
+-- Export for main.lua heartbeat loop and destroyScript
+getgenv().updateFlight = updateFlight
+getgenv().disableFlight = disableFlight
+getgenv().enableFlight = enableFlight
