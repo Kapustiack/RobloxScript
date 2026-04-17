@@ -19,6 +19,13 @@ getgenv().autoSwitchEnabled = false
 getgenv().reachEnabled = false
 getgenv().hitboxEnabled = false
 getgenv().noDamageEnabled = false
+-- NEW: Inf Jump mode (false = instant on every JumpRequest, true = hold Space)
+getgenv().infJumpHoldMode = false
+getgenv().infJumpHoldConnection = nil
+-- NEW: Wallhack options
+getgenv().wallhackTransparency = 0.5  -- 0.3 (barely visible) to 0.9 (almost invisible)
+getgenv().wallhackTeamCheck = false   -- if true, skip teammates
+
 
 -- Settings & Limits
 getgenv().followDistance = 5
@@ -63,15 +70,17 @@ getgenv().noDamageLoop = nil
 getgenv().fullbrightLoop = nil
 getgenv().originalLightingSettings = { saved = false }
 
--- Sliders dragging (NEW)
-getgenv().draggingESPDistance = false
-getgenv().draggingSpeed = false
-getgenv().draggingFOV = false
+-- Sliders dragging
+getgenv().draggingESPDistance    = false
+getgenv().draggingSpeed          = false
+getgenv().draggingFOV            = false
 getgenv().draggingFollowDistance = false
-getgenv().draggingFollowHeight = false
-getgenv().draggingReachDist = false
-getgenv().draggingHitboxSize = false
-getgenv().draggingFlightSpeed = false -- Extra for Requested flight settings
+getgenv().draggingFollowHeight   = false
+getgenv().draggingReachDist      = false
+getgenv().draggingHitboxSize     = false
+getgenv().draggingFlightSpeed    = false
+getgenv().draggingWallhackTransp = false  -- NEW: wallhack transparency slider
+
 
 -- UI Globals (Pre-assigned to nil)
 getgenv().ScreenGui = nil
@@ -97,13 +106,16 @@ getgenv().RejoinButton = nil
 getgenv().JoinInstanceButton = nil
 
 -- UI Settings panels
-getgenv().ESPSettingsFrame = nil
-getgenv().SpeedSettingsFrame = nil
-getgenv().FOVSettingsFrame = nil
-getgenv().FollowSettingsFrame = nil
-getgenv().ReachSettingsFrame = nil
-getgenv().HitboxSettingsFrame = nil
-getgenv().FlightSettingsFrame = nil -- NEW
+getgenv().ESPSettingsFrame          = nil
+getgenv().SpeedSettingsFrame        = nil
+getgenv().FOVSettingsFrame          = nil
+getgenv().FollowSettingsFrame       = nil
+getgenv().ReachSettingsFrame        = nil
+getgenv().HitboxSettingsFrame       = nil
+getgenv().FlightSettingsFrame       = nil
+getgenv().InfiniteJumpSettingsFrame = nil  -- NEW
+getgenv().WallhackSettingsFrame     = nil  -- NEW
+
 
 -- Colors
 getgenv().COL_BG   = Color3.fromRGB(13, 13, 20)

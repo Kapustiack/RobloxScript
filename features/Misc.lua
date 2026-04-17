@@ -159,22 +159,33 @@ getgenv().FOVButton.MouseButton1Click:Connect(function()
 end)
 getgenv().FOVButton.MouseButton2Click:Connect(function() if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().FOVSettingsFrame) end end)
 
--- 4. WALLHACK — BUG 1 FIX: Use LocalTransparencyModifier (NOT CanCollide+Transparency)
+-- 4. WALLHACK — Dynamic transparency + optional team check
+local function shouldSkipPlayer(p)
+    if p == LocalPlayer then return true end
+    if getgenv().wallhackTeamCheck then
+        -- Skip teammates (same Team object)
+        if LocalPlayer.Team and p.Team and LocalPlayer.Team == p.Team then return true end
+    end
+    return false
+end
+
 local function enableWallhack()
     if getgenv().wallhackLoop then getgenv().wallhackLoop:Disconnect() end
     getgenv().wallhackLoop = RunService.Stepped:Connect(function()
         if not getgenv().wallhackEnabled or not getgenv().scriptEnabled then return end
+        local transp = getgenv().wallhackTransparency or 0.5
         for _, p in pairs(Players:GetPlayers()) do
-            if p ~= LocalPlayer and p.Character then
+            if not shouldSkipPlayer(p) and p.Character then
                 for _, part in pairs(p.Character:GetDescendants()) do
                     if part:IsA("BasePart") then
-                        part.LocalTransparencyModifier = 0.5
+                        part.LocalTransparencyModifier = transp
                     end
                 end
             end
         end
     end)
 end
+
 local function disableWallhack()
     if getgenv().wallhackLoop then getgenv().wallhackLoop:Disconnect(); getgenv().wallhackLoop = nil end
     for _, p in pairs(Players:GetPlayers()) do
@@ -185,6 +196,8 @@ local function disableWallhack()
         end
     end
 end
+
+-- Left click = toggle
 getgenv().WallhackButton.MouseButton1Click:Connect(function()
     getgenv().wallhackEnabled = not getgenv().wallhackEnabled
     if getgenv().wallhackEnabled then
@@ -193,6 +206,23 @@ getgenv().WallhackButton.MouseButton1Click:Connect(function()
         getgenv().WallhackButton.Text = "Wallhack: OFF"; getgenv().WallhackButton.BackgroundColor3 = getgenv().COL_OFF; disableWallhack()
     end
 end)
+
+-- Right click = open Wallhack Settings panel
+getgenv().WallhackButton.MouseButton2Click:Connect(function()
+    if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().WallhackSettingsFrame) end
+end)
+
+-- Settings: Team Check toggle
+getgenv().WallhackTeamCheckBtn.MouseButton1Click:Connect(function()
+    getgenv().wallhackTeamCheck = not getgenv().wallhackTeamCheck
+    getgenv().WallhackTeamCheckBtn.Text = "Skip Teammates: " .. (getgenv().wallhackTeamCheck and "ON" or "OFF")
+    getgenv().WallhackTeamCheckBtn.BackgroundColor3 = getgenv().wallhackTeamCheck and getgenv().COL_ON or getgenv().COL_OFF
+    -- If wallhack is on, restart loop to apply change immediately
+    if getgenv().wallhackEnabled then
+        disableWallhack(); enableWallhack()
+    end
+end)
+
 
 -- 5. SERVER UTILS
 getgenv().RejoinButton.MouseButton1Click:Connect(function() if getgenv().Utils then getgenv().Utils:RejoinServer() end end)

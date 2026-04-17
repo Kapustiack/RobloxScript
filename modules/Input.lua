@@ -49,14 +49,16 @@ local function updateSlider(slider, label, labelText, min, max, valKey, isFloat)
 end
 
 -- ── Slider drag start ─────────────────────────────────────────────
-getgenv().ESPDistanceSlider.MouseButton1Down:Connect(function()   getgenv().draggingESPDistance    = true end)
-getgenv().SpeedSlider.MouseButton1Down:Connect(function()         getgenv().draggingSpeed          = true end)
-getgenv().FOVSlider.MouseButton1Down:Connect(function()           getgenv().draggingFOV            = true end)
-getgenv().FollowDistanceSlider.MouseButton1Down:Connect(function() getgenv().draggingFollowDistance = true end)
-getgenv().FollowHeightSlider.MouseButton1Down:Connect(function()  getgenv().draggingFollowHeight   = true end)
-getgenv().ReachDistSlider.MouseButton1Down:Connect(function()     getgenv().draggingReachDist      = true end)
-getgenv().HitboxSizeSlider.MouseButton1Down:Connect(function()    getgenv().draggingHitboxSize     = true end)
-getgenv().FlightSpeedSlider.MouseButton1Down:Connect(function()   getgenv().draggingFlightSpeed    = true end)
+getgenv().ESPDistanceSlider.MouseButton1Down:Connect(function()    getgenv().draggingESPDistance    = true end)
+getgenv().SpeedSlider.MouseButton1Down:Connect(function()          getgenv().draggingSpeed          = true end)
+getgenv().FOVSlider.MouseButton1Down:Connect(function()            getgenv().draggingFOV            = true end)
+getgenv().FollowDistanceSlider.MouseButton1Down:Connect(function()  getgenv().draggingFollowDistance = true end)
+getgenv().FollowHeightSlider.MouseButton1Down:Connect(function()   getgenv().draggingFollowHeight   = true end)
+getgenv().ReachDistSlider.MouseButton1Down:Connect(function()      getgenv().draggingReachDist      = true end)
+getgenv().HitboxSizeSlider.MouseButton1Down:Connect(function()     getgenv().draggingHitboxSize     = true end)
+getgenv().FlightSpeedSlider.MouseButton1Down:Connect(function()    getgenv().draggingFlightSpeed    = true end)
+getgenv().WallhackTranspSlider.MouseButton1Down:Connect(function() getgenv().draggingWallhackTransp = true end)
+
 
 -- ── Slider drag end ───────────────────────────────────────────────
 UserInputService.InputEnded:Connect(function(input)
@@ -69,8 +71,10 @@ UserInputService.InputEnded:Connect(function(input)
         getgenv().draggingReachDist      = false
         getgenv().draggingHitboxSize     = false
         getgenv().draggingFlightSpeed    = false
+        getgenv().draggingWallhackTransp = false
     end
 end)
+
 
 -- ── Slider update while dragging ─────────────────────────────────
 UserInputService.InputChanged:Connect(function(input)
@@ -108,6 +112,24 @@ UserInputService.InputChanged:Connect(function(input)
     if getgenv().draggingFlightSpeed then
         updateSlider(getgenv().FlightSpeedSlider, getgenv().FlightSpeedLabel, "Flight Speed: ", 10, 300, "flightSpeed")
     end
+    -- Wallhack transparency: 10% to 90% (0.1 to 0.9)
+    if getgenv().draggingWallhackTransp then
+        local mousePos = UserInputService:GetMouseLocation()
+        local sl = getgenv().WallhackTranspSlider
+        local relX = math.clamp((mousePos.X - sl.AbsolutePosition.X) / sl.AbsoluteSize.X, 0, 1)
+        local transp = math.floor((0.1 + relX * 0.8) * 100 + 0.5) / 100  -- 0.10 to 0.90
+        getgenv().wallhackTransparency = transp
+        getgenv().WallhackTranspLabel.Text = "Transparency: " .. math.floor(transp * 100) .. "%"
+        -- Update fill
+        local fill = sl:FindFirstChild("Fill")
+        if not fill then
+            fill = Instance.new("Frame"); fill.Name = "Fill"; fill.Parent = sl
+            fill.BackgroundColor3 = Color3.fromRGB(80, 200, 120); fill.BorderSizePixel = 0
+            Instance.new("UICorner", fill).CornerRadius = UDim.new(0, 10)
+        end
+        fill.Size = UDim2.new(relX, 0, 1, 0)
+    end
+
 end)
 
 -- ── Ctrl+Click teleport & Click Check ────────────────────────────

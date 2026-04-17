@@ -126,11 +126,28 @@ getgenv().FlightSettingsFrame = makePanel("FlightSettingsFrame", "Flight Setting
 getgenv().FlightSpeedLabel    = pLabel(FlightSettingsFrame, "FlightSpeedLabel", "Flight Speed: 50", 12, 40, 276, 24)
 getgenv().FlightSpeedSlider   = pSlider(FlightSettingsFrame, "FlightSpeedSlider", 12, 74, 276)
 
+-- InfiniteJump Settings: mode toggle (Hold vs Instant press)
+getgenv().InfiniteJumpSettingsFrame = makePanel("InfiniteJumpSettingsFrame", "Inf Jump Settings", 300, 100)
+getgenv().InfJumpModeBtn     = pBtn(InfiniteJumpSettingsFrame, "InfJumpModeBtn", "Mode: Instant", 12, 40, 276, 26)
+getgenv().InfJumpModeInfo    = pLabel(InfiniteJumpSettingsFrame, "InfJumpModeInfo", "Instant = every jump | Hold = hold Space", 12, 72, 276, 22)
+
+-- Wallhack Settings: transparency level + team check
+getgenv().WallhackSettingsFrame   = makePanel("WallhackSettingsFrame", "Wallhack Settings", 300, 134)
+getgenv().WallhackTranspLabel     = pLabel(WallhackSettingsFrame, "WallhackTranspLabel", "Transparency: 50%", 12, 40, 276, 24)
+getgenv().WallhackTranspSlider    = pSlider(WallhackSettingsFrame, "WallhackTranspSlider", 12, 72, 276)
+getgenv().WallhackTeamCheckBtn    = pBtn(WallhackSettingsFrame, "WallhackTeamCheckBtn", "Skip Teammates: OFF", 12, 98, 276, 26)
+
+
 getgenv().TogglePanel = function(target)
-    local panels = {ESPSettingsFrame, SpeedSettingsFrame, FOVSettingsFrame, FollowSettingsFrame, ReachSettingsFrame, HitboxSettingsFrame, FlightSettingsFrame}
+    local panels = {
+        ESPSettingsFrame, SpeedSettingsFrame, FOVSettingsFrame, FollowSettingsFrame,
+        ReachSettingsFrame, HitboxSettingsFrame, FlightSettingsFrame,
+        InfiniteJumpSettingsFrame, WallhackSettingsFrame
+    }
     local newState = not target.Visible
     for _, p in pairs(panels) do p.Visible = false end
     target.Visible = newState
 end
+
 
 -- Logic is now handled in main.lua to ensure global state availability
