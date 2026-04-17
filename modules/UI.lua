@@ -242,16 +242,28 @@ local wpLayout = Instance.new("UIListLayout", wpScroll)
 wpLayout.Padding = UDim.new(0, 3); wpLayout.SortOrder = Enum.SortOrder.LayoutOrder
 getgenv().WaypointsList = wpScroll
 
-getgenv().TogglePanel = function(target)
+getgenv().HideAllPanels = function()
     local panels = {
         ESPSettingsFrame, SpeedSettingsFrame, FOVSettingsFrame, FollowSettingsFrame,
         ReachSettingsFrame, HitboxSettingsFrame, FlightSettingsFrame,
         InfiniteJumpSettingsFrame, WallhackSettingsFrame, FreeCameraSettingsFrame,
         LowGravitySettingsFrame, TeleportSettingsFrame, WaypointsSettingsFrame
     }
-    local newState = not target.Visible
     for _, p in pairs(panels) do p.Visible = false end
+end
+
+getgenv().TogglePanel = function(target)
+    local newState = not target.Visible
+    getgenv().HideAllPanels()
     target.Visible = newState
+end
+
+getgenv().ToggleUI = function()
+    if not getgenv().MainFrame then return end
+    getgenv().MainFrame.Visible = not getgenv().MainFrame.Visible
+    if not getgenv().MainFrame.Visible then
+        getgenv().HideAllPanels()
+    end
 end
 
 
