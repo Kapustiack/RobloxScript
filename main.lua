@@ -35,6 +35,7 @@ loadRemote("modules/Utils.lua")
 loadRemote("modules/Hooks.lua")
 loadRemote("modules/State.lua")
 loadRemote("modules/UI.lua")
+loadRemote("modules/Save.lua")           -- save/load system (after UI, before features)
 loadRemote("modules/Input.lua")
 
 -- 2. LOAD FEATURES (full list — every file is now directly wired)
@@ -52,7 +53,12 @@ loadRemote("features/Wallhack.lua")      -- stub (implementation in Misc.lua)
 loadRemote("features/Fullbright.lua")    -- stub (implementation in Misc.lua)
 loadRemote("features/FOVChanger.lua")    -- stub (implementation in Misc.lua)
 loadRemote("features/FreeCamera.lua")    -- FreeCam: Free Fly / Spectate / Minimap
+loadRemote("features/LowGravity.lua")    -- Low Gravity + slider
+loadRemote("features/FreezeSelf.lua")    -- Freeze Self (anchor HRP)
+loadRemote("features/TeleportToPlayer.lua") -- Teleport to player from list
+loadRemote("features/Waypoints.lua")     -- Custom waypoints
 loadRemote("features/Other.lua")         -- empty (was causing duplicate button binds)
+
 
 
 -- 3. DESTROY SCRIPT — cleans up everything
@@ -67,9 +73,12 @@ getgenv().destroyScript = function()
     if getgenv().disableNoclip     then pcall(getgenv().disableNoclip)        end
     if getgenv().disableInfiniteJump then pcall(getgenv().disableInfiniteJump) end
     if getgenv().disableFullbright then pcall(getgenv().disableFullbright)    end
-    if getgenv().disableFOVChanger then pcall(getgenv().disableFOVChanger)    end
+    if getgenv().disableFOVChanger  then pcall(getgenv().disableFOVChanger)   end
     if getgenv().removeHitboxExpansion then pcall(getgenv().removeHitboxExpansion) end
-    if getgenv().disableFreeCamera then pcall(getgenv().disableFreeCamera)    end
+    if getgenv().disableFreeCamera  then pcall(getgenv().disableFreeCamera)   end
+    if getgenv().disableLowGravity  then pcall(getgenv().disableLowGravity)   end
+    if getgenv().disableFreeze      then pcall(getgenv().disableFreeze)        end
+
 
     -- Restore camera locks
     pcall(function()

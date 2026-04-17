@@ -27,11 +27,20 @@ getgenv().wallhackTransparency = 0.5
 getgenv().wallhackTeamCheck = false
 -- NEW: FreeCamera
 getgenv().freeCamEnabled = false
-getgenv().freeCamMode = "fly"     -- "fly" | "spectate" | "minimap"
+getgenv().freeCamMode = "fly"
 getgenv().freeCamSpeed = 50
 getgenv().freeCamFOV = 70
 getgenv().freeCamTarget = nil
 getgenv().freeCamShowCrosshair = true
+-- NEW: ESP visuals
+getgenv().espShowTracers    = false
+getgenv().espShowSkeleton   = false
+getgenv().espShowHealthBars = false
+-- NEW: Low Gravity
+getgenv().lowGravityEnabled = false
+getgenv().lowGravityValue   = 50
+-- NEW: Freeze Self
+getgenv().freezeSelfEnabled = false
 
 
 
@@ -88,8 +97,9 @@ getgenv().draggingReachDist      = false
 getgenv().draggingHitboxSize     = false
 getgenv().draggingFlightSpeed    = false
 getgenv().draggingWallhackTransp = false
-getgenv().draggingFreeCamSpeed   = false  -- NEW
-getgenv().draggingFreeCamFOV     = false  -- NEW
+getgenv().draggingFreeCamSpeed   = false
+getgenv().draggingFreeCamFOV     = false
+getgenv().draggingLowGravity     = false  -- NEW
 
 
 

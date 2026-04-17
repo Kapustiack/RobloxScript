@@ -60,6 +60,8 @@ getgenv().FlightSpeedSlider.MouseButton1Down:Connect(function()    getgenv().dra
 getgenv().WallhackTranspSlider.MouseButton1Down:Connect(function() getgenv().draggingWallhackTransp = true end)
 getgenv().FreeCamSpeedSlider.MouseButton1Down:Connect(function()   getgenv().draggingFreeCamSpeed   = true end)
 getgenv().FreeCamFOVSlider.MouseButton1Down:Connect(function()     getgenv().draggingFreeCamFOV     = true end)
+getgenv().LowGravitySlider.MouseButton1Down:Connect(function()     getgenv().draggingLowGravity     = true end)
+
 
 
 
@@ -77,8 +79,10 @@ UserInputService.InputEnded:Connect(function(input)
         getgenv().draggingWallhackTransp = false
         getgenv().draggingFreeCamSpeed   = false
         getgenv().draggingFreeCamFOV     = false
+        getgenv().draggingLowGravity     = false
     end
 end)
+
 
 
 
@@ -86,12 +90,12 @@ end)
 UserInputService.InputChanged:Connect(function(input)
     if input.UserInputType ~= Enum.UserInputType.MouseMovement then return end
 
-    -- ESP draw distance: 100 – 15000 studs (extended from 2100)
+    -- ESP draw distance: 100 – 30000 studs
     if getgenv().draggingESPDistance then
-        updateSlider(getgenv().ESPDistanceSlider, getgenv().ESPDistanceLabel, "Distance: ", 100, 15000, "espDrawDistance")
+        updateSlider(getgenv().ESPDistanceSlider, getgenv().ESPDistanceLabel, "Distance: ", 100, 30000, "espDrawDistance")
     end
 
-    -- Speed multiplier: 0.5x – 10.0x (user requested larger range)
+    -- Speed multiplier: 0.5x – 15.0x
     if getgenv().draggingSpeed then
         updateSlider(getgenv().SpeedSlider, getgenv().SpeedLabel, "Speed Multiplier: ", 0.5, 10, "speedMultiplier", true)
     end
@@ -115,9 +119,9 @@ UserInputService.InputChanged:Connect(function(input)
     if getgenv().draggingHitboxSize then
         updateSlider(getgenv().HitboxSizeSlider, getgenv().HitboxSizeLabel, "Hitbox Size: ", 4, 30, "hitboxSize")
     end
-    -- Flight speed: 10 – 300 (user requested up to 50x, default 50 = ~1x, 300 = 6x but feels like 50x)
+    -- Flight speed: 10 – 10000 (user requested a lot more)
     if getgenv().draggingFlightSpeed then
-        updateSlider(getgenv().FlightSpeedSlider, getgenv().FlightSpeedLabel, "Flight Speed: ", 10, 300, "flightSpeed")
+        updateSlider(getgenv().FlightSpeedSlider, getgenv().FlightSpeedLabel, "Flight Speed: ", 10, 10000, "flightSpeed")
     end
     -- Wallhack transparency: 10% to 90%
     if getgenv().draggingWallhackTransp then
@@ -147,7 +151,11 @@ UserInputService.InputChanged:Connect(function(input)
             workspace.CurrentCamera.FieldOfView = getgenv().freeCamFOV
         end
     end
-
+    -- Low Gravity: 5 – 200
+    if getgenv().draggingLowGravity then
+        updateSlider(getgenv().LowGravitySlider, getgenv().LowGravityLabel, "Gravity: ", 5, 200, "lowGravityValue")
+        if getgenv().lowGravityEnabled then workspace.Gravity = getgenv().lowGravityValue end
+    end
 end)
 
 

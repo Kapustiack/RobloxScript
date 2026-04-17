@@ -61,12 +61,20 @@ getgenv().NoDamageButton     = makeBtn("NoDamageButton",     "No Damage: OFF",  
 getgenv().RejoinButton       = makeBtn("RejoinButton",       "Rejoin Server",   2, 8)
 getgenv().JoinInstanceButton = makeBtn("JoinInstanceButton", "Join Instance",   1, 9)
 getgenv().FreeCameraButton   = makeBtn("FreeCameraButton",   "FreeCam: OFF",    2, 9)
+getgenv().LowGravityButton   = makeBtn("LowGravityButton",   "Low Gravity: OFF",1, 10)
+getgenv().FreezeSelfButton   = makeBtn("FreezeSelfButton",   "Freeze Self: OFF",2, 10)
+getgenv().TeleportButton     = makeBtn("TeleportButton",     "Teleport To...",  1, 11)
+getgenv().WaypointsButton    = makeBtn("WaypointsButton",    "Waypoints",       2, 11)
+
+
 
 
 local PAD, BH, GAP = 12, 28, 8
 local function rowY(r) return PAD + (r-1)*(BH+GAP) end
-getgenv().TipLabel = Instance.new("TextLabel"); TipLabel.Parent = ContentScroll; TipLabel.BackgroundTransparency = 1; TipLabel.Position = UDim2.new(0, 12, 0, rowY(10)); TipLabel.Size = UDim2.new(1, -24, 0, 20); TipLabel.Font = Enum.Font.Gotham; TipLabel.Text = "Ctrl+Click = Teleport | Right-click = Settings | Shift+C = Hide"; TipLabel.TextColor3 = getgenv().COL_MUTE; TipLabel.TextSize = 10; TipLabel.TextXAlignment = Enum.TextXAlignment.Center
-ContentScroll.CanvasSize = UDim2.new(0, 0, 0, rowY(10) + 30)
+getgenv().TipLabel = Instance.new("TextLabel"); TipLabel.Parent = ContentScroll; TipLabel.BackgroundTransparency = 1; TipLabel.Position = UDim2.new(0, 12, 0, rowY(12)); TipLabel.Size = UDim2.new(1, -24, 0, 20); TipLabel.Font = Enum.Font.Gotham; TipLabel.Text = "Ctrl+Click = Teleport | Right-click = Settings | Shift+C = Hide | P = FreeCam"; TipLabel.TextColor3 = getgenv().COL_MUTE; TipLabel.TextSize = 10; TipLabel.TextXAlignment = Enum.TextXAlignment.Center
+ContentScroll.CanvasSize = UDim2.new(0, 0, 0, rowY(12) + 30)
+
+
 
 local function makePanel(name, title, w, h)
     local f = Instance.new("Frame"); f.Name = name; f.Parent = ScreenGui; f.BackgroundColor3 = Color3.fromRGB(16, 16, 23); f.BorderSizePixel = 0; f.Position = UDim2.new(0.5, -w/2, 0.5, -h/2); f.Size = UDim2.new(0, w, 0, h); f.Visible = false; f.Active = true; f.Draggable = true; Instance.new("UICorner", f).CornerRadius = UDim.new(0, 8); local s = Instance.new("UIStroke", f); s.Color = Color3.fromRGB(38, 38, 54); s.Thickness = 1
@@ -88,13 +96,19 @@ local function pSlider(par, name, x, y, w)
     return s
 end
 
-getgenv().ESPSettingsFrame    = makePanel("ESPSettingsFrame", "ESP Settings", 300, 172)
-getgenv().ESPShowNamesBtn     = pBtn(ESPSettingsFrame, "ESPShowNamesBtn",    "Names: ON",     12, 40, 130, 26)
-getgenv().ESPShowDistBtn      = pBtn(ESPSettingsFrame, "ESPShowDistBtn",     "Distance: ON",  158, 40, 130, 26)
-getgenv().ESPShowBoxesBtn     = pBtn(ESPSettingsFrame, "ESPShowBoxesBtn",    "3D Boxes: ON",  12, 76, 130, 26)
-getgenv().ESP2DBoxesBtn       = pBtn(ESPSettingsFrame, "ESP2DBoxesBtn",      "2D Boxes: OFF", 158, 76, 130, 26)
-getgenv().ESPDistanceLabel    = pLabel(ESPSettingsFrame, "ESPDistanceLabel", "Distance: 1000",  12, 112, 276, 24)
-getgenv().ESPDistanceSlider   = pSlider(ESPSettingsFrame, "ESPDistanceSlider", 12, 146, 276)
+-- ESP Settings (expanded: +Tracers, +Skeleton, +HealthBars)
+getgenv().ESPSettingsFrame    = makePanel("ESPSettingsFrame", "ESP Settings", 300, 248)
+getgenv().ESPShowNamesBtn     = pBtn(ESPSettingsFrame, "ESPShowNamesBtn",    "Names: ON",       12,  40, 130, 26)
+getgenv().ESPShowDistBtn      = pBtn(ESPSettingsFrame, "ESPShowDistBtn",     "Distance: ON",   158,  40, 130, 26)
+getgenv().ESPShowBoxesBtn     = pBtn(ESPSettingsFrame, "ESPShowBoxesBtn",    "3D Boxes: ON",    12,  76, 130, 26)
+getgenv().ESP2DBoxesBtn       = pBtn(ESPSettingsFrame, "ESP2DBoxesBtn",      "2D Boxes: OFF",  158,  76, 130, 26)
+getgenv().ESPTracersBtn       = pBtn(ESPSettingsFrame, "ESPTracersBtn",      "Tracers: OFF",    12, 112, 130, 26)
+getgenv().ESPSkeletonBtn      = pBtn(ESPSettingsFrame, "ESPSkeletonBtn",     "Skeleton: OFF",  158, 112, 130, 26)
+getgenv().ESPHealthBarsBtn    = pBtn(ESPSettingsFrame, "ESPHealthBarsBtn",   "Health Bars: OFF",12, 148, 276, 26)
+getgenv().ESPDistanceLabel    = pLabel(ESPSettingsFrame, "ESPDistanceLabel", "Distance: 1000",  12, 184, 276, 24)
+getgenv().ESPDistanceSlider   = pSlider(ESPSettingsFrame, "ESPDistanceSlider",                  12, 218, 276)
+
+
 
 
 getgenv().SpeedSettingsFrame  = makePanel("SpeedSettingsFrame", "Speed Settings", 300, 100)
@@ -192,19 +206,54 @@ fcTip.BackgroundTransparency = 1; fcTip.TextColor3 = getgenv().COL_MUTE; fcTip.T
 
 getgenv().FreeCamPlayerList = playerScroll
 
+-- Low Gravity Settings: single gravity value slider
+getgenv().LowGravitySettingsFrame = makePanel("LowGravitySettingsFrame", "Low Gravity Settings", 300, 100)
+getgenv().LowGravityLabel  = pLabel(LowGravitySettingsFrame, "LowGravityLabel",  "Gravity: 50",  12, 40, 276, 24)
+getgenv().LowGravitySlider = pSlider(LowGravitySettingsFrame, "LowGravitySlider", 12, 74, 276)
 
+-- Teleport Settings: scrollable player list + refresh
+getgenv().TeleportSettingsFrame = makePanel("TeleportSettingsFrame", "Teleport To Player", 300, 200)
+local teleportRefreshBtn = pBtn(TeleportSettingsFrame, "TeleportRefreshBtn", "\u21bb Refresh", 12, 40, 276, 26)
+getgenv().TeleportRefreshBtn = teleportRefreshBtn
 
+local tpScroll = Instance.new("ScrollingFrame")
+tpScroll.Name = "TeleportPlayerList"; tpScroll.Parent = TeleportSettingsFrame
+tpScroll.Position = UDim2.new(0, 12, 0, 74); tpScroll.Size = UDim2.new(0, 276, 0, 116)
+tpScroll.BackgroundColor3 = Color3.fromRGB(12, 12, 18); tpScroll.BorderSizePixel = 0
+tpScroll.ScrollBarThickness = 3; tpScroll.ScrollBarImageColor3 = getgenv().COL_MUTE
+tpScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+Instance.new("UICorner", tpScroll).CornerRadius = UDim.new(0, 6)
+local tpLayout = Instance.new("UIListLayout", tpScroll)
+tpLayout.Padding = UDim.new(0, 3); tpLayout.SortOrder = Enum.SortOrder.LayoutOrder
+getgenv().TeleportPlayerList = tpScroll
+
+-- Waypoints Settings
+getgenv().WaypointsSettingsFrame = makePanel("WaypointsSettingsFrame", "Saved Locations", 300, 200)
+getgenv().WaypointSaveBtn = pBtn(WaypointsSettingsFrame, "WaypointSaveBtn", "+ Save Current Position", 12, 40, 276, 26)
+
+local wpScroll = Instance.new("ScrollingFrame")
+wpScroll.Name = "WaypointsList"; wpScroll.Parent = WaypointsSettingsFrame
+wpScroll.Position = UDim2.new(0, 12, 0, 74); wpScroll.Size = UDim2.new(0, 276, 0, 116)
+wpScroll.BackgroundColor3 = Color3.fromRGB(12, 12, 18); wpScroll.BorderSizePixel = 0
+wpScroll.ScrollBarThickness = 3; wpScroll.ScrollBarImageColor3 = getgenv().COL_MUTE
+wpScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+Instance.new("UICorner", wpScroll).CornerRadius = UDim.new(0, 6)
+local wpLayout = Instance.new("UIListLayout", wpScroll)
+wpLayout.Padding = UDim.new(0, 3); wpLayout.SortOrder = Enum.SortOrder.LayoutOrder
+getgenv().WaypointsList = wpScroll
 
 getgenv().TogglePanel = function(target)
     local panels = {
         ESPSettingsFrame, SpeedSettingsFrame, FOVSettingsFrame, FollowSettingsFrame,
         ReachSettingsFrame, HitboxSettingsFrame, FlightSettingsFrame,
-        InfiniteJumpSettingsFrame, WallhackSettingsFrame, FreeCameraSettingsFrame
+        InfiniteJumpSettingsFrame, WallhackSettingsFrame, FreeCameraSettingsFrame,
+        LowGravitySettingsFrame, TeleportSettingsFrame, WaypointsSettingsFrame
     }
     local newState = not target.Visible
     for _, p in pairs(panels) do p.Visible = false end
     target.Visible = newState
 end
+
 
 
 
