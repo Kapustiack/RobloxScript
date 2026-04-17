@@ -279,7 +279,12 @@ local function disableFreeCamera()
     stopRender(); stopMinimap(); unblockMovement(); stopDeltaAccum()
     destroyCrosshair()
     freezeChar(false)
-    if getgenv().freeCamMode ~= "minimap" then pcall(restoreCamera) end
+    -- Only restore if we actually saved state (FreeCam was used)
+    if savedCamType and getgenv().freeCamMode ~= "minimap" then 
+        pcall(restoreCamera) 
+        savedCamType = nil
+        savedSubject = nil
+    end
     UIS.MouseBehavior = Enum.MouseBehavior.Default
 end
 
