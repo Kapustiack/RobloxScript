@@ -68,8 +68,10 @@ end
 
 -- ── Save & restore camera state ───────────────────────────────────
 local function saveCameraState()
-    savedCamType  = Camera.CameraType
-    savedSubject  = Camera.CameraSubject
+    if Camera.CameraType ~= Enum.CameraType.Scriptable then
+        savedCamType  = Camera.CameraType
+        savedSubject  = Camera.CameraSubject
+    end
     freeCamCF     = Camera.CFrame
     local _, y, p = Camera.CFrame:ToEulerAnglesYXZ()
     yawRad = y; pitchRad = p
