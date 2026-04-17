@@ -119,9 +119,9 @@ UserInputService.InputChanged:Connect(function(input)
     if getgenv().draggingHitboxSize then
         updateSlider(getgenv().HitboxSizeSlider, getgenv().HitboxSizeLabel, "Hitbox Size: ", 4, 30, "hitboxSize")
     end
-    -- Flight speed: 10 – 50000 (user requested 5x more than 10000)
+    -- Flight speed: 10 – 1500 (user requested limit)
     if getgenv().draggingFlightSpeed then
-        updateSlider(getgenv().FlightSpeedSlider, getgenv().FlightSpeedLabel, "Flight Speed: ", 10, 50000, "flightSpeed")
+        updateSlider(getgenv().FlightSpeedSlider, getgenv().FlightSpeedLabel, "Flight Speed: ", 10, 1500, "flightSpeed")
     end
     -- Wallhack transparency: 10% to 90%
     if getgenv().draggingWallhackTransp then
