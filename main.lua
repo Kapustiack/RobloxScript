@@ -1,5 +1,7 @@
--- [[ RB MODULAR HUB - ABSOLUTE LITERAL RESTORATION ]]
--- FIXED V6: CACHE-BUSTING + FORCE-CONNECT (MouseButton1Down)
+-- [[ RB MODULAR HUB - FULL BUG-FIX EDITION ]]
+-- Fixes: BUG 4 (CharacterAdded), BUG 5 (PlayerAdded/Removing),
+--        BUG 7 (Death Check notifications), BUG 11 (saveSettings),
+--        BUG 12 (OnTeleport cleanup), + all existing V6 fixes
 
 -- 0. CLEAN BOOT
 local lastGUI = game:GetService("CoreGui"):FindFirstChild("CheatGUI")
@@ -8,46 +10,24 @@ if getgenv().destroyScript then pcall(getgenv().destroyScript) end
 
 local baseUrl = "https://raw.githubusercontent.com/Kapustiak-maker/RobloxScript/main/"
 local function loadRemote(path)
-    -- CACHE BYPASSING: Add a unique timestamp to every request
     local cacheBypass = "?t=" .. tostring(os.time()) .. tostring(math.random(1, 100000))
     local success, content = pcall(function() return game:HttpGet(baseUrl .. path .. cacheBypass) end)
-    
-    if not success or not content or content == "" then 
+
+    if not success or not content or content == "" then
         warn("[RB Hub] Download Error: " .. path)
-        return nil 
+        return nil
     end
-    
+
     local func, err = loadstring(content)
-    if not func then 
+    if not func then
         warn("[RB Hub] Syntax Error: " .. path .. " | " .. tostring(err))
-        return nil 
+        return nil
     end
-    
+
     local runSuccess, runErr = pcall(func)
     if not runSuccess then
         warn("[RB Hub] Execution Error: " .. path .. " | " .. tostring(runErr))
     end
-end
-
--- 3. VERBATIM DESTROY SCRIPT
-getgenv().destroyScript = function()
-    getgenv().scriptEnabled = false
-    if getgenv().stopFollow then getgenv().stopFollow() end
-    if getgenv().disableReach then getgenv().disableReach() end
-    if getgenv().removeHitboxExpansion then getgenv().removeHitboxExpansion() end
-    if getgenv().disableFlight then getgenv().disableFlight() end
-    if getgenv().disableWallhack then getgenv().disableWallhack() end
-    if getgenv().disableSpeedhack then getgenv().disableSpeedhack() end
-    if getgenv().disableNoclip then getgenv().disableNoclip() end
-    if getgenv().disableInfiniteJump then getgenv().disableInfiniteJump() end
-    if getgenv().disableFullbright then getgenv().disableFullbright() end
-    if getgenv().disableFOVChanger then getgenv().disableFOVChanger() end
-    if getgenv().fullbrightLoop then getgenv().fullbrightLoop:Disconnect(); getgenv().fullbrightLoop = nil end
-    if getgenv().noDamageLoop then getgenv().noDamageLoop:Disconnect(); getgenv().noDamageLoop = nil end
-    if getgenv().hitboxRestoreFunc then pcall(getgenv().hitboxRestoreFunc); getgenv().hitboxRestoreFunc = nil end
-    if getgenv().noDamageRestoreFunc then pcall(getgenv().noDamageRestoreFunc); getgenv().noDamageRestoreFunc = nil end
-    if getgenv().ESPContainer then getgenv().ESPContainer:Destroy(); getgenv().ESPContainer = nil end
-    if getgenv().ScreenGui then getgenv().ScreenGui:Destroy(); getgenv().ScreenGui = nil end
 end
 
 -- 1. LOAD COMPONENTS
@@ -66,7 +46,100 @@ loadRemote("features/Speed.lua")
 loadRemote("features/Misc.lua")
 loadRemote("features/Other.lua")
 
--- 4. LOGIC COORDINATION
+-- 3. VERBATIM DESTROY SCRIPT
+getgenv().destroyScript = function()
+    getgenv().scriptEnabled = false
+    if getgenv().stopFollow then getgenv().stopFollow() end
+    if getgenv().disableReach then getgenv().disableReach() end
+    if getgenv().removeHitboxExpansion then getgenv().removeHitboxExpansion() end
+    if getgenv().disableFlight then getgenv().disableFlight() end
+    if getgenv().disableWallhack then getgenv().disableWallhack() end
+    if getgenv().disableSpeedhack then getgenv().disableSpeedhack() end
+    if getgenv().disableNoclip then getgenv().disableNoclip() end
+    if getgenv().disableInfiniteJump then getgenv().disableInfiniteJump() end
+    if getgenv().disableFullbright then getgenv().disableFullbright() end
+    if getgenv().disableFOVChanger then getgenv().disableFOVChanger() end
+    -- Restore camera locks
+    pcall(function()
+        local cas = game:GetService("ContextActionService")
+        cas:UnbindAction("DisableShiftLock")
+        cas:UnbindAction("DisableCtrlSwitch")
+    end)
+    if getgenv().wallhackLoop then getgenv().wallhackLoop:Disconnect(); getgenv().wallhackLoop = nil end
+    if getgenv().fullbrightLoop then getgenv().fullbrightLoop:Disconnect(); getgenv().fullbrightLoop = nil end
+    if getgenv().noDamageLoop then getgenv().noDamageLoop:Disconnect(); getgenv().noDamageLoop = nil end
+    if getgenv().hitboxRestoreFunc then pcall(getgenv().hitboxRestoreFunc); getgenv().hitboxRestoreFunc = nil end
+    if getgenv().noDamageRestoreFunc then pcall(getgenv().noDamageRestoreFunc); getgenv().noDamageRestoreFunc = nil end
+    if getgenv().ESPContainer then getgenv().ESPContainer:Destroy(); getgenv().ESPContainer = nil end
+    if getgenv().ScreenGui then getgenv().ScreenGui:Destroy(); getgenv().ScreenGui = nil end
+end
+
+-- 4. SAVE / LOAD SETTINGS — BUG 11 FIX: completely missing from modular version
+local HttpService = game:GetService("HttpService")
+local settingsFileName = "rb_settings.json"
+
+getgenv().saveSettings = function()
+    local s = {
+        flightEnabled       = getgenv().flightEnabled,
+        wallhackEnabled     = getgenv().wallhackEnabled,
+        espEnabled          = getgenv().espEnabled,
+        speedhackEnabled    = getgenv().speedhackEnabled,
+        noclipEnabled       = getgenv().noclipEnabled,
+        infiniteJumpEnabled = getgenv().infiniteJumpEnabled,
+        fullbrightEnabled   = getgenv().fullbrightEnabled,
+        fovChangerEnabled   = getgenv().fovChangerEnabled,
+        shiftLockDisabled   = getgenv().shiftLockDisabled,
+        ctrlLockDisabled    = getgenv().ctrlLockDisabled,
+        espDrawDistance     = getgenv().espDrawDistance,
+        espShowNames        = getgenv().espShowNames,
+        espShowDistance     = getgenv().espShowDistance,
+        espShowBoxes        = getgenv().espShowBoxes,
+        espUse2DBoxes       = getgenv().espUse2DBoxes,
+        speedMultiplier     = getgenv().speedMultiplier,
+        currentFOV          = getgenv().currentFOV,
+        followEnabled       = getgenv().followEnabled,
+        followDistance      = getgenv().followDistance,
+        followHeight        = getgenv().followHeight,
+        clickCheckEnabled   = getgenv().clickCheckEnabled,
+        deathCheckEnabled   = getgenv().deathCheckEnabled,
+        autoSwitchEnabled   = getgenv().autoSwitchEnabled,
+        reachEnabled        = getgenv().reachEnabled,
+        reachDistance       = getgenv().reachDistance,
+        reachVisual         = getgenv().reachVisual,
+        hitboxEnabled       = getgenv().hitboxEnabled,
+        hitboxSize          = getgenv().hitboxSize,
+        hitboxVisual        = getgenv().hitboxVisual,
+        noDamageEnabled     = getgenv().noDamageEnabled,
+    }
+    pcall(writefile, settingsFileName, HttpService:JSONEncode(s))
+end
+
+local function loadSettings()
+    local ok, found = pcall(isfile, settingsFileName)
+    if not (ok and found) then return end
+    local ok2, s = pcall(function()
+        return HttpService:JSONDecode(readfile(settingsFileName))
+    end)
+    if not ok2 or type(s) ~= "table" then return end
+
+    -- Simple value restore (no toggle functions — features self-initialize from getgenv state)
+    local function rv(key) if s[key] ~= nil then getgenv()[key] = s[key] end end
+    rv("espDrawDistance"); rv("espShowNames"); rv("espShowDistance"); rv("espShowBoxes"); rv("espUse2DBoxes")
+    rv("speedMultiplier"); rv("currentFOV")
+    rv("followDistance"); rv("followHeight"); rv("clickCheckEnabled"); rv("deathCheckEnabled"); rv("autoSwitchEnabled")
+    rv("reachDistance"); rv("reachVisual"); rv("hitboxSize"); rv("hitboxVisual")
+
+    -- UI label sync after restore
+    if s.espDrawDistance and getgenv().ESPDistanceLabel then getgenv().ESPDistanceLabel.Text = "Distance: " .. s.espDrawDistance end
+    if s.speedMultiplier and getgenv().SpeedLabel then getgenv().SpeedLabel.Text = "Speed Multiplier: " .. string.format("%.1f", s.speedMultiplier) .. "x" end
+    if s.currentFOV and getgenv().FOVLabel then getgenv().FOVLabel.Text = "FOV: " .. s.currentFOV .. "°" end
+    if s.followDistance and getgenv().FollowDistanceLabel then getgenv().FollowDistanceLabel.Text = "Distance: " .. s.followDistance end
+    if s.followHeight and getgenv().FollowHeightLabel then getgenv().FollowHeightLabel.Text = "Height: " .. s.followHeight end
+    if s.reachDistance and getgenv().ReachDistLabel then getgenv().ReachDistLabel.Text = "Reach Distance: " .. s.reachDistance end
+    if s.hitboxSize and getgenv().HitboxSizeLabel then getgenv().HitboxSizeLabel.Text = "Hitbox Size: " .. s.hitboxSize end
+end
+
+-- 5. LOGIC COORDINATION — SwitchTarget (distance-aware, history-based)
 getgenv().pushHistory = function(p)
     if not p then return end
     for i = #getgenv().targetHistory, 1, -1 do if getgenv().targetHistory[i] == p then table.remove(getgenv().targetHistory, i) end end
@@ -74,21 +147,32 @@ getgenv().pushHistory = function(p)
     while #getgenv().targetHistory > 2 do table.remove(getgenv().targetHistory, 1) end
 end
 
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
 getgenv().switchTarget = function()
     if not getgenv().followEnabled then return end
     local candidates = {}
-    for _, p in pairs(game:GetService("Players"):GetPlayers()) do
-        if p ~= game:GetService("Players").LocalPlayer and p ~= getgenv().followTarget and p.Character then
+    local myChar = LocalPlayer.Character
+    if not myChar or not myChar:FindFirstChild("HumanoidRootPart") then return end
+
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p ~= getgenv().followTarget and p.Character then
             local hum = p.Character:FindFirstChildOfClass("Humanoid")
-            if hum and hum.Health > 0 then table.insert(candidates, p) end
+            local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+            if hum and hrp and hum.Health > 0 then
+                local d = (hrp.Position - myChar.HumanoidRootPart.Position).Magnitude
+                table.insert(candidates, {player = p, dist = d})
+            end
         end
     end
     if #candidates == 0 then return end
+    table.sort(candidates, function(a, b) return a.dist < b.dist end)
     local inHistory = {}
     for _, p in ipairs(getgenv().targetHistory) do inHistory[p] = true end
     local chosen = nil
-    for _, p in ipairs(candidates) do if not inHistory[p] then chosen = p; break end end
-    if not chosen then chosen = candidates[1] end
+    for _, c in ipairs(candidates) do if not inHistory[c.player] then chosen = c.player; break end end
+    if not chosen then chosen = candidates[1].player end
     getgenv().pushHistory(getgenv().followTarget)
     if getgenv().stopFollow and getgenv().startFollow then
         getgenv().startFollow(chosen)
@@ -96,25 +180,25 @@ getgenv().switchTarget = function()
     end
 end
 
--- 5. BUTTON CONNECTIONS (FORCE FINAL - MouseButton1Down for Reliability)
+-- 6. BUTTON CONNECTIONS
 task.spawn(function()
     while task.wait(0.1) do
         if getgenv().HideButton and getgenv().CloseButton then break end
     end
-    
+
     getgenv().HideButton.MouseButton1Down:Connect(function()
         if getgenv().MainFrame then getgenv().MainFrame.Visible = not getgenv().MainFrame.Visible end
     end)
-    
+
     getgenv().CloseButton.MouseButton1Down:Connect(function()
         if getgenv().destroyScript then getgenv().destroyScript() end
     end)
 end)
 
--- 6. BACKGROUND LOOPS
+-- 7. BACKGROUND LOOPS
 local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+local StarterGui = game:GetService("StarterGui")
 
 RunService.Heartbeat:Connect(function()
     if not getgenv().scriptEnabled then return end
@@ -122,26 +206,63 @@ RunService.Heartbeat:Connect(function()
     if getgenv().updateESP then getgenv().updateESP() end
     if getgenv().applyHitboxExpansion then getgenv().applyHitboxExpansion() end
     if getgenv().updateFlight then getgenv().updateFlight() end
-    
-    local now = os.clock()
-    if getgenv().leftMouseClicked then getgenv().clickLingerUntil = 0 end
-    
+
+    -- BUG 7 FIX: Death Check with proper chat notifications (1:1 from rb.lua)
     if getgenv().deathCheckEnabled and getgenv().followEnabled and getgenv().followTarget then
         local targetDead = false
-        if not getgenv().followTarget.Character then targetDead = true
-        else local hum = getgenv().followTarget.Character:FindFirstChildOfClass("Humanoid")
-             if not hum or hum.Health <= 0 then targetDead = true end end
-        if targetDead then if getgenv().autoSwitchEnabled then getgenv().switchTarget() else getgenv().stopFollow() end end
+        if not getgenv().followTarget.Character then
+            targetDead = true
+        else
+            local hum = getgenv().followTarget.Character:FindFirstChildOfClass("Humanoid")
+            if not hum or hum.Health <= 0 then targetDead = true end
+        end
+
+        if targetDead then
+            if getgenv().autoSwitchEnabled then
+                local deadTarget = getgenv().followTarget
+                getgenv().pushHistory(deadTarget)
+                local nextTarget = getgenv().Utils and getgenv().Utils:FindNearestAlivePlayer(deadTarget)
+                if nextTarget then
+                    getgenv().followTarget = nextTarget
+                    pcall(function()
+                        StarterGui:SetCore("ChatMakeSystemMessage", {
+                            Text = "[Follow] Target died - switching to " .. nextTarget.Name;
+                            Color = Color3.fromRGB(255, 160, 0);
+                            Font = Enum.Font.GothamBold;
+                        })
+                    end)
+                else
+                    if getgenv().stopFollow then getgenv().stopFollow() end
+                    pcall(function()
+                        StarterGui:SetCore("ChatMakeSystemMessage", {
+                            Text = "[Follow] Target died - no other players found.";
+                            Color = Color3.fromRGB(255, 80, 80);
+                            Font = Enum.Font.GothamBold;
+                        })
+                    end)
+                end
+            else
+                if getgenv().stopFollow then getgenv().stopFollow() end
+                pcall(function()
+                    StarterGui:SetCore("ChatMakeSystemMessage", {
+                        Text = "[Follow] Target died - follow stopped.";
+                        Color = Color3.fromRGB(255, 80, 80);
+                        Font = Enum.Font.GothamBold;
+                    })
+                end)
+            end
+        end
     end
 end)
 
-local UserInputService = game:GetService("UserInputService")
+-- Shift+C to toggle GUI
 UserInputService.InputBegan:Connect(function(input, processed)
     if not processed and input.KeyCode == Enum.KeyCode.C and UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
         if getgenv().MainFrame then getgenv().MainFrame.Visible = not getgenv().MainFrame.Visible end
     end
 end)
 
+-- FPS / Ping HUD
 RunService.RenderStepped:Connect(function(dt)
     if not getgenv().scriptEnabled then return end
     local rawFPS = dt > 0 and (1 / dt) or 1
@@ -155,10 +276,88 @@ RunService.RenderStepped:Connect(function(dt)
     local pingCol = getgenv().lastPingMs < 80 and Color3.fromRGB(60, 220, 100) or (getgenv().lastPingMs < 150 and Color3.fromRGB(255, 165, 0) or Color3.fromRGB(220, 60, 60))
     local fpsCol = fpsInt >= 50 and Color3.fromRGB(60, 220, 100) or (fpsInt >= 30 and Color3.fromRGB(255, 165, 0) or Color3.fromRGB(220, 60, 60))
     if getgenv().HudLabel then
-        getgenv().HudLabel.Text = string.format("<font color=\"#%02x%02x%02x\">FPS: %d</font> <font color=\"#606070\">|</font> <font color=\"#%02x%02x%02x\">%dms</font>", math.floor(fpsCol.R*255), math.floor(fpsCol.G*255), math.floor(fpsCol.B*255), fpsInt, math.floor(pingCol.R*255), math.floor(pingCol.G*255), math.floor(pingCol.B*255), getgenv().lastPingMs)
+        getgenv().HudLabel.RichText = true
+        getgenv().HudLabel.Text = string.format(
+            "<font color=\"#%02x%02x%02x\">FPS: %d</font>  <font color=\"#606070\">|</font>  <font color=\"#%02x%02x%02x\">%dms</font>",
+            math.floor(fpsCol.R*255), math.floor(fpsCol.G*255), math.floor(fpsCol.B*255), fpsInt,
+            math.floor(pingCol.R*255), math.floor(pingCol.G*255), math.floor(pingCol.B*255), getgenv().lastPingMs
+        )
     end
 end)
 
+-- NOTE: Reach indicator RenderStepped loop is handled inside features/Reach.lua
+-- which has direct access to the local reachIndicator variable (BUG 3 fix)
+
+-- BUG 4 FIX: CharacterAdded re-hooks (was completely missing — Speed/InfJump broke on respawn)
+LocalPlayer.CharacterAdded:Connect(function(char)
+    task.wait(0.5)
+    if not getgenv().scriptEnabled then return end
+    -- Re-apply speed
+    if getgenv().speedhackEnabled then
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum.WalkSpeed = getgenv().walkSpeed * getgenv().speedMultiplier
+            hum.JumpPower = getgenv().jumpPower * getgenv().speedMultiplier
+        end
+    end
+    -- Re-connect infinite jump
+    if getgenv().infiniteJumpEnabled then
+        if getgenv().infiniteJumpConnection then getgenv().infiniteJumpConnection:Disconnect() end
+        getgenv().infiniteJumpConnection = game:GetService("UserInputService").JumpRequest:Connect(function()
+            if getgenv().infiniteJumpEnabled and getgenv().scriptEnabled then
+                local hum = char:FindFirstChildOfClass("Humanoid")
+                if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+            end
+        end)
+    end
+    -- Re-enable reach tool watcher
+    if getgenv().reachEnabled and getgenv().enableReach then
+        pcall(getgenv().enableReach)
+    end
+end)
+
+-- BUG 5 FIX: PlayerAdded/Removing events (was completely missing — ESP/Hitbox didn't work for late joiners)
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function()
+        if getgenv().espEnabled and getgenv().scriptEnabled then
+            -- updateESP will pick them up on the next Heartbeat tick automatically
+        end
+        if getgenv().hitboxEnabled then
+            task.wait(0.5)
+            if getgenv().applyHitboxExpansion then getgenv().applyHitboxExpansion() end
+        end
+    end)
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    -- Clean up ESP for the leaving player
+    if getgenv().ScreenGui then
+        local parts = {player.Name.."_Name", player.Name.."_Distance", player.Name.."_2DBox"}
+        for _, n in pairs(parts) do
+            local o = getgenv().ScreenGui:FindFirstChild(n); if o then o:Destroy() end
+        end
+    end
+    if getgenv().ESPContainer then
+        local b3 = getgenv().ESPContainer:FindFirstChild(player.Name .. "_Box"); if b3 then b3:Destroy() end
+    end
+end)
+
+-- BUG 12 FIX: OnTeleport cleanup (was completely missing — caused memory leaks on teleport)
+pcall(function()
+    LocalPlayer.OnTeleport:Connect(function(teleportState)
+        if teleportState == Enum.TeleportState.Started
+            or teleportState == Enum.TeleportState.InProgress
+            or teleportState == Enum.TeleportState.RequestedFromServer
+        then
+            pcall(getgenv().destroyScript)
+        end
+    end)
+end)
+
+-- Load saved settings
+pcall(loadSettings)
+
+-- Startup notification
 if getgenv().Utils and getgenv().Utils.Notify then
-    getgenv().Utils:Notify("RB Hub", "V6 Loaded. Cache Bypassed.", Color3.fromRGB(13, 110, 253))
+    getgenv().Utils:Notify("RB Hub", "Loaded. All bugs fixed. Shift+C = hide.", Color3.fromRGB(13, 110, 253))
 end

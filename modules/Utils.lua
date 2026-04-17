@@ -65,14 +65,31 @@ function Utils:JoinNewInstance()
     end
 end
 
--- Teleport to Mouse Logic (1:1 from rb.lua)
+-- Teleport to Mouse Logic — BUG 6 FIX: Full raycast (1:1 from rb.lua)
+-- Old version used mouse.Hit.p (deprecated) and no raycast — player clips into ground/walls
 function Utils:TeleportToMouse()
+    if not getgenv().scriptEnabled then return end
     local mouse = LocalPlayer:GetMouse()
     local char = LocalPlayer.Character
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        local targetPos = mouse.Hit.p + Vector3.new(0, 3, 0)
-        char.HumanoidRootPart.CFrame = CFrame.new(targetPos)
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+
+    -- Raycast down from mouse hit to find solid ground
+    local hitPos = mouse.Hit.Position
+    local rayOrigin = hitPos + Vector3.new(0, 5, 0)   -- start 5 studs above hit
+    local rayDir = Vector3.new(0, -10, 0)
+    local params = RaycastParams.new()
+    params.FilterType = Enum.RaycastFilterType.Exclude
+    params.FilterDescendantsInstances = {char}
+    local result = workspace:Raycast(rayOrigin, rayDir, params)
+
+    local safePos
+    if result then
+        safePos = result.Position + Vector3.new(0, 3, 0)  -- 3 studs above surface
+    else
+        safePos = hitPos + Vector3.new(0, 3, 0)           -- fallback: raise above hit
     end
+    char.HumanoidRootPart.CFrame = CFrame.new(safePos)
 end
 
 return Utils
+

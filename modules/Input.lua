@@ -65,8 +65,9 @@ end)
 
 -- Teleport functionality (Ctrl+Click) & Click Check
 Mouse.Button1Down:Connect(function()
-    if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) and getgenv().Utils and getgenv().Utils.TeleportToMouse then
-        getgenv().Utils.TeleportToMouse()
+    -- BUG 8 FIX: was Utils.TeleportToMouse() (dot = self is nil crash), now correctly uses colon
+    if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) and getgenv().Utils then
+        getgenv().Utils:TeleportToMouse()
         return
     end
     if getgenv().clickCheckEnabled and getgenv().followEnabled and getgenv().followTarget then

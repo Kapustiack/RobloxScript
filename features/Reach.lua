@@ -78,3 +78,49 @@ end)
 
 getgenv().enableReach = enableReach
 getgenv().disableReach = disableReach
+
+-- BUG 3 FIX: Reach indicator RenderStepped loop was completely missing.
+-- Original rb.lua (lines 2492-2528): reattaches adornee every frame (survives respawn),
+-- scales radius dynamically with reachDistance, and color-codes the sphere.
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+RunService.RenderStepped:Connect(function()
+    if not getgenv().reachEnabled or not reachIndicator then return end
+    local char = LocalPlayer.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    -- Reattach adornee every frame — survives respawn/character changes
+    if reachIndicator.Adornee ~= hrp then reachIndicator.Adornee = hrp end
+    if reachIndicator.Parent ~= workspace then reachIndicator.Parent = workspace end
+
+    -- Scale radius with reach distance for visual clarity
+    reachIndicator.Radius = math.max(0.4, getgenv().reachDistance * 0.06)
+    reachIndicator.CFrame = CFrame.new(0, 0, -getgenv().reachDistance)
+
+    -- Hide if visual toggled off
+    reachIndicator.Transparency = getgenv().reachVisual and 0.3 or 1
+
+    -- Color: red = enemy in reach, orange = close, green = far
+    if getgenv().reachVisual then
+        local nearest = getgenv().Utils and getgenv().Utils:FindNearestAlivePlayer(nil)
+        if nearest and nearest.Character then
+            local nhrp = nearest.Character:FindFirstChild("HumanoidRootPart")
+            if nhrp then
+                local d = (nhrp.Position - hrp.Position).Magnitude
+                if d <= getgenv().reachDistance then
+                    reachIndicator.Color3 = Color3.fromRGB(220, 60, 60)
+                elseif d <= getgenv().reachDistance * 2 then
+                    reachIndicator.Color3 = Color3.fromRGB(255, 160, 0)
+                else
+                    reachIndicator.Color3 = Color3.fromRGB(60, 220, 120)
+                end
+            end
+        else
+            reachIndicator.Color3 = Color3.fromRGB(60, 220, 120)
+        end
+    end
+end)
