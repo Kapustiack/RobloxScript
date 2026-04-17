@@ -157,7 +157,7 @@ local function startFreeFly()
     blockMovement()       -- block WASD from reaching character
     freezeChar(true)      -- stop humanoid from walking
     startDeltaAccum()     -- start tracking mouse movement
-    UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
+    -- Removed: UIS.MouseBehavior = Enum.MouseBehavior.LockCenter so mouse is free by default
 
     Camera.CameraType = Enum.CameraType.Scriptable
     if S("freeCamShowCrosshair") then createCrosshair() end
@@ -170,8 +170,13 @@ local function startFreeFly()
         accDelta = Vector2.new(0, 0)
 
         local sens = 0.003
-        yawRad   = yawRad   - delta.X * sens
-        pitchRad = math.clamp(pitchRad - delta.Y * sens, -math.pi/2 + 0.05, math.pi/2 - 0.05)
+        if UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+            UIS.MouseBehavior = Enum.MouseBehavior.LockCurrentPosition
+            yawRad   = yawRad   - delta.X * sens
+            pitchRad = math.clamp(pitchRad - delta.Y * sens, -math.pi/2 + 0.05, math.pi/2 - 0.05)
+        else
+            UIS.MouseBehavior = Enum.MouseBehavior.Default
+        end
 
         local lookCF = CFrame.Angles(0, yawRad, 0) * CFrame.Angles(pitchRad, 0, 0)
         local spd    = (S("freeCamSpeed") or 50) * dt

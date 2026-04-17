@@ -131,8 +131,9 @@ end
 
 -- ── Main ESP update (called every Heartbeat from main.lua) ────────
 local function updateESP()
-    if not getgenv().espEnabled or not getgenv().scriptEnabled then
-        for _, v in pairs(getgenv().ESPContainer:GetChildren()) do v:Destroy() end
+    local env = getgenv()
+    if not env.espEnabled or not env.scriptEnabled then
+        for _, v in pairs(env.ESPContainer:GetChildren()) do v:Destroy() end
         for _, p in pairs(Players:GetPlayers()) do clearESPForPlayer(p) end
         return
     end
@@ -142,6 +143,18 @@ local function updateESP()
     if not myHRP then return end
 
     local vp = Camera.ViewportSize
+    
+    -- Cache flags to radically reduce hash lookups
+    local drawDist       = env.espDrawDistance
+    local showNames      = env.espShowNames
+    local showDistance   = env.espShowDistance
+    local showBoxes      = env.espShowBoxes
+    local use2DBoxes     = env.espUse2DBoxes
+    local showTracers    = env.espShowTracers
+    local showSkeleton   = env.espShowSkeleton
+    local showHealthBars = env.espShowHealthBars
+    local drawObjsDict   = drawObjects
+    local hasDrawLib     = hasDrawing
 
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and p.Character
@@ -151,16 +164,16 @@ local function updateESP()
             local dist = (hrp.Position - myHRP.Position).Magnitude
             local hum  = char:FindFirstChildOfClass("Humanoid")
 
-            if dist <= getgenv().espDrawDistance then
+            if dist <= drawDist then
                 -- Ensure base ESP is created
-                if not getgenv().ScreenGui:FindFirstChild(p.Name.."_Name") then
+                if not env.ScreenGui:FindFirstChild(p.Name.."_Name") then
                     createESP(p)
                 end
 
-                local nameL = getgenv().ScreenGui:FindFirstChild(p.Name.."_Name")
-                local distL = getgenv().ScreenGui:FindFirstChild(p.Name.."_Distance")
-                local b2d   = getgenv().ScreenGui:FindFirstChild(p.Name.."_2DBox")
-                local b3d   = getgenv().ESPContainer:FindFirstChild(p.Name.."_Box")
+                local nameL = env.ScreenGui:FindFirstChild(p.Name.."_Name")
+                local distL = env.ScreenGui:FindFirstChild(p.Name.."_Distance")
+                local b2d   = env.ScreenGui:FindFirstChild(p.Name.."_2DBox")
+                local b3d   = env.ESPContainer:FindFirstChild(p.Name.."_Box")
 
                 local scrC, onScreen = Camera:WorldToViewportPoint(hrp.Position)
                 local scrH           = Camera:WorldToViewportPoint(hrp.Position + Vector3.new(0,3,0))
@@ -175,60 +188,57 @@ local function updateESP()
                     -- Name
                     if nameL then
                         nameL.Position = UDim2.new(0, cX, 0, tY - 2)
-                        nameL.Visible  = getgenv().espShowNames
-                        nameL.Text     = p.Name
+                        nameL.Visible  = showNames
+                        if showNames then nameL.Text = p.Name end
                     end
                     -- Distance
                     if distL then
                         distL.Position = UDim2.new(0, cX, 0, tY + boxH + 2)
-                        distL.Visible  = getgenv().espShowDistance
-                        distL.Text     = math.floor(dist).." studs"
+                        distL.Visible  = showDistance
+                        if showDistance then distL.Text = math.floor(dist).." studs" end
                     end
                     -- 2D box
                     if b2d then
                         b2d.Position = UDim2.new(0, cX - boxW/2, 0, tY)
                         b2d.Size     = UDim2.new(0, boxW, 0, boxH)
-                        b2d.Visible  = getgenv().espUse2DBoxes
+                        b2d.Visible  = use2DBoxes
                     end
                     -- 3D box
-                    if b3d then b3d.Visible = getgenv().espShowBoxes and not getgenv().espUse2DBoxes end
+                    if b3d then b3d.Visible = showBoxes and not use2DBoxes end
 
                     -- ── DRAWING: Tracer ──────────────────────────────
-                    if hasDrawing and getgenv().espShowTracers then
+                    if hasDrawLib and showTracers then
                         local d = getDrawObj(p.Name)
                         if d.tracer then
                             d.tracer.Visible = true
-                            d.tracer.From    = Vector2.new(vp.X/2, vp.Y)  -- screen bottom center
-                            d.tracer.To      = Vector2.new(cX, tY + boxH)  -- enemy feet
+                            d.tracer.From    = Vector2.new(vp.X/2, vp.Y)
+                            d.tracer.To      = Vector2.new(cX, tY + boxH)
                             d.tracer.Color   = Color3.fromRGB(220,60,60)
                         end
-                    elseif hasDrawing then
-                        local d = drawObjects[p.Name]
+                    elseif hasDrawLib then
+                        local d = drawObjsDict[p.Name]
                         if d and d.tracer then d.tracer.Visible = false end
                     end
 
                     -- ── DRAWING: Health Bar ──────────────────────────
-                    if hasDrawing and getgenv().espShowHealthBars and hum then
+                    if hasDrawLib and showHealthBars and hum then
                         local pct = math.clamp(hum.Health / math.max(hum.MaxHealth, 1), 0, 1)
-                        local barX = cX - boxW/2 - 5  -- left of 2D box
+                        local barX = cX - boxW/2 - 5
                         local barTop = tY; local barBot = tY + boxH
                         local d = getDrawObj(p.Name)
-                        -- Background (dark bar)
                         if d.hpBg then
                             d.hpBg.Visible = true; d.hpBg.Thickness = 4
-                            d.hpBg.Color   = Color3.fromRGB(20,20,20)
                             d.hpBg.From    = Vector2.new(barX, barTop)
                             d.hpBg.To      = Vector2.new(barX, barBot)
                         end
-                        -- Fill (colored by health)
                         if d.hpFill then
                             d.hpFill.Visible    = true; d.hpFill.Thickness = 3
                             d.hpFill.Color      = healthColor(pct)
                             d.hpFill.From       = Vector2.new(barX, barBot)
                             d.hpFill.To         = Vector2.new(barX, barBot - (barBot-barTop)*pct)
                         end
-                    elseif hasDrawing then
-                        local d = drawObjects[p.Name]
+                    elseif hasDrawLib then
+                        local d = drawObjsDict[p.Name]
                         if d then
                             if d.hpBg   then d.hpBg.Visible   = false end
                             if d.hpFill then d.hpFill.Visible  = false end
@@ -236,7 +246,7 @@ local function updateESP()
                     end
 
                     -- ── DRAWING: Skeleton ESP ────────────────────────
-                    if hasDrawing and getgenv().espShowSkeleton then
+                    if hasDrawLib and showSkeleton then
                         local d = getDrawObj(p.Name)
                         for i, pair in ipairs(SKELETON_BONES) do
                             local partA = char:FindFirstChild(pair[1])
@@ -249,7 +259,6 @@ local function updateESP()
                                     ln.Visible = true
                                     ln.From    = Vector2.new(sA.X, sA.Y)
                                     ln.To      = Vector2.new(sB.X, sB.Y)
-                                    ln.Color   = Color3.fromRGB(60,220,120)
                                 else
                                     ln.Visible = false
                                 end
@@ -257,19 +266,21 @@ local function updateESP()
                                 ln.Visible = false
                             end
                         end
-                    elseif hasDrawing then
-                        local d = drawObjects[p.Name]
+                    elseif hasDrawLib then
+                        local d = drawObjsDict[p.Name]
                         if d and d.skeleton then
                             for _, ln in pairs(d.skeleton) do ln.Visible = false end
                         end
                     end
 
                 else
+                else
                     -- Off screen — hide everything
                     if nameL then nameL.Visible = false end
                     if distL then distL.Visible = false end
                     if b2d   then b2d.Visible   = false end
-                    local d = drawObjects[p.Name]
+                    if b3d   then b3d.Visible   = false end
+                    local d = drawObjsDict[p.Name]
                     if d then
                         if d.tracer  then d.tracer.Visible  = false end
                         if d.hpBg    then d.hpBg.Visible    = false end
@@ -278,7 +289,22 @@ local function updateESP()
                     end
                 end
             else
-                clearESPForPlayer(p)
+                -- Out of distance range — hide everything instead of destroying to save FPS
+                local nameL = env.ScreenGui:FindFirstChild(p.Name.."_Name")
+                local distL = env.ScreenGui:FindFirstChild(p.Name.."_Distance")
+                local b2d   = env.ScreenGui:FindFirstChild(p.Name.."_2DBox")
+                local b3d   = env.ESPContainer:FindFirstChild(p.Name.."_Box")
+                if nameL then nameL.Visible = false end
+                if distL then distL.Visible = false end
+                if b2d   then b2d.Visible   = false end
+                if b3d   then b3d.Visible   = false end
+                local d = drawObjsDict[p.Name]
+                if d then
+                    if d.tracer  then d.tracer.Visible  = false end
+                    if d.hpBg    then d.hpBg.Visible    = false end
+                    if d.hpFill  then d.hpFill.Visible  = false end
+                    if d.skeleton then for _,l in pairs(d.skeleton) do l.Visible=false end end
+                end
             end
         elseif p ~= LocalPlayer then
             clearESPForPlayer(p)
