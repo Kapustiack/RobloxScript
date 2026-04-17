@@ -132,7 +132,7 @@ local function refreshPlayerList()
     local ord = 0
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= LocalPlayer then
-            ord += 1
+            ord = ord + 1
             local b = Instance.new("TextButton", lf)
             b.LayoutOrder = ord
             b.Size = UDim2.new(1, -6, 0, 24)

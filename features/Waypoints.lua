@@ -17,7 +17,7 @@ local function renderWaypoints()
 
     local ord = 0
     for i, wp in ipairs(getgenv().savedWaypoints) do
-        ord += 1
+        ord = ord + 1
         local b = Instance.new("TextButton", list)
         b.LayoutOrder = ord
         b.Size = UDim2.new(1, -6, 0, 26)
