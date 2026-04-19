@@ -209,7 +209,7 @@ end
 
 -- 6. WIRE HIDE / CLOSE BUTTONS (UI already loaded above — direct connection is safe)
 if getgenv().HideButton then
-    getgenv().HideButton.MouseButton1Click:Connect(function()
+    getgenv().HideButton.MouseButton1Down:Connect(function()
         if getgenv().ToggleUI then getgenv().ToggleUI() end
     end)
 end
@@ -280,10 +280,12 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- Shift+C to toggle GUI
-UserInputService.InputBegan:Connect(function(input, processed)
-    if not processed and input.KeyCode == Enum.KeyCode.C and UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-        if getgenv().ToggleUI then getgenv().ToggleUI() end
+-- Shift+C to toggle GUI (Bypasses 'processed' check for reliability)
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.C then
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) or UserInputService:IsKeyDown(Enum.KeyCode.RightShift) then
+            if getgenv().ToggleUI then getgenv().ToggleUI() end
+        end
     end
 end)
 
