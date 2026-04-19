@@ -21,16 +21,7 @@ local function enableNoclip()
         end
         if hum and hum.SeatPart then table.insert(stack, hum.SeatPart) end
         
-        -- 2. Proactive Touch-Sensing (Bypass objects you run into)
-        if hrp then
-            pcall(function()
-                for _, tp in pairs(hrp:GetTouchingParts()) do
-                    if tp:IsA("BasePart") and not seen[tp] then table.insert(stack, tp) end
-                end
-            end)
-        end
-
-        -- 3. Recursive Discovery through Assemblies and Constraints
+        -- 2. Recursive Discovery through Assemblies and Constraints
         local count = 0
         while #stack > 0 and count < 1500 do -- Safe iteration cap
             count = count + 1
