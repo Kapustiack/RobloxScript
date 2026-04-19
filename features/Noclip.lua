@@ -1,4 +1,4 @@
--- [[ NOCLIP — Assembly-Aware Update ]]
+-- [[ NOCLIP — Infinite Recursive Assembly Update ]]
 local RunService = game:GetService("RunService")
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
@@ -9,31 +9,48 @@ local function enableNoclip()
         local char = LocalPlayer.Character
         if not char then return end
 
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        local hum = char:FindFirstChildOfClass("Humanoid")
+        local pList = {} -- To avoid redundant lookups
+        local stack = {}
         
-        -- 1. Noclip the Character and all descendants (Tools, Hats, etc.)
+        -- Start discovery with Character components
         for _, p in pairs(char:GetDescendants()) do
-            if p:IsA("BasePart") and p.CanCollide then p.CanCollide = false end
+            if p:IsA("BasePart") then table.insert(stack, p) end
         end
+        
+        -- Include Seats and everything the character is sitting on
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if hum and hum.SeatPart then table.insert(stack, hum.SeatPart) end
 
-        -- 2. Noclip the whole Assembly (Vehicles, connected objects)
-        if hrp then
-            for _, p in pairs(hrp:GetConnectedParts(true)) do
+        -- Recursive discovery through rigid and dynamic connections
+        local seen = {}
+        local count = 0
+        while #stack > 0 and count < 1000 do -- Safety cap to prevent freezes
+            count = count + 1
+            local p = table.remove(stack)
+            if p and not seen[p] then
+                seen[p] = true
                 if p.CanCollide then p.CanCollide = false end
-            end
-        end
-
-        -- 3. Explicit Seat/Vehicle Noclip (Ensuring vehicles pass through walls)
-        if hum and hum.SeatPart then
-            local seat = hum.SeatPart
-            if seat:IsA("BasePart") then seat.CanCollide = false end
-            
-            -- Find the model the seat belongs to (the car/vehicle)
-            local vehicle = seat:FindFirstAncestorOfClass("Model")
-            if vehicle then
-                for _, p in pairs(vehicle:GetDescendants()) do
-                    if p:IsA("BasePart") and p.CanCollide then p.CanCollide = false end
+                
+                -- Rigid connections (Welds, Motor6Ds, Snap joints)
+                for _, conn in pairs(p:GetConnectedParts(true)) do
+                    if not seen[conn] then table.insert(stack, conn) end
+                end
+                
+                -- Dynamic connections (Constraints like Ropes, Hinges, BallSockets for Trailers)
+                -- We check descendants of parts for attachments/constraints to hop to the next part
+                for _, child in pairs(p:GetChildren()) do
+                    if child:IsA("Constraint") then
+                        local a0 = child.Attachment0
+                        local a1 = child.Attachment1
+                        if a0 and a0.Parent and a0.Parent:IsA("BasePart") and not seen[a0.Parent] then
+                            table.insert(stack, a0.Parent)
+                        end
+                        if a1 and a1.Parent and a1.Parent:IsA("BasePart") and not seen[a1.Parent] then
+                            table.insert(stack, a1.Parent)
+                        end
+                    elseif child:IsA("Attachment") then
+                        -- Sometimes constraints are child of Attachment or parent, we check both directions
+                    end
                 end
             end
         end
@@ -48,8 +65,6 @@ local function disableNoclip()
         for _, p in pairs(char:GetDescendants()) do
             if p:IsA("BasePart") then p.CanCollide = true end
         end
-        -- Note: We don't force collision back on vehicles as they manage their own physics,
-        -- but the character will regain collision immediately.
     end
 end
 
