@@ -31,7 +31,7 @@ function Hooks:InstallMainHook(config)
         end
 
         -- 2. HITBOX EXPANSION (Redirect hits to nearest player)
-        if config.GetHitboxEnabled() and config.GetScriptEnabled() then
+        if config and config.GetHitboxEnabled and config.GetHitboxEnabled() and config.GetScriptEnabled() then
             local isRemote = (method == "FireServer" and self:IsA("RemoteEvent"))
                           or (method == "InvokeServer" and self:IsA("RemoteFunction"))
             

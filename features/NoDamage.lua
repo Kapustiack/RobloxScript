@@ -68,7 +68,9 @@ local function enableNoFallDamage()
 
     -- Layer 3: Hooks (Interception)
     if getgenv().Hooks and getgenv().Hooks.InstallMainHook then
-        getgenv().Hooks:InstallMainHook(getgenv().HitboxConfig)
+        pcall(function()
+            getgenv().Hooks:InstallMainHook(getgenv().HitboxConfig)
+        end)
     end
 
     if getgenv().noFallDamageLoop then getgenv().noFallDamageLoop:Disconnect() end
