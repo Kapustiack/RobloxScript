@@ -1,11 +1,13 @@
--- [[ NO FALL DAMAGE — ULTIMATE BYPASS + STIFFENING ]]
--- Layer 1: Script Blinding (getconnections)
--- Layer 2: Remote Interceptor (Hooks.lua)
--- Layer 3: Physics Spoofing & Hard Anchor (PreSimulation)
--- Layer 4: State Forcing & Stiffening (Prevents "Flailing")
+-- [[ NO FALL DAMAGE — SCRIPT DISABLING EDITION ]]
+-- This version removes physics manipulation and instead kills the local scripts.
+-- Layer 1: Script Killing (Disables LocalScripts in Character/Backpack)
+-- Layer 2: Signal Blinding (getconnections)
+-- Layer 3: Remote Interceptor (via Hooks.lua)
 
 local RunService = game:GetService("RunService")
 local LocalPlayer = game:GetService("Players").LocalPlayer
+
+local disabledScripts = {}
 
 local function blindCharacter(char)
     local hum = char:FindFirstChildOfClass("Humanoid")
@@ -19,58 +21,78 @@ local function blindCharacter(char)
     end
 end
 
+local function killAggressiveScripts()
+    local char = LocalPlayer.Character
+    local backpack = LocalPlayer:FindFirstChild("Backpack")
+    
+    local function process(container)
+        if not container then return end
+        for _, s in pairs(container:GetDescendants()) do
+            if s:IsA("LocalScript") and not disabledScripts[s] then
+                local name = string.lower(s.Name)
+                -- Avoid disabling essential movement/animation scripts
+                if name ~= "animate" and name ~= "health" and name ~= "playermodule" then
+                    disabledScripts[s] = s.Disabled
+                    s.Disabled = true
+                    -- warn("[RB Hub] Killed Script: " .. s.Name)
+                end
+            end
+        end
+    end
+    
+    process(char)
+    process(backpack)
+end
+
+local function restoreScripts()
+    for s, state in pairs(disabledScripts) do
+        pcall(function()
+            if s and s.Parent then
+                s.Disabled = state
+            end
+        end)
+    end
+    disabledScripts = {}
+end
+
 local function enableNoFallDamage()
     if not getgenv().scriptEnabled then return end
     getgenv().noFallDamageEnabled = true
     
+    -- Layer 1: Kill Scripts
+    killAggressiveScripts()
+    
+    -- Layer 2: Blind Signals
     local char = LocalPlayer.Character
     if char then blindCharacter(char) end
 
+    -- Layer 3: Hooks (Interception)
     if getgenv().Hooks and getgenv().Hooks.InstallMainHook then
         getgenv().Hooks:InstallMainHook(getgenv().HitboxConfig)
     end
 
     if getgenv().noFallDamageLoop then getgenv().noFallDamageLoop:Disconnect() end
     
-    getgenv().noFallDamageLoop = RunService.PreSimulation:Connect(function()
+    -- Maintainance Loop (Keeps scripts dead if new ones are added)
+    getgenv().noFallDamageLoop = RunService.Heartbeat:Connect(function()
         if not (getgenv().noFallDamageEnabled and getgenv().scriptEnabled) then return end
+        
         local mchar = LocalPlayer.Character
         local mhum = mchar and mchar:FindFirstChildOfClass("Humanoid")
-        local mhrp = mchar and mchar:FindFirstChild("HumanoidRootPart")
         
-        if mhum and mhrp then
-            -- 1. STIFFENING (Prevents Flailing/Limp movement)
+        if mhum then
+            -- Force Stiffening (Prevents flailing without slowing fall)
             mhum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
             mhum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
-            mhum.PlatformStand = false -- Force character to stand upright
+            mhum.PlatformStand = false
             
-            local state = mhum:GetState()
-            
-            -- 2. STATE FORCING (Reset Fall Timers)
-            if state == Enum.HumanoidStateType.Freefall or state == Enum.HumanoidStateType.FallingDown then
+            -- State Reset
+            if mhum:GetState() == Enum.HumanoidStateType.Freefall then
                 mhum:ChangeState(Enum.HumanoidStateType.Running)
             end
-
-            -- 3. PHYSICS ZEROING & ANCHOR (Hard STOP on impact)
-            if mhrp.AssemblyLinearVelocity.Y < -5 then
-                local floorRay = workspace:Raycast(mhrp.Position, Vector3.new(0, -10, 0))
-                if floorRay then
-                    -- Detect impact imminent: Reset velocity AND briefly anchor to kill momentum
-                    mhrp.AssemblyLinearVelocity = Vector3.new(mhrp.AssemblyLinearVelocity.X, 0, mhrp.AssemblyLinearVelocity.Z)
-                    
-                    if not mhrp.Anchored then
-                        mhrp.Anchored = true
-                        task.delay(0.1, function() 
-                            if mhrp and getgenv().noFallDamageEnabled then mhrp.Anchored = false end 
-                        end)
-                    end
-                end
-            end
             
-            -- 4. HEALTH GUARD (Backup)
-            if mhum.Health > 0 and mhum.Health < mhum.MaxHealth then
-                mhum.Health = mhum.MaxHealth
-            end
+            -- Re-check for any new scripts spawning
+            killAggressiveScripts()
         end
     end)
 end
@@ -78,6 +100,9 @@ end
 local function disableNoFallDamage()
     getgenv().noFallDamageEnabled = false
     if getgenv().noFallDamageLoop then getgenv().noFallDamageLoop:Disconnect(); getgenv().noFallDamageLoop = nil end
+    
+    restoreScripts()
+    
     local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
     if hum then
         hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
