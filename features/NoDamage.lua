@@ -1,123 +1,59 @@
--- [[ NO FALL DAMAGE — SCRIPT DISABLING EDITION ]]
--- This version removes physics manipulation and instead kills the local scripts.
--- Layer 1: Script Killing (Disables LocalScripts in Character/Backpack)
--- Layer 2: Signal Blinding (getconnections)
--- Layer 3: Remote Interceptor (via Hooks.lua)
-
+-- [[ NO DAMAGE — Fully wired, dual-layer from rb.lua ]]
+-- Layer 1: __newindex hook intercepts Health writes
+-- Layer 2: Heartbeat backup for games that bypass __newindex
 local RunService = game:GetService("RunService")
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
-local disabledScripts = {}
-
-local function blindCharacter(char)
-    local hum = char:FindFirstChildOfClass("Humanoid")
-    if not hum or not getconnections then return end
-    local events = {"StateChanged", "Climbing", "FallingDown", "Ragdoll", "Jumping", "Seated"}
-    for _, evtName in ipairs(events) do
-        pcall(function()
-            local evt = hum[evtName]
-            if evt then for _, conn in pairs(getconnections(evt)) do conn:Disable() end end
-        end)
-    end
-end
-
-local function killAggressiveScripts()
-    local char = LocalPlayer.Character
-    local backpack = LocalPlayer:FindFirstChild("Backpack")
-    
-    local function process(container)
-        if not container then return end
-        for _, s in pairs(container:GetDescendants()) do
-            if s:IsA("LocalScript") and not disabledScripts[s] then
-                local name = string.lower(s.Name)
-                -- Avoid disabling essential movement/animation scripts
-                if name ~= "animate" and name ~= "health" and name ~= "playermodule" then
-                    disabledScripts[s] = s.Disabled
-                    s.Disabled = true
-                    -- warn("[RB Hub] Killed Script: " .. s.Name)
-                end
+local function installNoDamageHook()
+    local ok, mt = pcall(getrawmetatable, game)
+    if not ok or not mt then return nil end
+    pcall(setreadonly, mt, false)
+    local old_ni = rawget(mt, "__newindex")
+    if not old_ni then pcall(setreadonly, mt, true); return nil end
+    local function hookedNewindex(self, key, value)
+        if getgenv().noDamageEnabled and getgenv().scriptEnabled and key == "Health"
+                and typeof(self) == "Instance" and self:IsA("Humanoid") then
+            local myHum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if myHum and self == myHum and typeof(value) == "number" and value < myHum.MaxHealth and value >= 0 then
+                return old_ni(self, key, myHum.MaxHealth)
             end
         end
+        return old_ni(self, key, value)
     end
-    
-    process(char)
-    process(backpack)
+    rawset(mt, "__newindex", (newcclosure and newcclosure(hookedNewindex)) or hookedNewindex)
+    pcall(setreadonly, mt, true)
+    return function()
+        local ok2, mt2 = pcall(getrawmetatable, game)
+        if ok2 and mt2 then pcall(setreadonly, mt2, false); rawset(mt2, "__newindex", old_ni); pcall(setreadonly, mt2, true) end
+    end
 end
 
-local function restoreScripts()
-    for s, state in pairs(disabledScripts) do
-        pcall(function()
-            if s and s.Parent then
-                s.Disabled = state
-            end
-        end)
-    end
-    disabledScripts = {}
-end
-
-local function enableNoFallDamage()
+local function enableNoDamage()
     if not getgenv().scriptEnabled then return end
-    getgenv().noFallDamageEnabled = true
-    
-    -- Layer 1: Kill Scripts
-    killAggressiveScripts()
-    
-    -- Layer 2: Blind Signals
-    local char = LocalPlayer.Character
-    if char then blindCharacter(char) end
-
-    -- Layer 3: Hooks (Interception)
-    if getgenv().Hooks and getgenv().Hooks.InstallMainHook then
-        pcall(function()
-            getgenv().Hooks:InstallMainHook(getgenv().HitboxConfig)
-        end)
+    getgenv().noDamageEnabled = true
+    if not getgenv().noDamageRestoreFunc then
+        getgenv().noDamageRestoreFunc = installNoDamageHook()
     end
-
-    if getgenv().noFallDamageLoop then getgenv().noFallDamageLoop:Disconnect() end
-    
-    -- Maintainance Loop (Keeps scripts dead if new ones are added)
-    getgenv().noFallDamageLoop = RunService.Heartbeat:Connect(function()
-        if not (getgenv().noFallDamageEnabled and getgenv().scriptEnabled) then return end
-        
-        local mchar = LocalPlayer.Character
-        local mhum = mchar and mchar:FindFirstChildOfClass("Humanoid")
-        
-        if mhum then
-            -- Force Stiffening (Prevents flailing without slowing fall)
-            mhum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-            mhum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
-            mhum.PlatformStand = false
-            
-            -- State Reset
-            if mhum:GetState() == Enum.HumanoidStateType.Freefall then
-                mhum:ChangeState(Enum.HumanoidStateType.Running)
-            end
-            
-            -- Re-check for any new scripts spawning
-            killAggressiveScripts()
-        end
+    if getgenv().noDamageLoop then getgenv().noDamageLoop:Disconnect() end
+    getgenv().noDamageLoop = RunService.Heartbeat:Connect(function()
+        if not (getgenv().noDamageEnabled and getgenv().scriptEnabled) then return end
+        local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum and hum.Health > 0 and hum.Health < hum.MaxHealth then hum.Health = hum.MaxHealth end
     end)
 end
 
-local function disableNoFallDamage()
-    getgenv().noFallDamageEnabled = false
-    if getgenv().noFallDamageLoop then getgenv().noFallDamageLoop:Disconnect(); getgenv().noFallDamageLoop = nil end
-    
-    restoreScripts()
-    
-    local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-    if hum then
-        hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
-        hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, true)
-    end
+local function disableNoDamage()
+    getgenv().noDamageEnabled = false
+    if getgenv().noDamageLoop then getgenv().noDamageLoop:Disconnect(); getgenv().noDamageLoop = nil end
+    if getgenv().noDamageRestoreFunc then pcall(getgenv().noDamageRestoreFunc); getgenv().noDamageRestoreFunc = nil end
 end
 
 getgenv().NoDamageButton.MouseButton1Click:Connect(function()
     if not getgenv().scriptEnabled then return end
-    getgenv().noFallDamageEnabled = not getgenv().noFallDamageEnabled
-    getgenv().NoDamageButton.Text = "No Fall Damage: " .. (getgenv().noFallDamageEnabled and "ON" or "OFF")
-    getgenv().NoDamageButton.BackgroundColor3 = getgenv().noFallDamageEnabled and getgenv().COL_ON or getgenv().COL_OFF
-    if getgenv().noFallDamageEnabled then enableNoFallDamage() else disableNoFallDamage() end
+    getgenv().noDamageEnabled = not getgenv().noDamageEnabled
+    getgenv().NoDamageButton.Text = "No Damage: " .. (getgenv().noDamageEnabled and "ON" or "OFF")
+    getgenv().NoDamageButton.BackgroundColor3 = getgenv().noDamageEnabled and getgenv().COL_ON or getgenv().COL_OFF
+    if getgenv().noDamageEnabled then enableNoDamage() else disableNoDamage() end
 end)
 
-getgenv().disableNoFallDamage = disableNoFallDamage
+getgenv().disableNoDamage = disableNoDamage
