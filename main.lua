@@ -1,5 +1,6 @@
 -- [[ RB MODULAR HUB - PREMIUM STARTUP LOADER ]]
--- Features: Real-time progress bar, activity logging, and fail-safe initialization.
+-- Version: v8.1 (Robust & Aesthetic)
+-- Features: Real-time progress bar, error-handling, and fail-safe initialization.
 
 -- 0. CLEAN BOOT
 local CoreGui = game:GetService("CoreGui")
@@ -41,32 +42,39 @@ local baseUrl = "https://raw.githubusercontent.com/Kapustiack/RobloxScript/main/
 local totalFiles = 21
 local loadedCount = 0
 
-local function updateLoader(path, count)
+local function updateLoader(path, count, isError)
     loadedCount = count
-    Status.Text = "Loading " .. path .. "..."
-    local fraction = loadedCount / totalFiles
+    Status.Text = (isError and "FAILED: " or "Loading ") .. path
+    Status.TextColor3 = isError and Color3.fromRGB(220, 60, 60) or Color3.fromRGB(80, 80, 100)
+    
+    local fraction = math.clamp(loadedCount / totalFiles, 0, 1)
     Percent.Text = string.format("%d%% (%d/%d)", math.floor(fraction * 100), loadedCount, totalFiles)
     TweenService:Create(ProgressBar, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(fraction, 0, 1, 0)}):Play()
 end
 
-local function loadRemote(path)
+local function loadRemote(path, index)
+    updateLoader(path, index)
     local cacheBypass = "?t=" .. tostring(os.time()) .. tostring(math.random(1, 100000))
     local success, content = pcall(function() return game:HttpGet(baseUrl .. path .. cacheBypass) end)
     
     if not success or not content or content == "" then 
         warn("[RB Hub] Download Error: " .. path)
-        Status.Text = "Error: " .. path
-        Status.TextColor3 = Color3.fromRGB(220, 60, 60)
+        updateLoader(path, index, true)
         return nil 
     end
     
     local func, err = loadstring(content)
     if not func then 
         warn("[RB Hub] Syntax Error: " .. path .. " | " .. tostring(err))
+        updateLoader(path .. " (Syntax Error)", index, true)
         return nil 
     end
     
-    pcall(func)
+    local ok, errorMsg = pcall(func)
+    if not ok then
+        warn("[RB Hub] Runtime Error in " .. path .. ": " .. tostring(errorMsg))
+        updateLoader(path .. " (Hook Error)", index, true)
+    end
 end
 
 -- [[ FILE ORCHESTRATION ]]
@@ -80,13 +88,13 @@ local files = {
 }
 
 for i, path in ipairs(files) do
-    updateLoader(path, i)
-    loadRemote(path)
-    task.wait(0.02) -- Smoothness delay
+    loadRemote(path, i)
+    task.wait(0.01)
 end
 
 -- Finalize
 Status.Text = "Initialization Complete!"
+Status.TextColor3 = Color3.fromRGB(25, 145, 80)
 TweenService:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Size = UDim2.new(0, 300, 0, 0), Position = UDim2.new(0.5, -150, 0.5, 0)}):Play()
 task.wait(0.6)
 LoaderGui:Destroy()
@@ -237,4 +245,4 @@ pcall(function()
 end)
 
 pcall(function() if getgenv().loadSettings then getgenv().loadSettings() end end)
-if getgenv().Utils and getgenv().Utils.Notify then getgenv().Utils:Notify("RB Hub", "Ready. Hotkey: Shift + C", Color3.fromRGB(13, 110, 253)) end
+if getgenv().Utils and getgenv().Utils.Notify then getgenv().Utils:Notify("RB Hub", "Ready. Hotkey: Shift + C", Color3.fromRGB(25, 145, 80)) end
