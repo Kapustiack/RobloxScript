@@ -107,7 +107,7 @@ getgenv().destroyScript = function()
     if getgenv().removeHitboxExpansion then pcall(getgenv().removeHitboxExpansion) end
     if getgenv().disableFreeCamera  then pcall(getgenv().disableFreeCamera)   end
     if getgenv().disableLowGravity  then pcall(getgenv().disableLowGravity)   end
-    if getgenv().disableFreeze      then pcall(getgenv().disableFreeze)        end
+    if getgenv().disableNoFallDamage  then pcall(getgenv().disableNoFallDamage) end
 
     pcall(function()
         local cas = game:GetService("ContextActionService")
@@ -116,12 +116,12 @@ getgenv().destroyScript = function()
     end)
     if getgenv().wallhackLoop         then getgenv().wallhackLoop:Disconnect();         getgenv().wallhackLoop = nil end
     if getgenv().fullbrightLoop       then getgenv().fullbrightLoop:Disconnect();       getgenv().fullbrightLoop = nil end
-    if getgenv().noDamageLoop         then getgenv().noDamageLoop:Disconnect();         getgenv().noDamageLoop = nil end
+    if getgenv().noFallDamageLoop     then getgenv().noFallDamageLoop:Disconnect();     getgenv().noFallDamageLoop = nil end
     if getgenv().followConnection     then getgenv().followConnection:Disconnect();     getgenv().followConnection = nil end
     if getgenv().noclipConnection     then getgenv().noclipConnection:Disconnect();     getgenv().noclipConnection = nil end
     if getgenv().infiniteJumpConnection then getgenv().infiniteJumpConnection:Disconnect(); getgenv().infiniteJumpConnection = nil end
     if getgenv().hitboxRestoreFunc    then pcall(getgenv().hitboxRestoreFunc);          getgenv().hitboxRestoreFunc = nil end
-    if getgenv().noDamageRestoreFunc  then pcall(getgenv().noDamageRestoreFunc);        getgenv().noDamageRestoreFunc = nil end
+    if getgenv().noFallDamageRestoreFunc then pcall(getgenv().noFallDamageRestoreFunc); getgenv().noFallDamageRestoreFunc = nil end
     if getgenv().ESPContainer         then pcall(function() getgenv().ESPContainer:Destroy() end); getgenv().ESPContainer = nil end
     if getgenv().ScreenGui            then pcall(function() getgenv().ScreenGui:Destroy()    end); getgenv().ScreenGui    = nil end
 end

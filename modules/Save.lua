@@ -49,7 +49,7 @@ local function serializeSettings()
         infiniteJumpEnabled = getgenv().infiniteJumpEnabled,
         fullbrightEnabled   = getgenv().fullbrightEnabled,
         fovChangerEnabled   = getgenv().fovChangerEnabled,
-        noDamageEnabled     = getgenv().noDamageEnabled,
+        noFallDamageEnabled = getgenv().noFallDamageEnabled,
         reachEnabled        = getgenv().reachEnabled,
         hitboxEnabled       = getgenv().hitboxEnabled,
         lowGravityEnabled   = getgenv().lowGravityEnabled,

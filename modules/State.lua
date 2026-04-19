@@ -18,7 +18,7 @@ getgenv().deathCheckEnabled = false
 getgenv().autoSwitchEnabled = false
 getgenv().reachEnabled = false
 getgenv().hitboxEnabled = false
-getgenv().noDamageEnabled = false
+getgenv().noFallDamageEnabled = false
 -- NEW: Inf Jump mode
 getgenv().infJumpHoldMode = false
 getgenv().infJumpHoldConnection = nil
@@ -82,8 +82,8 @@ getgenv().reachActivatedConn = nil
 getgenv().reachToolWatcher = nil
 getgenv().hitboxAdornments = {}
 getgenv().hitboxRestoreFunc = nil
-getgenv().noDamageRestoreFunc = nil
-getgenv().noDamageLoop = nil
+getgenv().noFallDamageRestoreFunc = nil
+getgenv().noFallDamageLoop = nil
 getgenv().fullbrightLoop = nil
 getgenv().originalLightingSettings = { saved = false }
 

@@ -1,25 +1,34 @@
--- [[ NO DAMAGE — Fully wired, dual-layer from rb.lua ]]
--- Layer 1: __newindex hook intercepts Health writes
--- Layer 2: Heartbeat backup for games that bypass __newindex
+-- [[ NO FALL DAMAGE — Advanced Multi-Layer Protection ]]
+-- Method 1: State Disabling (Prevents StateChanged triggers)
+-- Method 2: Velocity Zeroing (Detects impact and stops downward force)
+-- Method 3: Health Locker (Backup guard)
+
 local RunService = game:GetService("RunService")
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
-local function installNoDamageHook()
+local function installNoFallDamageHook()
+    -- Hooking to prevent death logic in some games
     local ok, mt = pcall(getrawmetatable, game)
     if not ok or not mt then return nil end
     pcall(setreadonly, mt, false)
     local old_ni = rawget(mt, "__newindex")
     if not old_ni then pcall(setreadonly, mt, true); return nil end
+    
     local function hookedNewindex(self, key, value)
-        if getgenv().noDamageEnabled and getgenv().scriptEnabled and key == "Health"
+        if getgenv().noFallDamageEnabled and getgenv().scriptEnabled and key == "Health"
                 and typeof(self) == "Instance" and self:IsA("Humanoid") then
             local myHum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-            if myHum and self == myHum and typeof(value) == "number" and value < myHum.MaxHealth and value >= 0 then
-                return old_ni(self, key, myHum.MaxHealth)
+            if myHum and self == myHum and typeof(value) == "number" and value < myHum.Health then
+                -- Check if we are in a falling state or just landed
+                local state = myHum:GetState()
+                if state == Enum.HumanoidStateType.Freefall or state == Enum.HumanoidStateType.Landed or state == Enum.HumanoidStateType.FallingDown then
+                    return old_ni(self, key, myHum.Health) -- Block the damage
+                end
             end
         end
         return old_ni(self, key, value)
     end
+    
     rawset(mt, "__newindex", (newcclosure and newcclosure(hookedNewindex)) or hookedNewindex)
     pcall(setreadonly, mt, true)
     return function()
@@ -28,32 +37,64 @@ local function installNoDamageHook()
     end
 end
 
-local function enableNoDamage()
+local function enableNoFallDamage()
     if not getgenv().scriptEnabled then return end
-    getgenv().noDamageEnabled = true
-    if not getgenv().noDamageRestoreFunc then
-        getgenv().noDamageRestoreFunc = installNoDamageHook()
+    getgenv().noFallDamageEnabled = true
+    
+    local char = LocalPlayer.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    
+    -- Layer 1: State Disabling
+    if hum then
+        hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+        hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
     end
-    if getgenv().noDamageLoop then getgenv().noDamageLoop:Disconnect() end
-    getgenv().noDamageLoop = RunService.Heartbeat:Connect(function()
-        if not (getgenv().noDamageEnabled and getgenv().scriptEnabled) then return end
-        local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if hum and hum.Health > 0 and hum.Health < hum.MaxHealth then hum.Health = hum.MaxHealth end
+    
+    -- Layer 2: Velocity & State Monitoring
+    if getgenv().noFallDamageLoop then getgenv().noFallDamageLoop:Disconnect() end
+    getgenv().noFallDamageLoop = RunService.Heartbeat:Connect(function()
+        if not (getgenv().noFallDamageEnabled and getgenv().scriptEnabled) then return end
+        local mchar = LocalPlayer.Character
+        local mhum = mchar and mchar:FindFirstChildOfClass("Humanoid")
+        local mhrp = mchar and mchar:FindFirstChild("HumanoidRootPart")
+        
+        if mhum and mhrp then
+            local state = mhum:GetState()
+            -- If landing with high velocity, zero it out instantly
+            if (state == Enum.HumanoidStateType.Landed or state == Enum.HumanoidStateType.Running) and mhrp.AssemblyLinearVelocity.Y < -10 then
+                mhrp.AssemblyLinearVelocity = Vector3.new(mhrp.AssemblyLinearVelocity.X, 0, mhrp.AssemblyLinearVelocity.Z)
+            end
+            
+            -- Backup: Health Guard
+            if mhum.Health > 0 and mhum.Health < mhum.MaxHealth then
+                mhum.Health = mhum.MaxHealth
+            end
+        end
     end)
+
+    if not getgenv().noFallDamageRestoreFunc then
+        getgenv().noFallDamageRestoreFunc = installNoFallDamageHook()
+    end
 end
 
-local function disableNoDamage()
-    getgenv().noDamageEnabled = false
-    if getgenv().noDamageLoop then getgenv().noDamageLoop:Disconnect(); getgenv().noDamageLoop = nil end
-    if getgenv().noDamageRestoreFunc then pcall(getgenv().noDamageRestoreFunc); getgenv().noDamageRestoreFunc = nil end
+local function disableNoFallDamage()
+    getgenv().noFallDamageEnabled = false
+    local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if hum then
+        hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
+        hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, true)
+    end
+    if getgenv().noFallDamageLoop then getgenv().noFallDamageLoop:Disconnect(); getgenv().noFallDamageLoop = nil end
+    if getgenv().noFallDamageRestoreFunc then pcall(getgenv().noFallDamageRestoreFunc); getgenv().noFallDamageRestoreFunc = nil end
 end
 
 getgenv().NoDamageButton.MouseButton1Click:Connect(function()
     if not getgenv().scriptEnabled then return end
-    getgenv().noDamageEnabled = not getgenv().noDamageEnabled
-    getgenv().NoDamageButton.Text = "No Damage: " .. (getgenv().noDamageEnabled and "ON" or "OFF")
-    getgenv().NoDamageButton.BackgroundColor3 = getgenv().noDamageEnabled and getgenv().COL_ON or getgenv().COL_OFF
-    if getgenv().noDamageEnabled then enableNoDamage() else disableNoDamage() end
+    getgenv().noFallDamageEnabled = not getgenv().noFallDamageEnabled
+    getgenv().NoDamageButton.Text = "No Fall Damage: " .. (getgenv().noFallDamageEnabled and "ON" or "OFF")
+    getgenv().NoDamageButton.BackgroundColor3 = getgenv().noFallDamageEnabled and getgenv().COL_ON or getgenv().COL_OFF
+    if getgenv().noFallDamageEnabled then enableNoFallDamage() else disableNoFallDamage() end
 end)
 
-getgenv().disableNoDamage = disableNoDamage
+getgenv().disableNoFallDamage = disableNoFallDamage
