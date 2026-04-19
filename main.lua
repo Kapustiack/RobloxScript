@@ -17,20 +17,20 @@ LoaderGui.Name = "HubLoader"; LoaderGui.Parent = CoreGui; LoaderGui.IgnoreGuiIns
 local Main = Instance.new("Frame")
 Main.Name = "Main"; Main.Parent = LoaderGui; Main.BackgroundColor3 = Color3.fromRGB(13, 13, 20); Main.BorderSizePixel = 0; Main.Position = UDim2.new(0.5, -150, 0.5, -50); Main.Size = UDim2.new(0, 300, 0, 100); Main.ClipsDescendants = true
 Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 8)
-local MStroke = Instance.new("UIStroke", Main); MStroke.Color = Color3.fromRGB(40, 40, 56); MStroke.Thickness = 1
+local MStroke = Instance.new("UIStroke", Main); MStroke.Color = Color3.fromRGB(40, 40, 50); MStroke.Thickness = 1
 
 local Title = Instance.new("TextLabel")
-Title.Name = "Title"; Title.Parent = Main; Title.BackgroundTransparency = 1; Title.Position = UDim2.new(0, 10, 0, 8); Title.Size = UDim2.new(1, -20, 0, 20); Title.Font = Enum.Font.GothamBold; Title.Text = "RB MODULAR HUB"; Title.TextColor3 = Color3.fromRGB(240, 240, 240); Title.TextSize = 13; Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Name = "Title"; Title.Parent = Main; Title.BackgroundTransparency = 1; Title.Position = UDim2.new(0, 10, 0, 8); Title.Size = UDim2.new(1, -20, 0, 20); Title.Font = Enum.Font.GothamBold; Title.Text = "RB MODULAR HUB"; Title.TextColor3 = Color3.fromRGB(205, 205, 222); Title.TextSize = 13; Title.TextXAlignment = Enum.TextXAlignment.Left
 
 local Status = Instance.new("TextLabel")
-Status.Name = "Status"; Status.Parent = Main; Status.BackgroundTransparency = 1; Status.Position = UDim2.new(0, 10, 0, 32); Status.Size = UDim2.new(1, -20, 0, 18); Status.Font = Enum.Font.Gotham; Status.Text = "Initializing..."; Status.TextColor3 = Color3.fromRGB(180, 180, 190); Status.TextSize = 11; Status.TextXAlignment = Enum.TextXAlignment.Left
+Status.Name = "Status"; Status.Parent = Main; Status.BackgroundTransparency = 1; Status.Position = UDim2.new(0, 10, 0, 32); Status.Size = UDim2.new(1, -20, 0, 18); Status.Font = Enum.Font.Gotham; Status.Text = "Initializing..."; Status.TextColor3 = Color3.fromRGB(80, 80, 100); Status.TextSize = 11; Status.TextXAlignment = Enum.TextXAlignment.Left
 
 local ProgressBG = Instance.new("Frame")
-ProgressBG.Name = "ProgressBG"; ProgressBG.Parent = Main; ProgressBG.BackgroundColor3 = Color3.fromRGB(30, 30, 40); ProgressBG.BorderSizePixel = 0; ProgressBG.Position = UDim2.new(0, 10, 0, 60); ProgressBG.Size = UDim2.new(1, -20, 0, 6)
+ProgressBG.Name = "ProgressBG"; ProgressBG.Parent = Main; ProgressBG.BackgroundColor3 = Color3.fromRGB(30, 30, 44); ProgressBG.BorderSizePixel = 0; ProgressBG.Position = UDim2.new(0, 10, 0, 60); ProgressBG.Size = UDim2.new(1, -20, 0, 6)
 Instance.new("UICorner", ProgressBG).CornerRadius = UDim.new(1, 0)
 
 local ProgressBar = Instance.new("Frame")
-ProgressBar.Name = "ProgressBar"; ProgressBar.Parent = ProgressBG; ProgressBar.BackgroundColor3 = Color3.fromRGB(13, 110, 253); ProgressBar.BorderSizePixel = 0; ProgressBar.Size = UDim2.new(0, 0, 1, 0)
+ProgressBar.Name = "ProgressBar"; ProgressBar.Parent = ProgressBG; ProgressBar.BackgroundColor3 = Color3.fromRGB(25, 145, 80); ProgressBar.BorderSizePixel = 0; ProgressBar.Size = UDim2.new(0, 0, 1, 0)
 Instance.new("UICorner", ProgressBar).CornerRadius = UDim.new(1, 0)
 
 local Percent = Instance.new("TextLabel")
