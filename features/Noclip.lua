@@ -1,6 +1,9 @@
--- [[ NOCLIP — Infinite Recursive + Unstuck + Touch-Sensing ]]
+-- [[ NOCLIP — V8 Bug Fix Edition (State Restoration + Physics Wake-up) ]]
 local RunService = game:GetService("RunService")
 local LocalPlayer = game:GetService("Players").LocalPlayer
+
+-- Global memory to track modified parts for perfect restoration
+getgenv().noclipOriginalStates = getgenv().noclipOriginalStates or {}
 
 local function enableNoclip()
     if getgenv().noclipConnection then getgenv().noclipConnection:Disconnect() end
@@ -15,35 +18,46 @@ local function enableNoclip()
         local stack = {}
         local seen = {}
         
-        -- 1. Initialize discovery with Character and Seats
+        -- 1. Initialize discovery stack
         for _, p in pairs(char:GetDescendants()) do
             if p:IsA("BasePart") then table.insert(stack, p) end
         end
         if hum and hum.SeatPart then table.insert(stack, hum.SeatPart) end
-        
-        -- 2. Recursive Discovery through Assemblies and Constraints
+
+        -- 2. Recursive Discovery Loop
         local count = 0
-        while #stack > 0 and count < 1500 do -- Safe iteration cap
+        while #stack > 0 and count < 1500 do
             count = count + 1
             local p = table.remove(stack)
             if p and not seen[p] then
                 seen[p] = true
                 
+                -- BUG FIX: Remember original state for PERFECT RESTORATION
+                if not getgenv().noclipOriginalStates[p] then
+                    getgenv().noclipOriginalStates[p] = {
+                        CanCollide = p.CanCollide,
+                        Anchored = p.Anchored
+                    }
+                end
+
                 -- NOCLIP: Set collision to false
                 if p.CanCollide then p.CanCollide = false end
                 
-                -- UNSTUCK: Unanchor connected objects (breaks Link-Freezing)
-                -- We only unanchor if it's NOT the player's own RootPart (to avoid breaking flight hubs)
+                -- UNSTUCK & PHYSICS SYNC: Unanchor connected objects
                 if p.Anchored and p ~= hrp and not p:IsDescendantOf(char) then 
                     p.Anchored = false 
+                    -- Wake up the physics engine so others see movement changes accurately
+                    pcall(function() 
+                        p.AssemblyLinearVelocity = p.AssemblyLinearVelocity + Vector3.new(0, 0.01, 0) 
+                    end)
                 end
                 
-                -- Expand search to Rigidly Connected Parts (Welds, Motor6Ds)
+                -- Expand search to rigidly connected parts (Welds)
                 for _, conn in pairs(p:GetConnectedParts(true)) do
                     if not seen[conn] then table.insert(stack, conn) end
                 end
                 
-                -- Expand search to Dynamic Constraints (Ropes, Hinges, SpringTrailers)
+                -- Expand search to dynamic constraints (Trailers/Tows)
                 for _, child in pairs(p:GetChildren()) do
                     if child:IsA("Constraint") then
                         local a0 = child.Attachment0
@@ -64,6 +78,20 @@ end
 local function disableNoclip()
     getgenv().noclipEnabled = false
     if getgenv().noclipConnection then getgenv().noclipConnection:Disconnect(); getgenv().noclipConnection = nil end
+    
+    -- BUG FIX: FULL STATE RESTORATION for Character, Vehicles, and Trailers
+    for part, state in pairs(getgenv().noclipOriginalStates) do
+        pcall(function()
+            if part and part.Parent then
+                part.CanCollide = state.CanCollide
+                part.Anchored = state.Anchored
+            end
+        end)
+    end
+    -- Clear memory after restoration
+    getgenv().noclipOriginalStates = {}
+    
+    -- Final character check for safety
     local char = LocalPlayer.Character
     if char then
         for _, p in pairs(char:GetDescendants()) do
