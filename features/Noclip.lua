@@ -1,8 +1,7 @@
--- [[ NOCLIP — V8 Bug Fix Edition (State Restoration + Physics Wake-up) ]]
+-- [[ NOCLIP — Infinite Recursive + Unstuck + Perfect Restoration ]]
 local RunService = game:GetService("RunService")
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
--- Global memory to track modified parts for perfect restoration
 getgenv().noclipOriginalStates = getgenv().noclipOriginalStates or {}
 
 local function enableNoclip()
@@ -18,13 +17,13 @@ local function enableNoclip()
         local stack = {}
         local seen = {}
         
-        -- 1. Initialize discovery stack
+        -- 1. Initialize discovery with Character and Seats
         for _, p in pairs(char:GetDescendants()) do
             if p:IsA("BasePart") then table.insert(stack, p) end
         end
         if hum and hum.SeatPart then table.insert(stack, hum.SeatPart) end
-
-        -- 2. Recursive Discovery Loop
+        
+        -- 2. Recursive Discovery (Traverses Welds + Constraints)
         local count = 0
         while #stack > 0 and count < 1500 do
             count = count + 1
@@ -32,7 +31,7 @@ local function enableNoclip()
             if p and not seen[p] then
                 seen[p] = true
                 
-                -- BUG FIX: Remember original state for PERFECT RESTORATION
+                -- MEMORY: Store original state before modification
                 if not getgenv().noclipOriginalStates[p] then
                     getgenv().noclipOriginalStates[p] = {
                         CanCollide = p.CanCollide,
@@ -43,31 +42,24 @@ local function enableNoclip()
                 -- NOCLIP: Set collision to false
                 if p.CanCollide then p.CanCollide = false end
                 
-                -- UNSTUCK & PHYSICS SYNC: Unanchor connected objects
+                -- UNSTUCK: Unanchor connected objects (Replicates better if user owns the assembly)
                 if p.Anchored and p ~= hrp and not p:IsDescendantOf(char) then 
                     p.Anchored = false 
-                    -- Wake up the physics engine so others see movement changes accurately
-                    pcall(function() 
-                        p.AssemblyLinearVelocity = p.AssemblyLinearVelocity + Vector3.new(0, 0.01, 0) 
-                    end)
+                    -- Wake up physics for replication
+                    pcall(function() p.AssemblyLinearVelocity = Vector3.new(0,0.01,0) end)
                 end
                 
-                -- Expand search to rigidly connected parts (Welds)
+                -- Expand search to Rigidly Connected Parts
                 for _, conn in pairs(p:GetConnectedParts(true)) do
                     if not seen[conn] then table.insert(stack, conn) end
                 end
                 
-                -- Expand search to dynamic constraints (Trailers/Tows)
+                -- Expand search to Dynamic Constraints
                 for _, child in pairs(p:GetChildren()) do
                     if child:IsA("Constraint") then
-                        local a0 = child.Attachment0
-                        local a1 = child.Attachment1
-                        if a0 and a0.Parent and a0.Parent:IsA("BasePart") and not seen[a0.Parent] then
-                            table.insert(stack, a0.Parent)
-                        end
-                        if a1 and a1.Parent and a1.Parent:IsA("BasePart") and not seen[a1.Parent] then
-                            table.insert(stack, a1.Parent)
-                        end
+                        local a0 = child.Attachment0; local a1 = child.Attachment1
+                        if a0 and a0.Parent and a0.Parent:IsA("BasePart") and not seen[a0.Parent] then table.insert(stack, a0.Parent) end
+                        if a1 and a1.Parent and a1.Parent:IsA("BasePart") and not seen[a1.Parent] then table.insert(stack, a1.Parent) end
                     end
                 end
             end
@@ -79,7 +71,7 @@ local function disableNoclip()
     getgenv().noclipEnabled = false
     if getgenv().noclipConnection then getgenv().noclipConnection:Disconnect(); getgenv().noclipConnection = nil end
     
-    -- BUG FIX: FULL STATE RESTORATION for Character, Vehicles, and Trailers
+    -- PERFECT RESTORATION: Use the memory table to restore EVERY affected part
     for part, state in pairs(getgenv().noclipOriginalStates) do
         pcall(function()
             if part and part.Parent then
@@ -88,10 +80,11 @@ local function disableNoclip()
             end
         end)
     end
-    -- Clear memory after restoration
+    
+    -- Clear memory for next use
     getgenv().noclipOriginalStates = {}
     
-    -- Final character check for safety
+    -- Double-check character specifically (fail-safe)
     local char = LocalPlayer.Character
     if char then
         for _, p in pairs(char:GetDescendants()) do
