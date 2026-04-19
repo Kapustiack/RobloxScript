@@ -8,7 +8,7 @@ local lastGUI = game:GetService("CoreGui"):FindFirstChild("CheatGUI")
 if lastGUI then lastGUI:Destroy() end
 if getgenv().destroyScript then pcall(getgenv().destroyScript) end
 
-local baseUrl = "https://raw.githubusercontent.com/Kapustiak-maker/RobloxScript/main/"
+local baseUrl = "https://raw.githubusercontent.com/Kapustiack/RobloxScript/main/"
 local function loadRemote(path)
     local cacheBypass = "?t=" .. tostring(os.time()) .. tostring(math.random(1, 100000))
     local success, content = pcall(function() return game:HttpGet(baseUrl .. path .. cacheBypass) end)
