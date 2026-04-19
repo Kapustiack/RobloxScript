@@ -100,8 +100,12 @@ local function freezeChar(state)
     -- PlatformStand = true prevents humanoid from standing up or moving
     if state then
         if hum then hum:ChangeState(Enum.HumanoidStateType.PlatformStanding) end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if hrp then hrp.Anchored = true end
     else
         if hum then hum:ChangeState(Enum.HumanoidStateType.GettingUp) end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if hrp then hrp.Anchored = false end
     end
 end
 
@@ -336,9 +340,12 @@ end)
 getgenv().FreeCamRefreshBtn.MouseButton1Click:Connect(refreshPlayerList)
 
 -- ── [P] key quick toggle ──────────────────────────────────────────
-UIS.InputBegan:Connect(function(input, gp)
-    if gp then return end
-    if input.KeyCode == Enum.KeyCode.P and getgenv().scriptEnabled then toggleFreeCamera() end
+UIS.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.P and getgenv().scriptEnabled then
+        if not UIS:GetFocusedTextBox() then
+            toggleFreeCamera()
+        end
+    end
 end)
 
 getgenv().disableFreeCamera = disableFreeCamera

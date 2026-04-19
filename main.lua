@@ -15,9 +15,9 @@ local LoaderGui = Instance.new("ScreenGui")
 LoaderGui.Name = "HubLoader"; LoaderGui.Parent = CoreGui; LoaderGui.IgnoreGuiInset = true
 
 local Main = Instance.new("Frame")
-Main.Name = "Main"; Main.Parent = LoaderGui; Main.BackgroundColor3 = Color3.fromRGB(15, 15, 20); Main.BorderSizePixel = 0; Main.Position = UDim2.new(0.5, -150, 0.5, -50); Main.Size = UDim2.new(0, 300, 0, 100); Main.ClipsDescendants = true
+Main.Name = "Main"; Main.Parent = LoaderGui; Main.BackgroundColor3 = Color3.fromRGB(13, 13, 20); Main.BorderSizePixel = 0; Main.Position = UDim2.new(0.5, -150, 0.5, -50); Main.Size = UDim2.new(0, 300, 0, 100); Main.ClipsDescendants = true
 Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 8)
-local MStroke = Instance.new("UIStroke", Main); MStroke.Color = Color3.fromRGB(40, 40, 50); MStroke.Thickness = 1
+local MStroke = Instance.new("UIStroke", Main); MStroke.Color = Color3.fromRGB(40, 40, 56); MStroke.Thickness = 1
 
 local Title = Instance.new("TextLabel")
 Title.Name = "Title"; Title.Parent = Main; Title.BackgroundTransparency = 1; Title.Position = UDim2.new(0, 10, 0, 8); Title.Size = UDim2.new(1, -20, 0, 20); Title.Font = Enum.Font.GothamBold; Title.Text = "RB MODULAR HUB"; Title.TextColor3 = Color3.fromRGB(240, 240, 240); Title.TextSize = 13; Title.TextXAlignment = Enum.TextXAlignment.Left
