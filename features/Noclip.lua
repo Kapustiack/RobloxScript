@@ -1,4 +1,4 @@
--- [[ NOCLIP — Infinite Recursive Assembly Update ]]
+-- [[ NOCLIP — Infinite Recursive + Unstuck + Touch-Sensing ]]
 local RunService = game:GetService("RunService")
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
@@ -9,35 +9,50 @@ local function enableNoclip()
         local char = LocalPlayer.Character
         if not char then return end
 
-        local pList = {} -- To avoid redundant lookups
-        local stack = {}
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        local hum = char:FindFirstChildOfClass("Humanoid")
         
-        -- Start discovery with Character components
+        local stack = {}
+        local seen = {}
+        
+        -- 1. Initialize discovery with Character and Seats
         for _, p in pairs(char:GetDescendants()) do
             if p:IsA("BasePart") then table.insert(stack, p) end
         end
-        
-        -- Include Seats and everything the character is sitting on
-        local hum = char:FindFirstChildOfClass("Humanoid")
         if hum and hum.SeatPart then table.insert(stack, hum.SeatPart) end
+        
+        -- 2. Proactive Touch-Sensing (Bypass objects you run into)
+        if hrp then
+            pcall(function()
+                for _, tp in pairs(hrp:GetTouchingParts()) do
+                    if tp:IsA("BasePart") and not seen[tp] then table.insert(stack, tp) end
+                end
+            end)
+        end
 
-        -- Recursive discovery through rigid and dynamic connections
-        local seen = {}
+        -- 3. Recursive Discovery through Assemblies and Constraints
         local count = 0
-        while #stack > 0 and count < 1000 do -- Safety cap to prevent freezes
+        while #stack > 0 and count < 1500 do -- Safe iteration cap
             count = count + 1
             local p = table.remove(stack)
             if p and not seen[p] then
                 seen[p] = true
+                
+                -- NOCLIP: Set collision to false
                 if p.CanCollide then p.CanCollide = false end
                 
-                -- Rigid connections (Welds, Motor6Ds, Snap joints)
+                -- UNSTUCK: Unanchor connected objects (breaks Link-Freezing)
+                -- We only unanchor if it's NOT the player's own RootPart (to avoid breaking flight hubs)
+                if p.Anchored and p ~= hrp and not p:IsDescendantOf(char) then 
+                    p.Anchored = false 
+                end
+                
+                -- Expand search to Rigidly Connected Parts (Welds, Motor6Ds)
                 for _, conn in pairs(p:GetConnectedParts(true)) do
                     if not seen[conn] then table.insert(stack, conn) end
                 end
                 
-                -- Dynamic connections (Constraints like Ropes, Hinges, BallSockets for Trailers)
-                -- We check descendants of parts for attachments/constraints to hop to the next part
+                -- Expand search to Dynamic Constraints (Ropes, Hinges, SpringTrailers)
                 for _, child in pairs(p:GetChildren()) do
                     if child:IsA("Constraint") then
                         local a0 = child.Attachment0
@@ -48,8 +63,6 @@ local function enableNoclip()
                         if a1 and a1.Parent and a1.Parent:IsA("BasePart") and not seen[a1.Parent] then
                             table.insert(stack, a1.Parent)
                         end
-                    elseif child:IsA("Attachment") then
-                        -- Sometimes constraints are child of Attachment or parent, we check both directions
                     end
                 end
             end
