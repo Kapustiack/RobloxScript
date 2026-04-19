@@ -85,21 +85,18 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 -- ── ROBUST INPUT SYSTEM (Ctrl+Click & Click Check) ────────────────
-UserInputService.InputBegan:Connect(function(input, gp)
-    -- CTR+CLICK TELEPORT (Highest reliability via UserInputService)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        local ctrlDown = UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or UserInputService:IsKeyDown(Enum.KeyCode.RightControl)
-        if ctrlDown and getgenv().Utils and getgenv().Utils.TeleportToMouse then
-            getgenv().Utils:TeleportToMouse()
-            return
-        end
+-- Hybrid Mouse + UIS check for maximum executor compatibility
+Mouse.Button1Down:Connect(function()
+    if not getgenv().scriptEnabled then return end
+    
+    local ctrlDown = UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or UserInputService:IsKeyDown(Enum.KeyCode.RightControl)
+    if ctrlDown and getgenv().Utils and getgenv().Utils.TeleportToMouse then
+        getgenv().Utils:TeleportToMouse()
+        return
     end
 
-    -- CLICK CHECK (For Follow)
-    if not gp and input.UserInputType == Enum.UserInputType.MouseButton1 then
-        if getgenv().clickCheckEnabled and getgenv().followEnabled and getgenv().followTarget then
-            getgenv().leftMouseClicked = true; getgenv().clickLingerUntil = 0
-        end
+    if getgenv().clickCheckEnabled and getgenv().followEnabled and getgenv().followTarget then
+        getgenv().leftMouseClicked = true; getgenv().clickLingerUntil = 0
     end
 end)
 
