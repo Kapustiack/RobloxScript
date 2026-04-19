@@ -2,20 +2,36 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 local Hooks = {}
+local old_nc = nil
 
-function Hooks:InstallHitboxHook(config)
-    print("[Hooks] Installing Hitbox Namecall Hook...")
+-- Consolidated Namecall Hook for Hitbox and Remote Blocking
+function Hooks:InstallMainHook(config)
+    if old_nc then return end -- Already installed
+
     local ok, mt = pcall(getrawmetatable, game)
-    if not ok or not mt then return nil end
-    local okSet = pcall(setreadonly, mt, false)
-    if not okSet then return nil end
+    if not ok or not mt then return end
+    pcall(setreadonly, mt, false)
     
-    local old_nc = rawget(mt, "__namecall")
-    if not old_nc then pcall(setreadonly, mt, true); return nil end
+    old_nc = rawget(mt, "__namecall")
+    if not old_nc then pcall(setreadonly, mt, true); return end
 
     local function hookedNamecall(self, ...)
+        local method = getnamecallmethod()
+        local args = {...}
+        local name = ""
+        pcall(function() name = string.lower(self.Name) end)
+
+        -- 1. REMOTE BLOCKER (Fall Damage / Generic Damage)
+        if getgenv().noFallDamageEnabled and getgenv().scriptEnabled then
+            if method == "FireServer" or method == "InvokeServer" then
+                if string.find(name, "fall") or string.find(name, "land") or string.find(name, "damage") then
+                    return nil
+                end
+            end
+        end
+
+        -- 2. HITBOX EXPANSION (Redirect hits to nearest player)
         if config.GetHitboxEnabled() and config.GetScriptEnabled() then
-            local method = getnamecallmethod()
             local isRemote = (method == "FireServer" and self:IsA("RemoteEvent"))
                           or (method == "InvokeServer" and self:IsA("RemoteFunction"))
             
@@ -29,7 +45,6 @@ function Hooks:InstallHitboxHook(config)
                         if nearHRP then
                             local d = (nearHRP.Position - myHRP.Position).Magnitude
                             if d <= config.GetHitboxSize() * 2 then
-                                local args    = {...}
                                 local changed = false
                                 for i, arg in ipairs(args) do
                                     if typeof(arg) == "Instance" then
@@ -48,29 +63,28 @@ function Hooks:InstallHitboxHook(config)
                                         end
                                     end
                                 end
-                                if changed then
-                                    return old_nc(self, table.unpack(args))
-                                end
+                                if changed then return old_nc(self, table.unpack(args)) end
                             end
                         end
                     end
                 end
             end
         end
+
         return old_nc(self, ...)
     end
 
-    local final = (newcclosure and newcclosure(hookedNamecall)) or hookedNamecall
-    rawset(mt, "__namecall", final)
+    rawset(mt, "__namecall", (newcclosure and newcclosure(hookedNamecall)) or hookedNamecall)
     pcall(setreadonly, mt, true)
+end
 
-    return function()
-        local ok2, mt2 = pcall(getrawmetatable, game)
-        if ok2 and mt2 then
-            pcall(setreadonly, mt2, false)
-            rawset(mt2, "__namecall", old_nc)
-            pcall(setreadonly, mt2, true)
-        end
+function Hooks:UninstallMainHook()
+    local ok, mt = pcall(getrawmetatable, game)
+    if ok and mt and old_nc then
+        pcall(setreadonly, mt, false)
+        rawset(mt, "__namecall", old_nc)
+        pcall(setreadonly, mt, true)
+        old_nc = nil
     end
 end
 
