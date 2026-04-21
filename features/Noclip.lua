@@ -211,9 +211,12 @@ end
 -- ─────────────────────────────────────────────
 
 local function buildPowerPanel()
-    local gui = getgenv().ScreenGui  -- your main ScreenGui reference from main.lua
-    if not gui then return end
-    if getgenv().PowerPanel then return end  -- already built
+    local gui = getgenv().ScreenGui
+    if not gui then 
+        warn("[RB Hub] PowerPanel Error: ScreenGui not found!")
+        return 
+    end
+    if getgenv().PowerPanel then return end
 
     local panel = Instance.new("Frame")
     panel.Name            = "PowerPanel"
@@ -321,6 +324,10 @@ end)
 -- RIGHT-CLICK → toggle Power panel
 getgenv().NoclipButton.MouseButton2Click:Connect(function()
     if not getgenv().scriptEnabled then return end
+    
+    -- Debug notify (remove if annoying)
+    if getgenv().Utils then getgenv().Utils:Notify("Hub", "Opening Power Settings...", Color3.fromRGB(80, 80, 100)) end
+    
     buildPowerPanel()  
     if getgenv().PowerPanel and getgenv().TogglePanel then
         getgenv().TogglePanel(getgenv().PowerPanel)

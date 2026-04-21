@@ -244,13 +244,17 @@ getgenv().WaypointsList = wpScroll
 
 getgenv().HideAllPanels = function()
     local panels = {
-        ESPSettingsFrame, SpeedSettingsFrame, FOVSettingsFrame, FollowSettingsFrame,
-        ReachSettingsFrame, HitboxSettingsFrame, FlightSettingsFrame,
-        InfiniteJumpSettingsFrame, WallhackSettingsFrame, FreeCameraSettingsFrame,
-        LowGravitySettingsFrame, TeleportSettingsFrame, WaypointsSettingsFrame,
-        getgenv().PowerPanel
+        getgenv().ESPSettingsFrame, getgenv().SpeedSettingsFrame, getgenv().FOVSettingsFrame, 
+        getgenv().FollowSettingsFrame, getgenv().ReachSettingsFrame, getgenv().HitboxSettingsFrame, 
+        getgenv().FlightSettingsFrame, getgenv().InfiniteJumpSettingsFrame, getgenv().WallhackSettingsFrame, 
+        getgenv().FreeCameraSettingsFrame, getgenv().LowGravitySettingsFrame, 
+        getgenv().TeleportSettingsFrame, getgenv().WaypointsSettingsFrame, getgenv().PowerPanel
     }
-    for _, p in pairs(panels) do if p then p.Visible = false end end
+    for _, p in pairs(panels) do 
+        if p and typeof(p) == "Instance" and p:IsA("Frame") then 
+            p.Visible = false 
+        end 
+    end
 end
 
 getgenv().TogglePanel = function(target)
