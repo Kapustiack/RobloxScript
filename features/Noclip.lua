@@ -161,7 +161,7 @@ local function updateSlider(x)
     local sliderFill = getgenv().PowerSliderFill
     local sliderBtn = getgenv().PowerSliderBtn
     local valLabel = getgenv().PowerValLabel
-    if not sliderBg or not sliderFill or not sliderBtn or not valLabel then return end
+    if not (sliderBg and sliderFill and sliderBtn and valLabel) then return end
 
     local relX = math.clamp(x, 0, sliderBg.AbsoluteSize.X)
     local ratio = relX / sliderBg.AbsoluteSize.X
@@ -181,21 +181,28 @@ local function updateSlider(x)
     end
 end
 
-getgenv().PowerSliderBtn.MouseButton1Down:Connect(function()
-    dragging = true
-end)
+if getgenv().PowerSliderBtn then
+    getgenv().PowerSliderBtn.MouseButton1Down:Connect(function()
+        dragging = true
+    end)
+end
 
-getgenv().PowerSliderBg.MouseButton1Down:Connect(function()
-    dragging = true
-    updateSlider(getgenv().PowerSliderBg.AbsoluteSize.X * 0.7)
-end)
+if getgenv().PowerSliderBg then
+    getgenv().PowerSliderBg.MouseButton1Down:Connect(function()
+        dragging = true
+        local sliderBg = getgenv().PowerSliderBg
+        if sliderBg then updateSlider(sliderBg.AbsoluteSize.X * 0.7) end
+    end)
+end
 
-getgenv().PowerResetBtn.MouseButton1Click:Connect(function()
-    resetPower()
-    getgenv().PowerSliderFill.Size = UDim2.new(0.7, 0, 1, 0)
-    getgenv().PowerSliderBtn.Position = UDim2.new(0.7, -7, 0.5, -9)
-    getgenv().PowerValLabel.Text = "Density: 0.7 (Normal)"
-end)
+if getgenv().PowerResetBtn then
+    getgenv().PowerResetBtn.MouseButton1Click:Connect(function()
+        resetPower()
+        if getgenv().PowerSliderFill then getgenv().PowerSliderFill.Size = UDim2.new(0.7, 0, 1, 0) end
+        if getgenv().PowerSliderBtn then getgenv().PowerSliderBtn.Position = UDim2.new(0.7, -7, 0.5, -9) end
+        if getgenv().PowerValLabel then getgenv().PowerValLabel.Text = "Density: 0.7 (Normal)" end
+    end)
+end
 
 local UserInputService = game:GetService("UserInputService")
 UserInputService.InputEnded:Connect(function(input)
@@ -230,6 +237,8 @@ getgenv().NoclipButton.MouseButton2Click:Connect(function()
     if not getgenv().scriptEnabled then return end
     if getgenv().TogglePanel and getgenv().PowerPanel then
         getgenv().TogglePanel(getgenv().PowerPanel)
+    else
+        warn("[RB Hub] TogglePanel or PowerPanel is nil!")
     end
 end)
 
