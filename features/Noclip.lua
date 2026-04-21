@@ -211,9 +211,9 @@ end
 -- ─────────────────────────────────────────────
 
 local function buildPowerPanel()
-    local gui = getgenv().MainGui  -- your main ScreenGui reference from main.lua
+    local gui = getgenv().ScreenGui  -- your main ScreenGui reference from main.lua
     if not gui then return end
-    if gui:FindFirstChild("PowerPanel") then return end  -- already built
+    if getgenv().PowerPanel then return end  -- already built
 
     local panel = Instance.new("Frame")
     panel.Name            = "PowerPanel"
@@ -321,9 +321,9 @@ end)
 -- RIGHT-CLICK → toggle Power panel
 getgenv().NoclipButton.MouseButton2Click:Connect(function()
     if not getgenv().scriptEnabled then return end
-    buildPowerPanel()  -- no-op if already built
-    if getgenv().PowerPanel then
-        getgenv().PowerPanel.Visible = not getgenv().PowerPanel.Visible
+    buildPowerPanel()  
+    if getgenv().PowerPanel and getgenv().TogglePanel then
+        getgenv().TogglePanel(getgenv().PowerPanel)
     end
 end)
 

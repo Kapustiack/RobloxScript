@@ -247,9 +247,10 @@ getgenv().HideAllPanels = function()
         ESPSettingsFrame, SpeedSettingsFrame, FOVSettingsFrame, FollowSettingsFrame,
         ReachSettingsFrame, HitboxSettingsFrame, FlightSettingsFrame,
         InfiniteJumpSettingsFrame, WallhackSettingsFrame, FreeCameraSettingsFrame,
-        LowGravitySettingsFrame, TeleportSettingsFrame, WaypointsSettingsFrame
+        LowGravitySettingsFrame, TeleportSettingsFrame, WaypointsSettingsFrame,
+        getgenv().PowerPanel
     }
-    for _, p in pairs(panels) do p.Visible = false end
+    for _, p in pairs(panels) do if p then p.Visible = false end end
 end
 
 getgenv().TogglePanel = function(target)
