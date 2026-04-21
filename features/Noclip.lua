@@ -151,129 +151,68 @@ local function resetPower()
 end
 
 -- ─────────────────────────────────────────────
---  POWER PANEL — minimalistic weight slider
+--  POWER PANEL SLIDER LOGIC — panel is pre-created in UI.lua
 -- ─────────────────────────────────────────────
-local function buildPowerPanel()
-    local gui = getgenv().ScreenGui
-    if not gui then return end
-    if getgenv().PowerPanel then getgenv().PowerPanel:Destroy() end
+local dragging = false
+local minDensity, maxDensity = 0, 50
 
-    local W, H = 200, 140
-    local f = Instance.new("Frame")
-    f.Name = "PowerPanel"; f.Parent = gui
-    f.BackgroundColor3 = Color3.fromRGB(16, 16, 23); f.BorderSizePixel = 0
-    f.Position = UDim2.new(0.5, -W/2, 0.5, -H/2)
-    f.Size = UDim2.new(0, W, 0, H)
-    f.Visible = false; f.Active = true; f.Draggable = true
-    Instance.new("UICorner", f).CornerRadius = UDim.new(0, 8)
-    local s = Instance.new("UIStroke", f); s.Color = Color3.fromRGB(38, 38, 54); s.Thickness = 1
+local function updateSlider(x)
+    local sliderBg = getgenv().PowerSliderBg
+    local sliderFill = getgenv().PowerSliderFill
+    local sliderBtn = getgenv().PowerSliderBtn
+    local valLabel = getgenv().PowerValLabel
+    if not sliderBg or not sliderFill or not sliderBtn or not valLabel then return end
 
-    -- Title bar
-    local tb = Instance.new("Frame"); tb.Parent = f
-    tb.BackgroundColor3 = Color3.fromRGB(10, 10, 16); tb.BorderSizePixel = 0
-    tb.Size = UDim2.new(1, 0, 0, 30)
-    Instance.new("UICorner", tb).CornerRadius = UDim.new(0, 8)
+    local relX = math.clamp(x, 0, sliderBg.AbsoluteSize.X)
+    local ratio = relX / sliderBg.AbsoluteSize.X
+    local density = ratio * maxDensity
+    density = math.clamp(density, minDensity, maxDensity)
 
-    local tl = Instance.new("TextLabel"); tl.Parent = tb
-    tl.BackgroundTransparency = 1; tl.Size = UDim2.new(1, -34, 1, 0)
-    tl.Position = UDim2.new(0, 10, 0, 0); tl.Font = Enum.Font.GothamBold
-    tl.Text = "Weight"; tl.TextColor3 = getgenv().COL_TXT
-    tl.TextSize = 11; tl.TextXAlignment = Enum.TextXAlignment.Left
+    sliderFill.Size = UDim2.new(ratio, 0, 1, 0)
+    sliderBtn.Position = UDim2.new(ratio, -7, 0.5, -9)
 
-    local cb = Instance.new("TextButton"); cb.Parent = tb
-    cb.BackgroundColor3 = getgenv().COL_CLO; cb.BorderSizePixel = 0
-    cb.Position = UDim2.new(1, -24, 0.5, -8); cb.Size = UDim2.new(0, 16, 0, 16)
-    cb.Font = Enum.Font.GothamBold; cb.Text = "X"; cb.TextColor3 = Color3.new(1,1,1); cb.TextSize = 11
-    Instance.new("UICorner", cb).CornerRadius = UDim.new(0, 4)
-    cb.MouseButton1Click:Connect(function() f.Visible = false end)
-
-    -- Value label
-    local valLabel = Instance.new("TextLabel"); valLabel.Parent = f
-    valLabel.BackgroundTransparency = 1; valLabel.Position = UDim2.new(0, 10, 0, 40)
-    valLabel.Size = UDim2.new(1, -20, 0, 20); valLabel.Font = Enum.Font.Gotham
-    valLabel.Text = "Density: 0.7 (Normal)"; valLabel.TextColor3 = getgenv().COL_TXT
-    valLabel.TextSize = 11; valLabel.TextXAlignment = Enum.TextXAlignment.Center
-
-    -- Slider background
-    local sliderBg = Instance.new("Frame"); sliderBg.Parent = f
-    sliderBg.BackgroundColor3 = getgenv().COL_BAR; sliderBg.BorderSizePixel = 0
-    sliderBg.Position = UDim2.new(0, 10, 0, 70); sliderBg.Size = UDim2.new(1, -20, 0, 6)
-    Instance.new("UICorner", sliderBg).CornerRadius = UDim.new(0, 3)
-
-    -- Slider fill
-    local sliderFill = Instance.new("Frame"); sliderFill.Parent = sliderBg
-    sliderFill.BackgroundColor3 = getgenv().COL_ON; sliderFill.BorderSizePixel = 0
-    sliderFill.Size = UDim2.new(0.7, 0, 1, 0)
-    Instance.new("UICorner", sliderFill).CornerRadius = UDim.new(0, 3)
-
-    -- Slider button
-    local sliderBtn = Instance.new("TextButton"); sliderBtn.Parent = sliderBg
-    sliderBtn.BackgroundColor3 = Color3.new(1,1,1); sliderBtn.BorderSizePixel = 0
-    sliderBtn.Size = UDim2.new(0, 14, 0, 18); sliderBtn.Position = UDim2.new(0.7, -7, 0.5, -9)
-    sliderBtn.Text = ""; sliderBtn.ZIndex = 2
-    Instance.new("UICorner", sliderBtn).CornerRadius = UDim.new(0, 7)
-
-    -- Reset button
-    local resetBtn = Instance.new("TextButton"); resetBtn.Parent = f
-    resetBtn.BackgroundColor3 = getgenv().COL_OFF; resetBtn.BorderSizePixel = 0
-    resetBtn.Position = UDim2.new(0, 10, 0, 95); resetBtn.Size = UDim2.new(1, -20, 0, 30)
-    resetBtn.Font = Enum.Font.GothamBold; resetBtn.Text = "Reset"
-    resetBtn.TextColor3 = getgenv().COL_TXT; resetBtn.TextSize = 11
-    Instance.new("UICorner", resetBtn).CornerRadius = UDim.new(0, 5)
-    resetBtn.MouseButton1Click:Connect(function()
+    if density <= 0.1 then
         resetPower()
-        sliderFill.Size = UDim2.new(0.7, 0, 1, 0)
-        sliderBtn.Position = UDim2.new(0.7, -7, 0.5, -9)
-        valLabel.Text = "Density: 0.7 (Normal)"
-    end)
-
-    -- Slider drag logic
-    local dragging = false
-    local minDensity, maxDensity = 0, 50
-    local function updateSlider(x)
-        local relX = math.clamp(x, 0, sliderBg.AbsoluteSize.X)
-        local ratio = relX / sliderBg.AbsoluteSize.X
-        local density = ratio * maxDensity
-        density = math.clamp(density, minDensity, maxDensity)
-
-        sliderFill.Size = UDim2.new(ratio, 0, 1, 0)
-        sliderBtn.Position = UDim2.new(ratio, -7, 0.5, -9)
-
-        if density <= 0.1 then
-            resetPower()
-            valLabel.Text = "Density: 0 (Reset)"
-        else
-            applyPower(density)
-            local label = density < 1 and string.format("%.2f", density) or math.floor(density)
-            valLabel.Text = "Density: " .. label
-        end
+        valLabel.Text = "Density: 0 (Reset)"
+    else
+        applyPower(density)
+        local label = density < 1 and string.format("%.2f", density) or math.floor(density)
+        valLabel.Text = "Density: " .. label
     end
+end
 
-    sliderBtn.MouseButton1Down:Connect(function()
-        dragging = true
-    end)
+getgenv().PowerSliderBtn.MouseButton1Down:Connect(function()
+    dragging = true
+end)
 
-    sliderBg.MouseButton1Down:Connect(function()
-        dragging = true
-        updateSlider(sliderBg.AbsoluteSize.X * 0.7)
-    end)
+getgenv().PowerSliderBg.MouseButton1Down:Connect(function()
+    dragging = true
+    updateSlider(getgenv().PowerSliderBg.AbsoluteSize.X * 0.7)
+end)
 
-    local UserInputService = game:GetService("UserInputService")
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
+getgenv().PowerResetBtn.MouseButton1Click:Connect(function()
+    resetPower()
+    getgenv().PowerSliderFill.Size = UDim2.new(0.7, 0, 1, 0)
+    getgenv().PowerSliderBtn.Position = UDim2.new(0.7, -7, 0.5, -9)
+    getgenv().PowerValLabel.Text = "Density: 0.7 (Normal)"
+end)
 
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+local UserInputService = game:GetService("UserInputService")
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local sliderBg = getgenv().PowerSliderBg
+        if sliderBg then
             local x = input.Position.X - sliderBg.AbsolutePosition.X
             updateSlider(x)
         end
-    end)
-
-    getgenv().PowerPanel = f
-end
+    end
+end)
 
 -- ─────────────────────────────────────────────
 --  BUTTON WIRING
@@ -286,10 +225,12 @@ getgenv().NoclipButton.MouseButton1Click:Connect(function()
     if getgenv().noclipEnabled then enableNoclip() else disableNoclip() end
 end)
 
--- RIGHT-CLICK: build panel
+-- RIGHT-CLICK: toggle power panel
 getgenv().NoclipButton.MouseButton2Click:Connect(function()
     if not getgenv().scriptEnabled then return end
-    buildPowerPanel()
+    if getgenv().TogglePanel and getgenv().PowerPanel then
+        getgenv().TogglePanel(getgenv().PowerPanel)
+    end
 end)
 
 getgenv().disableNoclip = disableNoclip

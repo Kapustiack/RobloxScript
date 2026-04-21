@@ -242,6 +242,25 @@ local wpLayout = Instance.new("UIListLayout", wpScroll)
 wpLayout.Padding = UDim.new(0, 3); wpLayout.SortOrder = Enum.SortOrder.LayoutOrder
 getgenv().WaypointsList = wpScroll
 
+-- Power/Weight Panel (for Noclip)
+getgenv().PowerPanel = makePanel("PowerPanel", "Weight", 200, 140)
+local pp = getgenv().PowerPanel
+getgenv().PowerValLabel = pLabel(pp, "PowerValLabel", "Density: 0.7 (Normal)", 12, 40, 176, 20)
+getgenv().PowerSliderBg = Instance.new("Frame"); PowerSliderBg.Parent = pp
+PowerSliderBg.Name = "PowerSliderBg"; PowerSliderBg.BackgroundColor3 = getgenv().COL_BAR; PowerSliderBg.BorderSizePixel = 0
+PowerSliderBg.Position = UDim2.new(0, 12, 0, 70); PowerSliderBg.Size = UDim2.new(0, 176, 0, 6)
+Instance.new("UICorner", PowerSliderBg).CornerRadius = UDim.new(0, 3)
+getgenv().PowerSliderFill = Instance.new("Frame"); PowerSliderFill.Parent = PowerSliderBg
+PowerSliderFill.Name = "PowerSliderFill"; PowerSliderFill.BackgroundColor3 = getgenv().COL_ON; PowerSliderFill.BorderSizePixel = 0
+PowerSliderFill.Size = UDim2.new(0.7, 0, 1, 0)
+Instance.new("UICorner", PowerSliderFill).CornerRadius = UDim.new(0, 3)
+getgenv().PowerSliderBtn = Instance.new("TextButton"); PowerSliderBtn.Parent = PowerSliderBg
+PowerSliderBtn.Name = "PowerSliderBtn"; PowerSliderBtn.BackgroundColor3 = Color3.new(1,1,1); PowerSliderBtn.BorderSizePixel = 0
+PowerSliderBtn.Size = UDim2.new(0, 14, 0, 18); PowerSliderBtn.Position = UDim2.new(0.7, -7, 0.5, -9)
+PowerSliderBtn.Text = ""; PowerSliderBtn.ZIndex = 2
+Instance.new("UICorner", PowerSliderBtn).CornerRadius = UDim.new(0, 7)
+getgenv().PowerResetBtn = pBtn(pp, "PowerResetBtn", "Reset", 12, 95, 176, 30)
+
 getgenv().HideAllPanels = function()
     local panels = {
         getgenv().ESPSettingsFrame, getgenv().SpeedSettingsFrame, getgenv().FOVSettingsFrame, 
