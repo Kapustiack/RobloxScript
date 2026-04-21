@@ -156,7 +156,7 @@ end
 local function buildPowerPanel()
     local gui = getgenv().ScreenGui
     if not gui then return end
-    if getgenv().PowerPanel and getgenv().PowerPanel.Parent then return end
+    if getgenv().PowerPanel then getgenv().PowerPanel:Destroy() end
 
     local W, H = 200, 140
     local f = Instance.new("Frame")
@@ -286,13 +286,10 @@ getgenv().NoclipButton.MouseButton1Click:Connect(function()
     if getgenv().noclipEnabled then enableNoclip() else disableNoclip() end
 end)
 
--- RIGHT-CLICK: build panel once, then use TogglePanel (same as all other right-click settings)
+-- RIGHT-CLICK: build panel
 getgenv().NoclipButton.MouseButton2Click:Connect(function()
     if not getgenv().scriptEnabled then return end
     buildPowerPanel()
-    if getgenv().TogglePanel and getgenv().PowerPanel then
-        getgenv().TogglePanel(getgenv().PowerPanel)
-    end
 end)
 
 getgenv().disableNoclip = disableNoclip
