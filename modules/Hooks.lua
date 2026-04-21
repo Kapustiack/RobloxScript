@@ -40,7 +40,7 @@ function Hooks:InstallHitboxHook(config)
                                             end
                                         elseif arg:IsA("Model") then
                                             local hitOwner = Players:GetPlayerFromCharacter(arg)
-                                            if not hitOwner or hitOwner == LocalPlayer then
+                                            if hitOwner == LocalPlayer then
                                                 args[i] = nearest.Character; changed = true
                                             end
                                         elseif arg:IsA("Player") and arg == LocalPlayer then

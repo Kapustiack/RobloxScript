@@ -63,7 +63,14 @@ local function loadRemote(path, index)
         return nil 
     end
     
-    local func, err = loadstring(content)
+    local func, err
+    if typeof(loadstring) == "function" then
+        func, err = loadstring(content)
+    else
+        warn("[RB Hub] loadstring unavailable — cannot execute " .. path)
+        updateLoader(path .. " (loadstring unavailable)", index, true)
+        return nil
+    end
     if not func then 
         warn("[RB Hub] Syntax Error: " .. path .. " | " .. tostring(err))
         updateLoader(path .. " (Syntax Error)", index, true)
@@ -125,6 +132,7 @@ getgenv().destroyScript = function()
     if getgenv().wallhackLoop         then getgenv().wallhackLoop:Disconnect();         getgenv().wallhackLoop = nil end
     if getgenv().fullbrightLoop       then getgenv().fullbrightLoop:Disconnect();       getgenv().fullbrightLoop = nil end
     if getgenv().noDamageLoop         then getgenv().noDamageLoop:Disconnect();         getgenv().noDamageLoop = nil end
+    if getgenv().lowGravityLoop       then getgenv().lowGravityLoop:Disconnect();       getgenv().lowGravityLoop = nil end
     if getgenv().followConnection     then getgenv().followConnection:Disconnect();     getgenv().followConnection = nil end
     if getgenv().noclipConnection     then getgenv().noclipConnection:Disconnect();     getgenv().noclipConnection = nil end
     if getgenv().infiniteJumpConnection then getgenv().infiniteJumpConnection:Disconnect(); getgenv().infiniteJumpConnection = nil end
@@ -132,6 +140,31 @@ getgenv().destroyScript = function()
     if getgenv().noDamageRestoreFunc  then pcall(getgenv().noDamageRestoreFunc);        getgenv().noDamageRestoreFunc = nil end
     if getgenv().ESPContainer         then pcall(function() getgenv().ESPContainer:Destroy() end); getgenv().ESPContainer = nil end
     if getgenv().ScreenGui            then pcall(function() getgenv().ScreenGui:Destroy()    end); getgenv().ScreenGui    = nil end
+
+    -- Disconnect main.lua background connections
+    if getgenv().mainHeartbeatConn      then getgenv().mainHeartbeatConn:Disconnect();      getgenv().mainHeartbeatConn = nil end
+    if getgenv().mainInputBeganConn     then getgenv().mainInputBeganConn:Disconnect();     getgenv().mainInputBeganConn = nil end
+    if getgenv().mainRenderSteppedConn  then getgenv().mainRenderSteppedConn:Disconnect();  getgenv().mainRenderSteppedConn = nil end
+    if getgenv().mainCharAddedConn      then getgenv().mainCharAddedConn:Disconnect();      getgenv().mainCharAddedConn = nil end
+    if getgenv().mainPlayerAddedConn    then getgenv().mainPlayerAddedConn:Disconnect();    getgenv().mainPlayerAddedConn = nil end
+    if getgenv().mainPlayerRemovingConn then getgenv().mainPlayerRemovingConn:Disconnect(); getgenv().mainPlayerRemovingConn = nil end
+    if getgenv().mainTeleportConn       then getgenv().mainTeleportConn:Disconnect();       getgenv().mainTeleportConn = nil end
+
+    -- Disconnect Input.lua connections
+    if getgenv().inputEndedConn        then getgenv().inputEndedConn:Disconnect();        getgenv().inputEndedConn = nil end
+    if getgenv().inputChangedConn      then getgenv().inputChangedConn:Disconnect();      getgenv().inputChangedConn = nil end
+    if getgenv().mouseBtn1DownConn     then getgenv().mouseBtn1DownConn:Disconnect();     getgenv().mouseBtn1DownConn = nil end
+    if getgenv().mouseBtn1UpConn       then getgenv().mouseBtn1UpConn:Disconnect();       getgenv().mouseBtn1UpConn = nil end
+
+    -- Disconnect FreeCamera.lua connections
+    if getgenv().freeCamInputBeganConn then getgenv().freeCamInputBeganConn:Disconnect(); getgenv().freeCamInputBeganConn = nil end
+
+    -- Disconnect per-player CharacterAdded connections
+    local Players = game:GetService("Players")
+    for _, p in pairs(Players:GetPlayers()) do
+        local conn = getgenv()["_hitboxCharConn_" .. p.Name]
+        if conn then conn:Disconnect(); getgenv()["_hitboxCharConn_" .. p.Name] = nil end
+    end
 end
 
 -- Wire UI
@@ -153,7 +186,7 @@ local LocalPlayer = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 local StarterGui = game:GetService("StarterGui")
 
-RunService.Heartbeat:Connect(function()
+getgenv().mainHeartbeatConn = RunService.Heartbeat:Connect(function()
     if not getgenv().scriptEnabled then return end
     if getgenv().updateSpeedLoop then getgenv().updateSpeedLoop() end
     if getgenv().updateESP then getgenv().updateESP() end
@@ -167,8 +200,12 @@ RunService.Heartbeat:Connect(function()
              if not hum or hum.Health <= 0 then targetDead = true end end
         if targetDead then
             if getgenv().autoSwitchEnabled then
-                local deadTarget = getgenv().followTarget; getgenv().pushHistory(deadTarget)
-                local nextTarget = getgenv().Utils and getgenv().Utils:FindNearestAlivePlayer(deadTarget)
+                local deadTarget = getgenv().followTarget
+                if typeof(getgenv().pushHistory) == "function" then getgenv().pushHistory(deadTarget) end
+                local nextTarget = nil
+                if getgenv().Utils and typeof(getgenv().Utils.FindNearestAlivePlayer) == "function" then
+                    nextTarget = getgenv().Utils:FindNearestAlivePlayer(deadTarget)
+                end
                 if nextTarget then
                     getgenv().followTarget = nextTarget
                     pcall(function() StarterGui:SetCore("ChatMakeSystemMessage", {Text = "[Follow] Target died - switching to " .. nextTarget.Name; Color = Color3.fromRGB(255, 160, 0); Font = Enum.Font.GothamBold;}) end)
@@ -184,7 +221,7 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
-UserInputService.InputBegan:Connect(function(input)
+getgenv().mainInputBeganConn = UserInputService.InputBegan:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.C then
         if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) or UserInputService:IsKeyDown(Enum.KeyCode.RightShift) then
             if getgenv().ToggleUI then getgenv().ToggleUI() end
@@ -192,7 +229,7 @@ UserInputService.InputBegan:Connect(function(input)
     end
 end)
 
-RunService.RenderStepped:Connect(function(dt)
+getgenv().mainRenderSteppedConn = RunService.RenderStepped:Connect(function(dt)
     if not getgenv().scriptEnabled then return end
     local rawFPS = dt > 0 and (1 / dt) or 1
     getgenv().smoothFPS = getgenv().smoothFPS * 0.9 + rawFPS * 0.1
@@ -210,7 +247,7 @@ RunService.RenderStepped:Connect(function(dt)
     end
 end)
 
-LocalPlayer.CharacterAdded:Connect(function(char)
+getgenv().mainCharAddedConn = LocalPlayer.CharacterAdded:Connect(function(char)
     task.wait(0.5)
     if not getgenv().scriptEnabled then return end
     if getgenv().speedhackEnabled then local hum = char:FindFirstChildOfClass("Humanoid")
@@ -225,24 +262,53 @@ LocalPlayer.CharacterAdded:Connect(function(char)
     if getgenv().reachEnabled and getgenv().enableReach then pcall(getgenv().enableReach) end
 end)
 
-Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function()
+-- Wire existing players too
+for _, existingPlayer in pairs(Players:GetPlayers()) do
+    if existingPlayer ~= LocalPlayer then
+        getgenv()["_hitboxCharConn_" .. existingPlayer.Name] = existingPlayer.CharacterAdded:Connect(function()
+            if getgenv().hitboxEnabled then task.wait(0.5); if getgenv().applyHitboxExpansion then getgenv().applyHitboxExpansion() end end
+        end)
+    end
+end
+
+getgenv().mainPlayerAddedConn = Players.PlayerAdded:Connect(function(player)
+    getgenv()["_hitboxCharConn_" .. player.Name] = player.CharacterAdded:Connect(function()
         if getgenv().hitboxEnabled then task.wait(0.5); if getgenv().applyHitboxExpansion then getgenv().applyHitboxExpansion() end end
     end)
 end)
 
-Players.PlayerRemoving:Connect(function(player)
+getgenv().mainPlayerRemovingConn = Players.PlayerRemoving:Connect(function(player)
+    local conn = getgenv()["_hitboxCharConn_" .. player.Name]
+    if conn then conn:Disconnect(); getgenv()["_hitboxCharConn_" .. player.Name] = nil end
     if getgenv().ScreenGui then local parts = {player.Name.."_Name", player.Name.."_Distance", player.Name.."_2DBox"}
         for _, n in pairs(parts) do local o = getgenv().ScreenGui:FindFirstChild(n); if o then o:Destroy() end end
     end
     if getgenv().ESPContainer then local b3 = getgenv().ESPContainer:FindFirstChild(player.Name .. "_Box"); if b3 then b3:Destroy() end end
 end)
 
+getgenv().mainTeleportConn = nil
 pcall(function()
-    LocalPlayer.OnTeleport:Connect(function(teleportState)
+    getgenv().mainTeleportConn = LocalPlayer.OnTeleport:Connect(function(teleportState)
         if teleportState == Enum.TeleportState.Started or teleportState == Enum.TeleportState.InProgress or teleportState == Enum.TeleportState.RequestedFromServer then pcall(getgenv().destroyScript) end
     end)
 end)
+
+-- Apply to current character immediately if already spawned
+if LocalPlayer.Character then
+    local char = LocalPlayer.Character
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if getgenv().speedhackEnabled and hum then
+        hum.WalkSpeed = getgenv().walkSpeed * getgenv().speedMultiplier
+        hum.JumpPower = getgenv().jumpPower * getgenv().speedMultiplier
+    end
+    if getgenv().infiniteJumpEnabled then
+        if getgenv().infiniteJumpConnection then getgenv().infiniteJumpConnection:Disconnect() end
+        getgenv().infiniteJumpConnection = game:GetService("UserInputService").JumpRequest:Connect(function()
+            if getgenv().infiniteJumpEnabled and getgenv().scriptEnabled and hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+        end)
+    end
+    if getgenv().reachEnabled and getgenv().enableReach then pcall(getgenv().enableReach) end
+end
 
 pcall(function() if getgenv().loadSettings then getgenv().loadSettings() end end)
 if getgenv().Utils and getgenv().Utils.Notify then getgenv().Utils:Notify("RB Hub", "Ready. Hotkey: Shift + C", Color3.fromRGB(25, 145, 80)) end

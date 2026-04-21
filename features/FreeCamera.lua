@@ -256,7 +256,7 @@ getgenv().FreeCamCrosshairBtn.MouseButton1Click:Connect(function()
     if getgenv().freeCamShowCrosshair and getgenv().freeCamEnabled and getgenv().freeCamMode == "fly" then createCrosshair() else destroyCrosshair() end
 end)
 
-UIS.InputBegan:Connect(function(input)
+getgenv().freeCamInputBeganConn = UIS.InputBegan:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.P and getgenv().scriptEnabled then toggleFreeCamera() end
 end)
 

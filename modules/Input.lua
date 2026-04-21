@@ -66,7 +66,7 @@ getgenv().LowGravitySlider.MouseButton1Down:Connect(function()     getgenv().dra
 
 
 -- ── Slider drag end ───────────────────────────────────────────────
-UserInputService.InputEnded:Connect(function(input)
+getgenv().inputEndedConn = UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         getgenv().draggingESPDistance    = false
         getgenv().draggingSpeed          = false
@@ -87,7 +87,7 @@ end)
 
 
 -- ── Slider update while dragging ─────────────────────────────────
-UserInputService.InputChanged:Connect(function(input)
+getgenv().inputChangedConn = UserInputService.InputChanged:Connect(function(input)
     if input.UserInputType ~= Enum.UserInputType.MouseMovement then return end
 
     -- ESP draw distance: 100 – 30000 studs
@@ -160,7 +160,7 @@ end)
 
 
 -- ── Ctrl+Click teleport & Click Check ────────────────────────────
-Mouse.Button1Down:Connect(function()
+getgenv().mouseBtn1DownConn = Mouse.Button1Down:Connect(function()
     if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) and getgenv().Utils then
         getgenv().Utils:TeleportToMouse()
         return
@@ -171,7 +171,7 @@ Mouse.Button1Down:Connect(function()
     end
 end)
 
-Mouse.Button1Up:Connect(function()
+getgenv().mouseBtn1UpConn = Mouse.Button1Up:Connect(function()
     if getgenv().clickCheckEnabled and getgenv().leftMouseClicked then
         getgenv().leftMouseClicked = false
         getgenv().clickLingerUntil = os.clock() + 0.45

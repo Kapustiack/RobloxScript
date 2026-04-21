@@ -61,7 +61,7 @@ local function installNamecallHook()
                                         if not hitOwner or hitOwner == LocalPlayer then args[i] = nearHRP; changed = true end
                                     elseif arg:IsA("Model") then
                                         local hitOwner = Players:GetPlayerFromCharacter(arg)
-                                        if not hitOwner or hitOwner == LocalPlayer then args[i] = nearest.Character; changed = true end
+                                        if hitOwner == LocalPlayer then args[i] = nearest.Character; changed = true end
                                     elseif arg:IsA("Player") and arg == LocalPlayer then args[i] = nearest; changed = true end
                                 end
                             end

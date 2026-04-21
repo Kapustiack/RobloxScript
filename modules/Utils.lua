@@ -36,7 +36,7 @@ end
 function Utils:RejoinServer()
     self:Notify("RB Cheat", "Rejoining server...", Color3.fromRGB(255, 200, 0))
     task.wait(0.5)
-    TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+    pcall(function() TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer) end)
 end
 
 function Utils:JoinNewInstance()
@@ -45,8 +45,8 @@ function Utils:JoinNewInstance()
 
     local success, res = pcall(function() return game:HttpGet(api) end)
     if success then
-        local decoded = HttpService:JSONDecode(res)
-        if decoded and decoded.data then
+        local ok, decoded = pcall(HttpService.JSONDecode, HttpService, res)
+        if ok and decoded and decoded.data then
             local possible = {}
             for _, s in pairs(decoded.data) do
                 if s.id ~= game.JobId and s.playing < s.maxPlayers then
@@ -55,7 +55,7 @@ function Utils:JoinNewInstance()
             end
             if #possible > 0 then
                 local target = possible[math.random(1, #possible)]
-                TeleportService:TeleportToPlaceInstance(game.PlaceId, target, LocalPlayer)
+                pcall(function() TeleportService:TeleportToPlaceInstance(game.PlaceId, target, LocalPlayer) end)
             else
                 self:Notify("RB Cheat", "No suitable servers found.", Color3.fromRGB(255, 80, 80))
             end

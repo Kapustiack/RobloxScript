@@ -14,7 +14,12 @@ local function hookReachTool()
 
     getgenv().reachActivatedConn = tool.Activated:Connect(function()
         if not getgenv().reachEnabled or not getgenv().scriptEnabled then return end
-        local target = (getgenv().followTarget and getgenv().followTarget.Character) and getgenv().followTarget or getgenv().Utils:FindNearestAlivePlayer(nil)
+        local target
+        if getgenv().followTarget and getgenv().followTarget.Character then
+            target = getgenv().followTarget
+        elseif getgenv().Utils and typeof(getgenv().Utils.FindNearestAlivePlayer) == "function" then
+            target = getgenv().Utils:FindNearestAlivePlayer(nil)
+        end
         if not target or not target.Character then return end
         local targetHRP = target.Character:FindFirstChild("HumanoidRootPart")
         local myHRP = char:FindFirstChild("HumanoidRootPart")
@@ -51,6 +56,7 @@ local function disableReach()
     if reachIndicator then reachIndicator:Destroy(); reachIndicator = nil end
     if getgenv().reachActivatedConn then getgenv().reachActivatedConn:Disconnect(); getgenv().reachActivatedConn = nil end
     if getgenv().reachToolWatcher then getgenv().reachToolWatcher:Disconnect(); getgenv().reachToolWatcher = nil end
+    if getgenv().reachRenderConn then getgenv().reachRenderConn:Disconnect(); getgenv().reachRenderConn = nil end
 end
 
 getgenv().ReachButton.MouseButton1Click:Connect(function()
@@ -86,7 +92,7 @@ local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-RunService.RenderStepped:Connect(function()
+getgenv().reachRenderConn = RunService.RenderStepped:Connect(function()
     if not getgenv().reachEnabled or not reachIndicator then return end
     local char = LocalPlayer.Character
     if not char then return end

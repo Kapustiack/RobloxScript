@@ -86,11 +86,7 @@ end
 
 local function updateESP()
     local env = getgenv()
-    if not env.espEnabled or not env.scriptEnabled then
-        for _, v in pairs(env.ESPContainer:GetChildren()) do v:Destroy() end
-        for _, p in pairs(Players:GetPlayers()) do clearESPForPlayer(p) end
-        return
-    end
+    if not env.espEnabled or not env.scriptEnabled then return end
 
     local myChar = LocalPlayer.Character; local myHRP = myChar and myChar:FindFirstChild("HumanoidRootPart")
     if not myHRP then return end

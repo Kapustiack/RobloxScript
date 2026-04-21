@@ -30,7 +30,7 @@ getgenv().applyLowGravity = applyGravity
 getgenv().disableLowGravity = disableLowGravity
 
 -- Keep applying on Heartbeat in case other scripts reset it
-RunService.Heartbeat:Connect(function()
+getgenv().lowGravityLoop = RunService.Heartbeat:Connect(function()
     if getgenv().lowGravityEnabled and getgenv().scriptEnabled then
         if workspace.Gravity ~= (getgenv().lowGravityValue or 50) then
             workspace.Gravity = getgenv().lowGravityValue or 50

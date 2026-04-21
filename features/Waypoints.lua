@@ -45,7 +45,12 @@ local function renderWaypoints()
         end)
 
         delBtn.MouseButton1Click:Connect(function()
-            table.remove(getgenv().savedWaypoints, i)
+            for idx, wp2 in ipairs(getgenv().savedWaypoints) do
+                if wp2.name == wp.name and wp2.cf == wp.cf then
+                    table.remove(getgenv().savedWaypoints, idx)
+                    break
+                end
+            end
             renderWaypoints()
         end)
     end

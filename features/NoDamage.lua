@@ -15,10 +15,11 @@ local function installNoDamageHook()
                 and typeof(self) == "Instance" and self:IsA("Humanoid") then
             local myHum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
             if myHum and self == myHum and typeof(value) == "number" and value < myHum.MaxHealth and value >= 0 then
-                return old_ni(self, key, myHum.MaxHealth)
+                old_ni(self, key, myHum.MaxHealth)
+                return
             end
         end
-        return old_ni(self, key, value)
+        old_ni(self, key, value)
     end
     rawset(mt, "__newindex", (newcclosure and newcclosure(hookedNewindex)) or hookedNewindex)
     pcall(setreadonly, mt, true)

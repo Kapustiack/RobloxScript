@@ -37,7 +37,7 @@ local function enableNoclip()
                     getgenv().noclipOriginalStates[p] = { CanCollide = p.CanCollide, Anchored = p.Anchored }
                 end
                 if p.CanCollide then p.CanCollide = false end
-                if p.Anchored and p ~= hrp and not p:IsDescendantOf(char) then
+                if p.Anchored and p ~= hrp and p:IsDescendantOf(char) then
                     p.Anchored = false
                     pcall(function() p.AssemblyLinearVelocity = Vector3.new(0, 0.01, 0) end)
                 end
@@ -151,16 +151,14 @@ local function resetPower()
 end
 
 -- ─────────────────────────────────────────────
---  POWER PANEL — built once, uses getgenv().ScreenGui
---  Follows the exact makePanel/pBtn style from UI.lua.
---  TogglePanel is defined in UI.lua and handles hide-others logic.
+--  POWER PANEL — minimalistic weight slider
 -- ─────────────────────────────────────────────
 local function buildPowerPanel()
     local gui = getgenv().ScreenGui
     if not gui then return end
     if getgenv().PowerPanel and getgenv().PowerPanel.Parent then return end
 
-    local W, H = 220, 234
+    local W, H = 200, 140
     local f = Instance.new("Frame")
     f.Name = "PowerPanel"; f.Parent = gui
     f.BackgroundColor3 = Color3.fromRGB(16, 16, 23); f.BorderSizePixel = 0
@@ -170,7 +168,7 @@ local function buildPowerPanel()
     Instance.new("UICorner", f).CornerRadius = UDim.new(0, 8)
     local s = Instance.new("UIStroke", f); s.Color = Color3.fromRGB(38, 38, 54); s.Thickness = 1
 
-    -- Title bar (identical style to makePanel in UI.lua)
+    -- Title bar
     local tb = Instance.new("Frame"); tb.Parent = f
     tb.BackgroundColor3 = Color3.fromRGB(10, 10, 16); tb.BorderSizePixel = 0
     tb.Size = UDim2.new(1, 0, 0, 30)
@@ -179,7 +177,7 @@ local function buildPowerPanel()
     local tl = Instance.new("TextLabel"); tl.Parent = tb
     tl.BackgroundTransparency = 1; tl.Size = UDim2.new(1, -34, 1, 0)
     tl.Position = UDim2.new(0, 10, 0, 0); tl.Font = Enum.Font.GothamBold
-    tl.Text = "⚡  Power / Weight"; tl.TextColor3 = getgenv().COL_TXT
+    tl.Text = "Weight"; tl.TextColor3 = getgenv().COL_TXT
     tl.TextSize = 11; tl.TextXAlignment = Enum.TextXAlignment.Left
 
     local cb = Instance.new("TextButton"); cb.Parent = tb
@@ -189,41 +187,90 @@ local function buildPowerPanel()
     Instance.new("UICorner", cb).CornerRadius = UDim.new(0, 4)
     cb.MouseButton1Click:Connect(function() f.Visible = false end)
 
-    -- Subtitle
-    local sub = Instance.new("TextLabel"); sub.Parent = f
-    sub.BackgroundTransparency = 1; sub.Position = UDim2.new(0, 10, 0, 33)
-    sub.Size = UDim2.new(1, -20, 0, 16); sub.Font = Enum.Font.Gotham
-    sub.Text = "char · vehicle · touching parts"
-    sub.TextColor3 = getgenv().COL_MUTE; sub.TextSize = 10; sub.TextWrapped = true
+    -- Value label
+    local valLabel = Instance.new("TextLabel"); valLabel.Parent = f
+    valLabel.BackgroundTransparency = 1; valLabel.Position = UDim2.new(0, 10, 0, 40)
+    valLabel.Size = UDim2.new(1, -20, 0, 20); valLabel.Font = Enum.Font.Gotham
+    valLabel.Text = "Density: 0.7 (Normal)"; valLabel.TextColor3 = getgenv().COL_TXT
+    valLabel.TextSize = 11; valLabel.TextXAlignment = Enum.TextXAlignment.Center
 
-    -- Preset buttons
-    local presets = {
-        { label = "🪶  Feather",  density = 0.01, col = Color3.fromRGB(60, 140, 200)  },
-        { label = "⚖️  Normal",   density = 0.7,  col = getgenv().COL_OFF              },
-        { label = "🏋️  Heavy",    density = 5,    col = Color3.fromRGB(160, 90, 30)   },
-        { label = "💥  Extreme",  density = 22,   col = Color3.fromRGB(160, 30, 30)   },
-    }
-    local yOff = 52
-    for _, preset in ipairs(presets) do
-        local btn = Instance.new("TextButton"); btn.Parent = f
-        btn.BackgroundColor3 = preset.col; btn.BorderSizePixel = 0
-        btn.Position = UDim2.new(0, 10, 0, yOff); btn.Size = UDim2.new(0, W-20, 0, 26)
-        btn.Font = Enum.Font.GothamBold; btn.Text = preset.label
-        btn.TextColor3 = getgenv().COL_TXT; btn.TextSize = 11
-        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 5)
-        local cap = preset.density
-        btn.MouseButton1Click:Connect(function() applyPower(cap) end)
-        yOff = yOff + 32
-    end
+    -- Slider background
+    local sliderBg = Instance.new("Frame"); sliderBg.Parent = f
+    sliderBg.BackgroundColor3 = getgenv().COL_BAR; sliderBg.BorderSizePixel = 0
+    sliderBg.Position = UDim2.new(0, 10, 0, 70); sliderBg.Size = UDim2.new(1, -20, 0, 6)
+    Instance.new("UICorner", sliderBg).CornerRadius = UDim.new(0, 3)
 
-    -- Reset
+    -- Slider fill
+    local sliderFill = Instance.new("Frame"); sliderFill.Parent = sliderBg
+    sliderFill.BackgroundColor3 = getgenv().COL_ON; sliderFill.BorderSizePixel = 0
+    sliderFill.Size = UDim2.new(0.7, 0, 1, 0)
+    Instance.new("UICorner", sliderFill).CornerRadius = UDim.new(0, 3)
+
+    -- Slider button
+    local sliderBtn = Instance.new("TextButton"); sliderBtn.Parent = sliderBg
+    sliderBtn.BackgroundColor3 = Color3.new(1,1,1); sliderBtn.BorderSizePixel = 0
+    sliderBtn.Size = UDim2.new(0, 14, 0, 18); sliderBtn.Position = UDim2.new(0.7, -7, 0.5, -9)
+    sliderBtn.Text = ""; sliderBtn.ZIndex = 2
+    Instance.new("UICorner", sliderBtn).CornerRadius = UDim.new(0, 7)
+
+    -- Reset button
     local resetBtn = Instance.new("TextButton"); resetBtn.Parent = f
     resetBtn.BackgroundColor3 = getgenv().COL_OFF; resetBtn.BorderSizePixel = 0
-    resetBtn.Position = UDim2.new(0, 10, 0, yOff); resetBtn.Size = UDim2.new(0, W-20, 0, 26)
-    resetBtn.Font = Enum.Font.GothamBold; resetBtn.Text = "↩  Reset All"
+    resetBtn.Position = UDim2.new(0, 10, 0, 95); resetBtn.Size = UDim2.new(1, -20, 0, 30)
+    resetBtn.Font = Enum.Font.GothamBold; resetBtn.Text = "Reset"
     resetBtn.TextColor3 = getgenv().COL_TXT; resetBtn.TextSize = 11
     Instance.new("UICorner", resetBtn).CornerRadius = UDim.new(0, 5)
-    resetBtn.MouseButton1Click:Connect(function() resetPower() end)
+    resetBtn.MouseButton1Click:Connect(function()
+        resetPower()
+        sliderFill.Size = UDim2.new(0.7, 0, 1, 0)
+        sliderBtn.Position = UDim2.new(0.7, -7, 0.5, -9)
+        valLabel.Text = "Density: 0.7 (Normal)"
+    end)
+
+    -- Slider drag logic
+    local dragging = false
+    local minDensity, maxDensity = 0, 50
+    local function updateSlider(x)
+        local relX = math.clamp(x, 0, sliderBg.AbsoluteSize.X)
+        local ratio = relX / sliderBg.AbsoluteSize.X
+        local density = ratio * maxDensity
+        density = math.clamp(density, minDensity, maxDensity)
+
+        sliderFill.Size = UDim2.new(ratio, 0, 1, 0)
+        sliderBtn.Position = UDim2.new(ratio, -7, 0.5, -9)
+
+        if density <= 0.1 then
+            resetPower()
+            valLabel.Text = "Density: 0 (Reset)"
+        else
+            applyPower(density)
+            local label = density < 1 and string.format("%.2f", density) or math.floor(density)
+            valLabel.Text = "Density: " .. label
+        end
+    end
+
+    sliderBtn.MouseButton1Down:Connect(function()
+        dragging = true
+    end)
+
+    sliderBg.MouseButton1Down:Connect(function()
+        dragging = true
+        updateSlider(sliderBg.AbsoluteSize.X * 0.7)
+    end)
+
+    local UserInputService = game:GetService("UserInputService")
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local x = input.Position.X - sliderBg.AbsolutePosition.X
+            updateSlider(x)
+        end
+    end)
 
     getgenv().PowerPanel = f
 end
