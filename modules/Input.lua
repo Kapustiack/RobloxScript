@@ -4,9 +4,10 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 local lastCtrlTeleportAt = 0
+local ctrlHeld = false
 
 local function tryCtrlClickTeleport()
-    local ctrlDown = UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or UserInputService:IsKeyDown(Enum.KeyCode.RightControl)
+    local ctrlDown = ctrlHeld or UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or UserInputService:IsKeyDown(Enum.KeyCode.RightControl)
     if not ctrlDown or not getgenv().Utils or not getgenv().scriptEnabled then return false end
     local now = os.clock()
     if now - lastCtrlTeleportAt < 0.12 then return true end
@@ -182,10 +183,18 @@ getgenv().mouseBtn1DownConn = Mouse.Button1Down:Connect(function()
 end)
 
 getgenv().ctrlClickInputBeganConn = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.LeftControl or input.KeyCode == Enum.KeyCode.RightControl then
+        ctrlHeld = true
+    end
     if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
-    if gameProcessed then return end
     if tryCtrlClickTeleport() then
         return
+    end
+end)
+
+getgenv().ctrlClickInputEndedConn = UserInputService.InputEnded:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.LeftControl or input.KeyCode == Enum.KeyCode.RightControl then
+        ctrlHeld = false
     end
 end)
 

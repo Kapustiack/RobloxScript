@@ -120,6 +120,7 @@ getgenv().destroyScript = function()
     if getgenv().disableInfiniteJump then pcall(getgenv().disableInfiniteJump) end
     if getgenv().disableFullbright then pcall(getgenv().disableFullbright)    end
     if getgenv().disableFOVChanger  then pcall(getgenv().disableFOVChanger)   end
+    if getgenv().disableNoDamage    then pcall(getgenv().disableNoDamage)     end
     if getgenv().removeHitboxExpansion then pcall(getgenv().removeHitboxExpansion) end
     if getgenv().disableFreeCamera  then pcall(getgenv().disableFreeCamera)   end
     if getgenv().disableLowGravity  then pcall(getgenv().disableLowGravity)   end
@@ -159,6 +160,7 @@ getgenv().destroyScript = function()
     if getgenv().mouseBtn1DownConn     then getgenv().mouseBtn1DownConn:Disconnect();     getgenv().mouseBtn1DownConn = nil end
     if getgenv().mouseBtn1UpConn       then getgenv().mouseBtn1UpConn:Disconnect();       getgenv().mouseBtn1UpConn = nil end
     if getgenv().ctrlClickInputBeganConn then getgenv().ctrlClickInputBeganConn:Disconnect(); getgenv().ctrlClickInputBeganConn = nil end
+    if getgenv().ctrlClickInputEndedConn then getgenv().ctrlClickInputEndedConn:Disconnect(); getgenv().ctrlClickInputEndedConn = nil end
 
     -- Disconnect FreeCamera.lua connections
     if getgenv().freeCamInputBeganConn then getgenv().freeCamInputBeganConn:Disconnect(); getgenv().freeCamInputBeganConn = nil end

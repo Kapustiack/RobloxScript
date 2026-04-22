@@ -146,6 +146,11 @@ local function restoreFeatureStates()
     elseif getgenv().disableLowGravity then
         pcall(getgenv().disableLowGravity)
     end
+    if getgenv().noDamageEnabled then
+        if getgenv().enableNoDamage then pcall(getgenv().enableNoDamage) end
+    elseif getgenv().disableNoDamage then
+        pcall(getgenv().disableNoDamage)
+    end
 end
 
 local function applySettings(t)

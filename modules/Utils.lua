@@ -38,7 +38,14 @@ end
 function Utils:RejoinServer()
     self:Notify("RB Cheat", "Rejoining server...", Color3.fromRGB(255, 200, 0))
     task.wait(0.5)
-    pcall(function() TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer) end)
+    local ok = pcall(function()
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+    end)
+    if not ok then
+        pcall(function()
+            TeleportService:Teleport(game.PlaceId, LocalPlayer)
+        end)
+    end
 end
 
 function Utils:JoinNewInstance()
@@ -57,13 +64,31 @@ function Utils:JoinNewInstance()
             end
             if #possible > 0 then
                 local target = possible[math.random(1, #possible)]
-                pcall(function() TeleportService:TeleportToPlaceInstance(game.PlaceId, target, LocalPlayer) end)
+                local moved = pcall(function()
+                    TeleportService:TeleportToPlaceInstance(game.PlaceId, target, LocalPlayer)
+                end)
+                if not moved then
+                    pcall(function()
+                        TeleportService:Teleport(game.PlaceId, LocalPlayer)
+                    end)
+                end
             else
-                self:Notify("RB Cheat", "No suitable servers found.", Color3.fromRGB(255, 80, 80))
+                self:Notify("RB Cheat", "No public server found, using normal rejoin.", Color3.fromRGB(255, 160, 0))
+                pcall(function()
+                    TeleportService:Teleport(game.PlaceId, LocalPlayer)
+                end)
             end
+        else
+            self:Notify("RB Cheat", "Server list decode failed, using normal rejoin.", Color3.fromRGB(255, 160, 0))
+            pcall(function()
+                TeleportService:Teleport(game.PlaceId, LocalPlayer)
+            end)
         end
     else
-        self:Notify("RB Cheat", "Failed to fetch server list.", Color3.fromRGB(255, 80, 80))
+        self:Notify("RB Cheat", "Failed to fetch server list, using normal rejoin.", Color3.fromRGB(255, 160, 0))
+        pcall(function()
+            TeleportService:Teleport(game.PlaceId, LocalPlayer)
+        end)
     end
 end
 
