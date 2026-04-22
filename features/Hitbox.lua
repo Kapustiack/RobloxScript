@@ -49,9 +49,9 @@ getgenv().HitboxButton.MouseButton1Click:Connect(function()
     end
 end)
 
-getgenv().HitboxButton.MouseButton2Click:Connect(function()
-    if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().HitboxSettingsFrame) end
-end)
+if getgenv().BindPanelButton and getgenv().HitboxSettingsFrame then
+    getgenv().BindPanelButton(getgenv().HitboxButton, getgenv().HitboxSettingsFrame)
+end
 
 getgenv().HitboxVisualBtn.MouseButton1Click:Connect(function()
     getgenv().hitboxVisual = not getgenv().hitboxVisual

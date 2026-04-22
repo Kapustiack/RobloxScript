@@ -65,10 +65,15 @@ getgenv().WaypointsButton.MouseButton1Click:Connect(function()
     renderWaypoints()
 end)
 
-getgenv().WaypointsButton.MouseButton2Click:Connect(function()
-    if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().WaypointsSettingsFrame) end
-    renderWaypoints()
-end)
+if getgenv().BindPanelButton and getgenv().WaypointsSettingsFrame then
+    getgenv().BindPanelButton(getgenv().WaypointsButton, getgenv().WaypointsSettingsFrame)
+    getgenv().WaypointsButton.MouseButton2Click:Connect(renderWaypoints)
+    getgenv().WaypointsButton.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton2 then
+            task.defer(renderWaypoints)
+        end
+    end)
+end
 
 getgenv().WaypointSaveBtn.MouseButton1Click:Connect(function()
     local char = LocalPlayer.Character

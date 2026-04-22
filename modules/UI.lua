@@ -287,6 +287,7 @@ getgenv().HideAllPanels = function()
 end
 
 getgenv().TogglePanel = function(target)
+    if not target or typeof(target) ~= "Instance" then return end
     local newState = not target.Visible
     getgenv().HideAllPanels()
     target.Visible = newState
@@ -300,6 +301,164 @@ getgenv().ToggleUI = function()
     end
 end
 
+local function setToggleButton(button, label, enabled)
+    if not button then return end
+    button.Text = label .. (enabled and "ON" or "OFF")
+    button.BackgroundColor3 = enabled and getgenv().COL_ON or getgenv().COL_OFF
+end
+
+local function ensureSliderFill(slider)
+    if not slider then return nil end
+    local fill = slider:FindFirstChild("Fill")
+    if not fill then
+        fill = Instance.new("Frame")
+        fill.Name = "Fill"
+        fill.Parent = slider
+        fill.BackgroundColor3 = Color3.fromRGB(80, 200, 120)
+        fill.BorderSizePixel = 0
+        Instance.new("UICorner", fill).CornerRadius = UDim.new(0, 10)
+    end
+    return fill
+end
+
+local function setSliderVisual(slider, ratio)
+    local fill = ensureSliderFill(slider)
+    if fill then
+        fill.Size = UDim2.new(math.clamp(ratio or 0, 0, 1), 0, 1, 0)
+    end
+end
+
+getgenv().UpdatePowerPanelVisual = function(density)
+    local value = math.clamp(tonumber(density) or 0.7, 0, 50)
+    getgenv().noclipDensity = value
+    if getgenv().PowerSliderFill then
+        getgenv().PowerSliderFill.Size = UDim2.new(value / 50, 0, 1, 0)
+    end
+    if getgenv().PowerSliderBtn then
+        getgenv().PowerSliderBtn.Position = UDim2.new(value / 50, -7, 0.5, -9)
+    end
+    if getgenv().PowerValLabel then
+        if value <= 0.1 then
+            getgenv().PowerValLabel.Text = "Density: 0 (Reset)"
+        elseif value < 1 then
+            getgenv().PowerValLabel.Text = string.format("Density: %.2f", value)
+        else
+            getgenv().PowerValLabel.Text = "Density: " .. tostring(math.floor(value + 0.5))
+        end
+    end
+end
+
+getgenv().BindPanelButton = function(button, panel)
+    if not button or not panel then return end
+    local lastOpenAt = 0
+    local function openPanel()
+        local now = os.clock()
+        if now - lastOpenAt < 0.12 then return end
+        lastOpenAt = now
+        if getgenv().scriptEnabled and getgenv().TogglePanel then
+            getgenv().TogglePanel(panel)
+        end
+    end
+    button.MouseButton2Click:Connect(openPanel)
+    button.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton2 then
+            openPanel()
+        end
+    end)
+end
+
+getgenv().RefreshUIState = function()
+    setToggleButton(getgenv().FlightButton, "Flight: ", getgenv().flightEnabled)
+    setToggleButton(getgenv().WallhackButton, "Wallhack: ", getgenv().wallhackEnabled)
+    setToggleButton(getgenv().ESPButton, "ESP: ", getgenv().espEnabled)
+    setToggleButton(getgenv().SpeedButton, "Speed: ", getgenv().speedhackEnabled)
+    setToggleButton(getgenv().NoclipButton, "Noclip: ", getgenv().noclipEnabled)
+    setToggleButton(getgenv().InfiniteJumpButton, "Inf Jump: ", getgenv().infiniteJumpEnabled)
+    setToggleButton(getgenv().FullbrightButton, "Fullbright: ", getgenv().fullbrightEnabled)
+    setToggleButton(getgenv().FOVButton, "FOV: ", getgenv().fovChangerEnabled)
+    setToggleButton(getgenv().ShiftLockButton, "Shift Lock: ", getgenv().shiftLockDisabled)
+    setToggleButton(getgenv().CtrlLockButton, "Ctrl Lock: ", getgenv().ctrlLockDisabled)
+    setToggleButton(getgenv().FollowButton, "Follow: ", getgenv().followEnabled)
+    setToggleButton(getgenv().HitboxButton, "Hitbox: ", getgenv().hitboxEnabled)
+    setToggleButton(getgenv().ReachButton, "Reach: ", getgenv().reachEnabled)
+    setToggleButton(getgenv().NoDamageButton, "No Damage: ", getgenv().noDamageEnabled)
+    setToggleButton(getgenv().FreeCameraButton, "FreeCam: ", getgenv().freeCamEnabled)
+    setToggleButton(getgenv().LowGravityButton, "Low Gravity: ", getgenv().lowGravityEnabled)
+    setToggleButton(getgenv().FreezeSelfButton, "Freeze Self: ", getgenv().freezeSelfEnabled)
+
+    setToggleButton(getgenv().DeathCheckBtn, "Death Check: ", getgenv().deathCheckEnabled)
+    setToggleButton(getgenv().AutoSwitchBtn, "Auto Switch: ", getgenv().autoSwitchEnabled)
+    setToggleButton(getgenv().ClickCheckBtn, "Click Check: ", getgenv().clickCheckEnabled)
+    setToggleButton(getgenv().ReachVisualBtn, "Visual: ", getgenv().reachVisual)
+    setToggleButton(getgenv().HitboxVisualBtn, "Visual: ", getgenv().hitboxVisual)
+    setToggleButton(getgenv().WallhackTeamCheckBtn, "Skip Teammates: ", getgenv().wallhackTeamCheck)
+
+    if getgenv().InfJumpModeBtn then
+        local modeText = getgenv().infJumpHoldMode and "Hold" or "Instant"
+        getgenv().InfJumpModeBtn.Text = "Mode: " .. modeText
+        getgenv().InfJumpModeBtn.BackgroundColor3 = getgenv().infJumpHoldMode and getgenv().COL_ON or getgenv().COL_OFF
+    end
+    if getgenv().FreeCamCrosshairBtn then
+        getgenv().FreeCamCrosshairBtn.Text = "Crosshair: " .. (getgenv().freeCamShowCrosshair and "ON" or "OFF")
+        getgenv().FreeCamCrosshairBtn.BackgroundColor3 = getgenv().freeCamShowCrosshair and getgenv().COL_ON or getgenv().COL_OFF
+    end
+    if getgenv().FreeCamFlyBtn and getgenv().FreeCamSpectateBtn and getgenv().FreeCamMinimapBtn then
+        getgenv().FreeCamFlyBtn.BackgroundColor3 = getgenv().freeCamMode == "fly" and getgenv().COL_ON or getgenv().COL_OFF
+        getgenv().FreeCamSpectateBtn.BackgroundColor3 = getgenv().freeCamMode == "spectate" and getgenv().COL_ON or getgenv().COL_OFF
+        getgenv().FreeCamMinimapBtn.BackgroundColor3 = getgenv().freeCamMode == "minimap" and getgenv().COL_ON or getgenv().COL_OFF
+    end
+
+    if getgenv().SpeedLabel then
+        getgenv().SpeedLabel.Text = string.format("Speed Multiplier: %.1fx", getgenv().speedMultiplier or 1)
+    end
+    if getgenv().FOVLabel then
+        getgenv().FOVLabel.Text = "FOV: " .. tostring(math.floor((getgenv().currentFOV or 70) + 0.5)) .. "°"
+    end
+    if getgenv().FollowDistanceLabel then
+        getgenv().FollowDistanceLabel.Text = "Distance: " .. tostring(math.floor((getgenv().followDistance or 5) + 0.5))
+    end
+    if getgenv().FollowHeightLabel then
+        getgenv().FollowHeightLabel.Text = string.format("Height: %.1f", getgenv().followHeight or 0)
+    end
+    if getgenv().ReachDistLabel then
+        getgenv().ReachDistLabel.Text = "Reach Distance: " .. tostring(math.floor((getgenv().reachDistance or 15) + 0.5))
+    end
+    if getgenv().HitboxSizeLabel then
+        getgenv().HitboxSizeLabel.Text = "Hitbox Size: " .. tostring(math.floor((getgenv().hitboxSize or 10) + 0.5))
+    end
+    if getgenv().FlightSpeedLabel then
+        getgenv().FlightSpeedLabel.Text = "Flight Speed: " .. tostring(math.floor((getgenv().flightSpeed or 50) + 0.5))
+    end
+    if getgenv().ESPDistanceLabel then
+        getgenv().ESPDistanceLabel.Text = "Distance: " .. tostring(math.floor((getgenv().espDrawDistance or 1000) + 0.5))
+    end
+    if getgenv().WallhackTranspLabel then
+        getgenv().WallhackTranspLabel.Text = "Transparency: " .. tostring(math.floor((getgenv().wallhackTransparency or 0.5) * 100 + 0.5)) .. "%"
+    end
+    if getgenv().FreeCamSpeedLabel then
+        getgenv().FreeCamSpeedLabel.Text = "Fly Speed: " .. tostring(math.floor((getgenv().freeCamSpeed or 50) + 0.5))
+    end
+    if getgenv().FreeCamFOVLabel then
+        getgenv().FreeCamFOVLabel.Text = "FreeCam FOV: " .. tostring(math.floor((getgenv().freeCamFOV or 70) + 0.5)) .. "°"
+    end
+    if getgenv().LowGravityLabel then
+        getgenv().LowGravityLabel.Text = "Gravity: " .. tostring(math.floor((getgenv().lowGravityValue or 50) + 0.5))
+    end
+
+    setSliderVisual(getgenv().SpeedSlider, ((getgenv().speedMultiplier or 1) - 0.5) / 9.5)
+    setSliderVisual(getgenv().FOVSlider, ((getgenv().currentFOV or 70) - 20) / 100)
+    setSliderVisual(getgenv().FollowDistanceSlider, ((getgenv().followDistance or 5) - 1) / 20)
+    setSliderVisual(getgenv().FollowHeightSlider, ((getgenv().followHeight or 0) + 5) / 10)
+    setSliderVisual(getgenv().ReachDistSlider, ((getgenv().reachDistance or 15) - 5) / 45)
+    setSliderVisual(getgenv().HitboxSizeSlider, ((getgenv().hitboxSize or 10) - 4) / 26)
+    setSliderVisual(getgenv().FlightSpeedSlider, ((getgenv().flightSpeed or 50) - 10) / 1490)
+    setSliderVisual(getgenv().ESPDistanceSlider, ((getgenv().espDrawDistance or 1000) - 100) / 29900)
+    setSliderVisual(getgenv().WallhackTranspSlider, ((getgenv().wallhackTransparency or 0.5) - 0.1) / 0.8)
+    setSliderVisual(getgenv().FreeCamSpeedSlider, ((getgenv().freeCamSpeed or 50) - 5) / 295)
+    setSliderVisual(getgenv().FreeCamFOVSlider, ((getgenv().freeCamFOV or 70) - 20) / 100)
+    setSliderVisual(getgenv().LowGravitySlider, ((getgenv().lowGravityValue or 50) - 5) / 195)
+    getgenv().UpdatePowerPanelVisual(getgenv().noclipDensity or 0.7)
+end
 
 
 

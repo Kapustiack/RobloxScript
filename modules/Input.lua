@@ -161,7 +161,8 @@ end)
 
 -- ── Ctrl+Click teleport & Click Check ────────────────────────────
 getgenv().mouseBtn1DownConn = Mouse.Button1Down:Connect(function()
-    if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) and getgenv().Utils then
+    local ctrlDown = UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or UserInputService:IsKeyDown(Enum.KeyCode.RightControl)
+    if ctrlDown and getgenv().Utils then
         getgenv().Utils:TeleportToMouse()
         return
     end

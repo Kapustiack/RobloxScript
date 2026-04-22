@@ -116,6 +116,7 @@ getgenv().destroyScript = function()
     if getgenv().disableWallhack   then pcall(getgenv().disableWallhack)      end
     if getgenv().disableSpeedhack  then pcall(getgenv().disableSpeedhack)     end
     if getgenv().disableNoclip     then pcall(getgenv().disableNoclip)        end
+    if getgenv().resetPower        then pcall(getgenv().resetPower)           end
     if getgenv().disableInfiniteJump then pcall(getgenv().disableInfiniteJump) end
     if getgenv().disableFullbright then pcall(getgenv().disableFullbright)    end
     if getgenv().disableFOVChanger  then pcall(getgenv().disableFOVChanger)   end
@@ -335,4 +336,5 @@ if LocalPlayer.Character then
 end
 
 pcall(function() if getgenv().loadSettings then getgenv().loadSettings() end end)
+pcall(function() if getgenv().RefreshUIState then getgenv().RefreshUIState() end end)
 if getgenv().Utils and getgenv().Utils.Notify then getgenv().Utils:Notify("RB Hub", "Ready. Hotkey: Shift + C", Color3.fromRGB(25, 145, 80)) end

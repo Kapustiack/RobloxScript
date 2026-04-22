@@ -44,10 +44,15 @@ getgenv().TeleportButton.MouseButton1Click:Connect(function()
     if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().TeleportSettingsFrame) end
     refreshTeleportList()
 end)
-getgenv().TeleportButton.MouseButton2Click:Connect(function()
-    if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().TeleportSettingsFrame) end
-    refreshTeleportList()
-end)
+if getgenv().BindPanelButton and getgenv().TeleportSettingsFrame then
+    getgenv().BindPanelButton(getgenv().TeleportButton, getgenv().TeleportSettingsFrame)
+    getgenv().TeleportButton.MouseButton2Click:Connect(refreshTeleportList)
+    getgenv().TeleportButton.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton2 then
+            task.defer(refreshTeleportList)
+        end
+    end)
+end
 
 -- Refresh button inside panel
 if getgenv().TeleportRefreshBtn then

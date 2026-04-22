@@ -157,7 +157,9 @@ getgenv().FOVButton.MouseButton1Click:Connect(function()
         getgenv().FOVButton.Text = "FOV: OFF"; getgenv().FOVButton.BackgroundColor3 = getgenv().COL_OFF; Camera.FieldOfView = getgenv().defaultFOV
     end
 end)
-getgenv().FOVButton.MouseButton2Click:Connect(function() if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().FOVSettingsFrame) end end)
+if getgenv().BindPanelButton and getgenv().FOVSettingsFrame then
+    getgenv().BindPanelButton(getgenv().FOVButton, getgenv().FOVSettingsFrame)
+end
 
 -- 4. WALLHACK — Dynamic transparency + optional team check
 local function shouldSkipPlayer(p)
@@ -208,9 +210,9 @@ getgenv().WallhackButton.MouseButton1Click:Connect(function()
 end)
 
 -- Right click = open Wallhack Settings panel
-getgenv().WallhackButton.MouseButton2Click:Connect(function()
-    if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().WallhackSettingsFrame) end
-end)
+if getgenv().BindPanelButton and getgenv().WallhackSettingsFrame then
+    getgenv().BindPanelButton(getgenv().WallhackButton, getgenv().WallhackSettingsFrame)
+end
 
 -- Settings: Team Check toggle
 getgenv().WallhackTeamCheckBtn.MouseButton1Click:Connect(function()
@@ -234,5 +236,7 @@ getgenv().SaveButton.MouseButton1Click:Connect(function()
 end)
 
 getgenv().disableFOVChanger = function() Camera.FieldOfView = getgenv().defaultFOV end
+getgenv().enableWallhack = enableWallhack
 getgenv().disableWallhack = disableWallhack
+getgenv().enableFullbright = enableFullbright
 getgenv().disableFullbright = disableFullbright

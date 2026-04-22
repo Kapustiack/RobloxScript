@@ -224,9 +224,9 @@ end
 
 -- ── BUTTON WIRING ─────────────────────────────────────────────────
 getgenv().FreeCameraButton.MouseButton1Click:Connect(toggleFreeCamera)
-getgenv().FreeCameraButton.MouseButton2Click:Connect(function()
-    if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().FreeCameraSettingsFrame) end
-end)
+if getgenv().BindPanelButton and getgenv().FreeCameraSettingsFrame then
+    getgenv().BindPanelButton(getgenv().FreeCameraButton, getgenv().FreeCameraSettingsFrame)
+end
 
 getgenv().FreeCamFlyBtn.MouseButton1Click:Connect(function() 
     getgenv().freeCamMode = "fly"

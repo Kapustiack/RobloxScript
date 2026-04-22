@@ -47,9 +47,9 @@ getgenv().SpeedButton.MouseButton1Click:Connect(function()
 end)
 
 -- Right click = open Speed Settings panel
-getgenv().SpeedButton.MouseButton2Click:Connect(function()
-    if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().SpeedSettingsFrame) end
-end)
+if getgenv().BindPanelButton and getgenv().SpeedSettingsFrame then
+    getgenv().BindPanelButton(getgenv().SpeedButton, getgenv().SpeedSettingsFrame)
+end
 
 getgenv().updateSpeedLoop = updateSpeed
 getgenv().disableSpeedhack = disableSpeedhack

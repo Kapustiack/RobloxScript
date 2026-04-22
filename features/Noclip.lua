@@ -1,6 +1,7 @@
 -- [[ NOCLIP — Infinite Recursive + Unstuck + Perfect Restoration ]]
 -- RIGHT-CLICK: opens Power panel (char + vehicle + touching parts density presets)
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
 getgenv().noclipOriginalStates   = getgenv().noclipOriginalStates   or {}
@@ -10,6 +11,7 @@ getgenv().powerOriginalDensities = getgenv().powerOriginalDensities or {}
 --  NOCLIP CORE
 -- ─────────────────────────────────────────────
 local function enableNoclip()
+    getgenv().noclipEnabled = true
     if getgenv().noclipConnection then getgenv().noclipConnection:Disconnect() end
     getgenv().noclipConnection = RunService.Stepped:Connect(function()
         if not getgenv().noclipEnabled or not getgenv().scriptEnabled then return end
@@ -68,12 +70,6 @@ local function disableNoclip()
         end)
     end
     getgenv().noclipOriginalStates = {}
-    local char = LocalPlayer.Character
-    if char then
-        for _, p in pairs(char:GetDescendants()) do
-            if p:IsA("BasePart") then p.CanCollide = true end
-        end
-    end
 end
 
 -- ─────────────────────────────────────────────
@@ -167,6 +163,7 @@ local function updateSlider(x)
     local ratio = relX / sliderBg.AbsoluteSize.X
     local density = ratio * maxDensity
     density = math.clamp(density, minDensity, maxDensity)
+    getgenv().noclipDensity = density
 
     sliderFill.Size = UDim2.new(ratio, 0, 1, 0)
     sliderBtn.Position = UDim2.new(ratio, -7, 0.5, -9)
@@ -191,20 +188,20 @@ if getgenv().PowerSliderBg then
     getgenv().PowerSliderBg.MouseButton1Down:Connect(function()
         dragging = true
         local sliderBg = getgenv().PowerSliderBg
-        if sliderBg then updateSlider(sliderBg.AbsoluteSize.X * 0.7) end
+        local mouseX = UserInputService:GetMouseLocation().X
+        if sliderBg then updateSlider(mouseX - sliderBg.AbsolutePosition.X) end
     end)
 end
 
 if getgenv().PowerResetBtn then
     getgenv().PowerResetBtn.MouseButton1Click:Connect(function()
         resetPower()
-        if getgenv().PowerSliderFill then getgenv().PowerSliderFill.Size = UDim2.new(0.7, 0, 1, 0) end
-        if getgenv().PowerSliderBtn then getgenv().PowerSliderBtn.Position = UDim2.new(0.7, -7, 0.5, -9) end
-        if getgenv().PowerValLabel then getgenv().PowerValLabel.Text = "Density: 0.7 (Normal)" end
+        if getgenv().UpdatePowerPanelVisual then
+            getgenv().UpdatePowerPanelVisual(0.7)
+        end
     end)
 end
 
-local UserInputService = game:GetService("UserInputService")
 UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = false
@@ -226,34 +223,44 @@ end)
 -- ─────────────────────────────────────────────
 
 -- Ensure we don't have multiple connections if script is re-run
-if getgenv().NoclipBtnConn then getgenv().NoclipBtnConn:Disconnect() end
-getgenv().NoclipBtnConn = getgenv().NoclipButton.MouseButton1Click:Connect(function()
-    if not getgenv().scriptEnabled then return end
-    getgenv().noclipEnabled = not getgenv().noclipEnabled
-    
-    -- Visual update
+local function refreshNoclipButton()
     getgenv().NoclipButton.Text = "Noclip: " .. (getgenv().noclipEnabled and "ON" or "OFF")
     getgenv().NoclipButton.BackgroundColor3 = getgenv().noclipEnabled and getgenv().COL_ON or getgenv().COL_OFF
-    
-    -- Logic update
-    if getgenv().noclipEnabled then 
-        enableNoclip() 
-    else 
-        disableNoclip() 
+end
+
+local function setNoclipEnabled(enabled)
+    if not getgenv().scriptEnabled then return end
+    if enabled then
+        enableNoclip()
+        local density = tonumber(getgenv().noclipDensity) or 0.7
+        if density > 0.1 then
+            applyPower(density)
+        else
+            resetPower()
+        end
+    else
+        disableNoclip()
+        resetPower()
     end
+    refreshNoclipButton()
+    if getgenv().UpdatePowerPanelVisual then
+        getgenv().UpdatePowerPanelVisual(getgenv().noclipDensity or 0.7)
+    end
+end
+
+if getgenv().NoclipBtnConn then getgenv().NoclipBtnConn:Disconnect() end
+getgenv().NoclipBtnConn = getgenv().NoclipButton.MouseButton1Down:Connect(function()
+    if not getgenv().scriptEnabled then return end
+    setNoclipEnabled(not getgenv().noclipEnabled)
 end)
 
 -- RIGHT-CLICK: toggle power panel
-if getgenv().NoclipBtnRightConn then getgenv().NoclipBtnRightConn:Disconnect() end
-getgenv().NoclipBtnRightConn = getgenv().NoclipButton.MouseButton2Click:Connect(function()
-    if not getgenv().scriptEnabled then return end
-    if getgenv().TogglePanel and getgenv().PowerPanel then
-        getgenv().TogglePanel(getgenv().PowerPanel)
-    else
-        warn("[RB Hub] TogglePanel or PowerPanel is nil!")
-    end
-end)
+if getgenv().BindPanelButton and getgenv().PowerPanel then
+    getgenv().BindPanelButton(getgenv().NoclipButton, getgenv().PowerPanel)
+end
 
 getgenv().disableNoclip = disableNoclip
+getgenv().enableNoclip  = enableNoclip
+getgenv().setNoclipEnabled = setNoclipEnabled
 getgenv().applyPower    = applyPower
 getgenv().resetPower    = resetPower

@@ -63,6 +63,7 @@ getgenv().jumpPower = 50
 getgenv().speedMultiplier = 1
 getgenv().currentFOV = 70
 getgenv().defaultFOV = 70
+getgenv().noclipDensity = 0.7
 
 -- Internals (Flight / Loops / Display)
 getgenv().flightSpeed = 50

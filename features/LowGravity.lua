@@ -20,9 +20,9 @@ getgenv().LowGravityButton.MouseButton1Click:Connect(function()
     if getgenv().lowGravityEnabled then applyGravity() else disableLowGravity() end
 end)
 
-getgenv().LowGravityButton.MouseButton2Click:Connect(function()
-    if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().LowGravitySettingsFrame) end
-end)
+if getgenv().BindPanelButton and getgenv().LowGravitySettingsFrame then
+    getgenv().BindPanelButton(getgenv().LowGravityButton, getgenv().LowGravitySettingsFrame)
+end
 
 -- Settings slider wired via Input.lua (draggingLowGravity / lowGravityValue)
 -- Live-apply when slider changes

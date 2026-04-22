@@ -72,9 +72,9 @@ getgenv().InfiniteJumpButton.MouseButton1Click:Connect(function()
 end)
 
 -- ── InfiniteJumpButton: right click = open settings panel ──────────
-getgenv().InfiniteJumpButton.MouseButton2Click:Connect(function()
-    if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().InfiniteJumpSettingsFrame) end
-end)
+if getgenv().BindPanelButton and getgenv().InfiniteJumpSettingsFrame then
+    getgenv().BindPanelButton(getgenv().InfiniteJumpButton, getgenv().InfiniteJumpSettingsFrame)
+end
 
 -- ── Settings panel: Mode toggle button ────────────────────────────
 getgenv().InfJumpModeBtn.MouseButton1Click:Connect(function()
@@ -89,3 +89,4 @@ getgenv().InfJumpModeBtn.MouseButton1Click:Connect(function()
 end)
 
 getgenv().disableInfiniteJump = disableInfiniteJump
+getgenv().applyInfiniteJump = applyInfJump

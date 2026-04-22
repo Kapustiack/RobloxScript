@@ -91,11 +91,80 @@ local function serializeSettings()
 end
 
 -- ── Apply loaded settings to state (does NOT toggle features on/off) ─
+local function restoreFeatureStates()
+    if getgenv().speedhackEnabled then
+        if getgenv().enableSpeedhack then pcall(getgenv().enableSpeedhack) end
+    elseif getgenv().disableSpeedhack then
+        pcall(getgenv().disableSpeedhack)
+    end
+    if getgenv().flightEnabled then
+        if getgenv().enableFlight then pcall(getgenv().enableFlight) end
+    elseif getgenv().disableFlight then
+        pcall(getgenv().disableFlight)
+    end
+    if getgenv().noclipEnabled then
+        if getgenv().setNoclipEnabled then
+            pcall(getgenv().setNoclipEnabled, true)
+        elseif getgenv().enableNoclip then
+            pcall(getgenv().enableNoclip)
+        end
+    elseif getgenv().disableNoclip then
+        pcall(getgenv().disableNoclip)
+    end
+    if getgenv().infiniteJumpEnabled then
+        if getgenv().applyInfiniteJump then pcall(getgenv().applyInfiniteJump) end
+    elseif getgenv().disableInfiniteJump then
+        pcall(getgenv().disableInfiniteJump)
+    end
+    if getgenv().wallhackEnabled then
+        if getgenv().enableWallhack then pcall(getgenv().enableWallhack) end
+    elseif getgenv().disableWallhack then
+        pcall(getgenv().disableWallhack)
+    end
+    if getgenv().fullbrightEnabled then
+        if getgenv().enableFullbright then pcall(getgenv().enableFullbright) end
+    elseif getgenv().disableFullbright then
+        pcall(getgenv().disableFullbright)
+    end
+    if getgenv().fovChangerEnabled then
+        pcall(function() workspace.CurrentCamera.FieldOfView = getgenv().currentFOV or 70 end)
+    elseif getgenv().disableFOVChanger then
+        pcall(getgenv().disableFOVChanger)
+    end
+    if getgenv().reachEnabled then
+        if getgenv().enableReach then pcall(getgenv().enableReach) end
+    elseif getgenv().disableReach then
+        pcall(getgenv().disableReach)
+    end
+    if getgenv().hitboxEnabled then
+        if getgenv().applyHitboxExpansion then pcall(getgenv().applyHitboxExpansion) end
+    elseif getgenv().removeHitboxExpansion then
+        pcall(getgenv().removeHitboxExpansion)
+    end
+    if getgenv().lowGravityEnabled then
+        if getgenv().applyLowGravity then pcall(getgenv().applyLowGravity) end
+    elseif getgenv().disableLowGravity then
+        pcall(getgenv().disableLowGravity)
+    end
+end
+
 local function applySettings(t)
     if type(t) ~= "table" then return end
     local function apply(k, v)
         if v ~= nil then getgenv()[k] = v end
     end
+    apply("flightEnabled",        t.flightEnabled)
+    apply("wallhackEnabled",      t.wallhackEnabled)
+    apply("espEnabled",           t.espEnabled)
+    apply("speedhackEnabled",     t.speedhackEnabled)
+    apply("noclipEnabled",        t.noclipEnabled)
+    apply("infiniteJumpEnabled",  t.infiniteJumpEnabled)
+    apply("fullbrightEnabled",    t.fullbrightEnabled)
+    apply("fovChangerEnabled",    t.fovChangerEnabled)
+    apply("noDamageEnabled",      t.noDamageEnabled)
+    apply("reachEnabled",         t.reachEnabled)
+    apply("hitboxEnabled",        t.hitboxEnabled)
+    apply("lowGravityEnabled",    t.lowGravityEnabled)
     apply("speedMultiplier",      t.speedMultiplier)
     apply("currentFOV",           t.currentFOV)
     apply("followDistance",       t.followDistance)
@@ -126,6 +195,10 @@ local function applySettings(t)
     apply("noclipDensity",        t.noclipDensity)
     if type(t.savedWaypoints) == "table" then
         getgenv().savedWaypoints = t.savedWaypoints
+    end
+    restoreFeatureStates()
+    if getgenv().RefreshUIState then
+        getgenv().RefreshUIState()
     end
 end
 

@@ -92,9 +92,9 @@ getgenv().FlightButton.MouseButton1Click:Connect(function()
     end
 end)
 
-getgenv().FlightButton.MouseButton2Click:Connect(function()
-    if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().FlightSettingsFrame) end
-end)
+if getgenv().BindPanelButton and getgenv().FlightSettingsFrame then
+    getgenv().BindPanelButton(getgenv().FlightButton, getgenv().FlightSettingsFrame)
+end
 
 getgenv().updateFlight  = updateFlight
 getgenv().disableFlight = disableFlight

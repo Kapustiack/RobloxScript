@@ -157,7 +157,9 @@ getgenv().ESPButton.MouseButton1Click:Connect(function()
     getgenv().ESPButton.Text = "ESP: " .. (getgenv().espEnabled and "ON" or "OFF"); getgenv().ESPButton.BackgroundColor3 = getgenv().espEnabled and getgenv().COL_ON or getgenv().COL_OFF
     if not getgenv().espEnabled then for _, v in pairs(getgenv().ESPContainer:GetChildren()) do v:Destroy() end; for _, p in pairs(Players:GetPlayers()) do clearESPForPlayer(p) end end
 end)
-getgenv().ESPButton.MouseButton2Click:Connect(function() if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().ESPSettingsFrame) end end)
+if getgenv().BindPanelButton and getgenv().ESPSettingsFrame then
+    getgenv().BindPanelButton(getgenv().ESPButton, getgenv().ESPSettingsFrame)
+end
 
 local function mkESPToggle(btn, key, label)
     local b = getgenv()[btn]; if not b then return end

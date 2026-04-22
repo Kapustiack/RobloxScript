@@ -88,9 +88,9 @@ getgenv().FollowButton.MouseButton1Down:Connect(function()
     end
 end)
 
-getgenv().FollowButton.MouseButton2Click:Connect(function()
-    if getgenv().TogglePanel then getgenv().TogglePanel(getgenv().FollowSettingsFrame) end
-end)
+if getgenv().BindPanelButton and getgenv().FollowSettingsFrame then
+    getgenv().BindPanelButton(getgenv().FollowButton, getgenv().FollowSettingsFrame)
+end
 
 getgenv().DeathCheckBtn.MouseButton1Click:Connect(function()
     getgenv().deathCheckEnabled = not getgenv().deathCheckEnabled
