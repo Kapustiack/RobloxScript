@@ -32,6 +32,7 @@ local function enableFlight()
 
     local fv = char.HumanoidRootPart:FindFirstChild("FlyVelocity") or Instance.new("BodyVelocity")
     fv.Name = "FlyVelocity"; fv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    fv.P = 50000
     fv.Velocity = Vector3.new(0, 0, 0); fv.Parent = char.HumanoidRootPart
     getgenv().flyVelocity = fv
 
@@ -72,7 +73,7 @@ local function updateFlight()
         if UserInputService:IsKeyDown(Enum.KeyCode.A) then mv = mv - Camera.CFrame.RightVector * getgenv().flightSpeed end
         if UserInputService:IsKeyDown(Enum.KeyCode.D) then mv = mv + Camera.CFrame.RightVector * getgenv().flightSpeed end
         if UserInputService:IsKeyDown(Enum.KeyCode.Space)       then mv = mv + Vector3.new(0,  getgenv().flightSpeed, 0) end
-        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then mv = mv - Vector3.new(0,  getgenv().flightSpeed, 0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or UserInputService:IsKeyDown(Enum.KeyCode.RightControl) then mv = mv - Vector3.new(0,  getgenv().flightSpeed, 0) end
         getgenv().flyVelocity.Velocity = mv
         getgenv().bodyGyro.CFrame      = Camera.CFrame
     end

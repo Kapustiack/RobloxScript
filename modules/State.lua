@@ -77,6 +77,7 @@ getgenv().guiHidden = false
 getgenv().leftMouseClicked = false
 getgenv().clickLingerUntil = 0
 getgenv().noclipConnection = nil
+getgenv().noclipTrackerConnection = nil
 getgenv().infiniteJumpConnection = nil
 getgenv().followConnection = nil
 getgenv().reachActivatedConn = nil
@@ -87,6 +88,8 @@ getgenv().noDamageRestoreFunc = nil
 getgenv().noDamageLoop = nil
 getgenv().fullbrightLoop = nil
 getgenv().originalLightingSettings = { saved = false }
+getgenv().noclipTrackedParts = {}
+getgenv().noclipLastRefresh = 0
 
 -- Sliders dragging
 getgenv().draggingESPDistance    = false

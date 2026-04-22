@@ -140,10 +140,13 @@ end)
 getgenv().CtrlLockButton.MouseButton1Click:Connect(function()
     getgenv().ctrlLockDisabled = not getgenv().ctrlLockDisabled
     if getgenv().ctrlLockDisabled then
-        getgenv().CtrlLockButton.Text = "Ctrl Lock: ON"; getgenv().CtrlLockButton.BackgroundColor3 = getgenv().COL_ON
-        ContextActionService:BindAction("DisableCtrlSwitch", function() return Enum.ContextActionResult.Sink end, false, Enum.KeyCode.LeftControl, Enum.KeyCode.RightControl)
+        getgenv().CtrlLockButton.Text = "Ctrl Lock (R): ON"
+        getgenv().CtrlLockButton.BackgroundColor3 = getgenv().COL_ON
+        -- Keep LeftControl free so Ctrl+Click teleport always works.
+        ContextActionService:BindAction("DisableCtrlSwitch", function() return Enum.ContextActionResult.Sink end, false, Enum.KeyCode.RightControl)
     else
-        getgenv().CtrlLockButton.Text = "Ctrl Lock: OFF"; getgenv().CtrlLockButton.BackgroundColor3 = getgenv().COL_OFF
+        getgenv().CtrlLockButton.Text = "Ctrl Lock (R): OFF"
+        getgenv().CtrlLockButton.BackgroundColor3 = getgenv().COL_OFF
         ContextActionService:UnbindAction("DisableCtrlSwitch")
     end
 end)

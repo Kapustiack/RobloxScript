@@ -52,7 +52,7 @@ getgenv().InfiniteJumpButton = makeBtn("InfiniteJumpButton", "Inf Jump: OFF",   
 getgenv().FullbrightButton   = makeBtn("FullbrightButton",   "Fullbright: OFF", 1, 4)
 getgenv().FOVButton          = makeBtn("FOVButton",          "FOV: OFF",        2, 4)
 getgenv().ShiftLockButton    = makeBtn("ShiftLockButton",    "Shift Lock: OFF", 1, 5)
-getgenv().CtrlLockButton     = makeBtn("CtrlLockButton",     "Ctrl Lock: OFF",  2, 5)
+getgenv().CtrlLockButton     = makeBtn("CtrlLockButton",     "Ctrl Lock (R): OFF",  2, 5)
 getgenv().FollowButton       = makeBtn("FollowButton",       "Follow: OFF",     1, 6)
 getgenv().HitboxButton       = makeBtn("HitboxButton",       "Hitbox: OFF",     2, 6)
 getgenv().ReachButton        = makeBtn("ReachButton",        "Reach: OFF",      1, 7)
@@ -71,7 +71,7 @@ getgenv().WaypointsButton    = makeBtn("WaypointsButton",    "Waypoints",       
 
 local PAD, BH, GAP = 12, 28, 8
 local function rowY(r) return PAD + (r-1)*(BH+GAP) end
-getgenv().TipLabel = Instance.new("TextLabel"); TipLabel.Parent = ContentScroll; TipLabel.BackgroundTransparency = 1; TipLabel.Position = UDim2.new(0, 12, 0, rowY(12)); TipLabel.Size = UDim2.new(1, -24, 0, 20); TipLabel.Font = Enum.Font.Gotham; TipLabel.Text = "Ctrl+Click = Teleport | Right-click = Settings | Shift+C = Hide | P = FreeCam"; TipLabel.TextColor3 = getgenv().COL_MUTE; TipLabel.TextSize = 10; TipLabel.TextXAlignment = Enum.TextXAlignment.Center
+getgenv().TipLabel = Instance.new("TextLabel"); TipLabel.Parent = ContentScroll; TipLabel.BackgroundTransparency = 1; TipLabel.Position = UDim2.new(0, 12, 0, rowY(12)); TipLabel.Size = UDim2.new(1, -24, 0, 20); TipLabel.Font = Enum.Font.Gotham; TipLabel.Text = "Left Ctrl+Click = Teleport | Right-click = Settings | Shift+C = Hide | P = FreeCam"; TipLabel.TextColor3 = getgenv().COL_MUTE; TipLabel.TextSize = 10; TipLabel.TextXAlignment = Enum.TextXAlignment.Center
 ContentScroll.CanvasSize = UDim2.new(0, 0, 0, rowY(12) + 30)
 
 
@@ -377,7 +377,7 @@ getgenv().RefreshUIState = function()
     setToggleButton(getgenv().FullbrightButton, "Fullbright: ", getgenv().fullbrightEnabled)
     setToggleButton(getgenv().FOVButton, "FOV: ", getgenv().fovChangerEnabled)
     setToggleButton(getgenv().ShiftLockButton, "Shift Lock: ", getgenv().shiftLockDisabled)
-    setToggleButton(getgenv().CtrlLockButton, "Ctrl Lock: ", getgenv().ctrlLockDisabled)
+    setToggleButton(getgenv().CtrlLockButton, "Ctrl Lock (R): ", getgenv().ctrlLockDisabled)
     setToggleButton(getgenv().FollowButton, "Follow: ", getgenv().followEnabled)
     setToggleButton(getgenv().HitboxButton, "Hitbox: ", getgenv().hitboxEnabled)
     setToggleButton(getgenv().ReachButton, "Reach: ", getgenv().reachEnabled)
@@ -392,6 +392,13 @@ getgenv().RefreshUIState = function()
     setToggleButton(getgenv().ReachVisualBtn, "Visual: ", getgenv().reachVisual)
     setToggleButton(getgenv().HitboxVisualBtn, "Visual: ", getgenv().hitboxVisual)
     setToggleButton(getgenv().WallhackTeamCheckBtn, "Skip Teammates: ", getgenv().wallhackTeamCheck)
+    setToggleButton(getgenv().ESPShowNamesBtn, "Names: ", getgenv().espShowNames)
+    setToggleButton(getgenv().ESPShowDistBtn, "Distance: ", getgenv().espShowDistance)
+    setToggleButton(getgenv().ESPShowBoxesBtn, "3D Boxes: ", getgenv().espShowBoxes)
+    setToggleButton(getgenv().ESP2DBoxesBtn, "2D Boxes: ", getgenv().espUse2DBoxes)
+    setToggleButton(getgenv().ESPTracersBtn, "Tracers: ", getgenv().espShowTracers)
+    setToggleButton(getgenv().ESPSkeletonBtn, "Skeleton: ", getgenv().espShowSkeleton)
+    setToggleButton(getgenv().ESPHealthBarsBtn, "Health Bars: ", getgenv().espShowHealthBars)
 
     if getgenv().InfJumpModeBtn then
         local modeText = getgenv().infJumpHoldMode and "Hold" or "Instant"

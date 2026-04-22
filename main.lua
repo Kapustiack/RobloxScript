@@ -136,6 +136,7 @@ getgenv().destroyScript = function()
     if getgenv().lowGravityLoop       then getgenv().lowGravityLoop:Disconnect();       getgenv().lowGravityLoop = nil end
     if getgenv().followConnection     then getgenv().followConnection:Disconnect();     getgenv().followConnection = nil end
     if getgenv().noclipConnection     then getgenv().noclipConnection:Disconnect();     getgenv().noclipConnection = nil end
+    if getgenv().noclipTrackerConnection then getgenv().noclipTrackerConnection:Disconnect(); getgenv().noclipTrackerConnection = nil end
     if getgenv().infiniteJumpConnection then getgenv().infiniteJumpConnection:Disconnect(); getgenv().infiniteJumpConnection = nil end
     if getgenv().hitboxRestoreFunc    then pcall(getgenv().hitboxRestoreFunc);          getgenv().hitboxRestoreFunc = nil end
     if getgenv().noDamageRestoreFunc  then pcall(getgenv().noDamageRestoreFunc);        getgenv().noDamageRestoreFunc = nil end
@@ -157,6 +158,7 @@ getgenv().destroyScript = function()
     if getgenv().inputChangedConn      then getgenv().inputChangedConn:Disconnect();      getgenv().inputChangedConn = nil end
     if getgenv().mouseBtn1DownConn     then getgenv().mouseBtn1DownConn:Disconnect();     getgenv().mouseBtn1DownConn = nil end
     if getgenv().mouseBtn1UpConn       then getgenv().mouseBtn1UpConn:Disconnect();       getgenv().mouseBtn1UpConn = nil end
+    if getgenv().ctrlClickInputBeganConn then getgenv().ctrlClickInputBeganConn:Disconnect(); getgenv().ctrlClickInputBeganConn = nil end
 
     -- Disconnect FreeCamera.lua connections
     if getgenv().freeCamInputBeganConn then getgenv().freeCamInputBeganConn:Disconnect(); getgenv().freeCamInputBeganConn = nil end

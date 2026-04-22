@@ -3,6 +3,8 @@ local LocalPlayer = Players.LocalPlayer
 local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
 local StarterGui = game:GetService("StarterGui")
+local UserInputService = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
 
 local Utils = {}
 
@@ -69,27 +71,24 @@ end
 -- Old version used mouse.Hit.p (deprecated) and no raycast — player clips into ground/walls
 function Utils:TeleportToMouse()
     if not getgenv().scriptEnabled then return end
-    local mouse = LocalPlayer:GetMouse()
     local char = LocalPlayer.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp or not Camera then return end
 
-    -- Raycast down from mouse hit to find solid ground
-    local hitPos = mouse.Hit.Position
-    local rayOrigin = hitPos + Vector3.new(0, 5, 0)   -- start 5 studs above hit
-    local rayDir = Vector3.new(0, -10, 0)
+    local mousePos = UserInputService:GetMouseLocation()
+    local unitRay = Camera:ViewportPointToRay(mousePos.X, mousePos.Y)
     local params = RaycastParams.new()
     params.FilterType = Enum.RaycastFilterType.Exclude
     params.FilterDescendantsInstances = {char}
-    local result = workspace:Raycast(rayOrigin, rayDir, params)
+    local result = workspace:Raycast(unitRay.Origin, unitRay.Direction * 5000, params)
 
     local safePos
     if result then
-        safePos = result.Position + Vector3.new(0, 3, 0)  -- 3 studs above surface
+        safePos = result.Position + Vector3.new(0, 3, 0)
     else
-        safePos = hitPos + Vector3.new(0, 3, 0)           -- fallback: raise above hit
+        safePos = unitRay.Origin + unitRay.Direction * 60 + Vector3.new(0, 3, 0)
     end
-    char.HumanoidRootPart.CFrame = CFrame.new(safePos)
+    hrp.CFrame = CFrame.new(safePos)
 end
 
 return Utils
-

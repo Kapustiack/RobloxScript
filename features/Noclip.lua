@@ -6,6 +6,105 @@ local LocalPlayer = game:GetService("Players").LocalPlayer
 
 getgenv().noclipOriginalStates   = getgenv().noclipOriginalStates   or {}
 getgenv().powerOriginalDensities = getgenv().powerOriginalDensities or {}
+getgenv().noclipTrackedParts     = getgenv().noclipTrackedParts     or {}
+getgenv().noclipLastRefresh      = getgenv().noclipLastRefresh      or 0
+
+local REFRESH_INTERVAL = 0.12
+local TRACK_LIMIT = 250
+
+local function rememberState(part)
+    if getgenv().noclipOriginalStates[part] then return end
+    getgenv().noclipOriginalStates[part] = {
+        CanCollide = part.CanCollide,
+        Anchored = part.Anchored,
+        Massless = part.Massless,
+    }
+end
+
+local function canTrackPart(part, char, hrp)
+    if not part or not part:IsA("BasePart") then return false end
+    if part == workspace.Terrain then return false end
+    if part:IsDescendantOf(char) then return true end
+    local root = part.AssemblyRootPart
+    return root and (root == hrp or root:IsDescendantOf(char))
+end
+
+local function refreshTrackedParts(char, hrp, hum)
+    local tracked, seen = {}, {}
+    local function add(part, force)
+        if seen[part] then return end
+        if not force and not canTrackPart(part, char, hrp) then return end
+        seen[part] = true
+        tracked[#tracked + 1] = part
+    end
+
+    for _, part in ipairs(char:GetDescendants()) do
+        if part:IsA("BasePart") then add(part) end
+    end
+
+    local seat = hum and hum.SeatPart
+    if seat then
+        add(seat, true)
+        for _, part in ipairs(seat:GetConnectedParts(true)) do
+            add(part, true)
+            if #tracked >= TRACK_LIMIT then break end
+        end
+    end
+
+    if hrp then
+        pcall(function()
+            for _, part in ipairs(workspace:GetPartsInPart(hrp)) do
+                add(part, true)
+                if #tracked >= TRACK_LIMIT then break end
+            end
+        end)
+    end
+
+    getgenv().noclipTrackedParts = tracked
+    getgenv().noclipLastRefresh = os.clock()
+end
+
+local function applyNoclipToTrackedParts(char, hrp, hum)
+    local tracked = getgenv().noclipTrackedParts
+    local density = tonumber(getgenv().noclipDensity) or 0.7
+    local shouldAdjustDensity = density > 0.1
+    local seat = hum and hum.SeatPart
+    local seatRoot = seat and seat.AssemblyRootPart
+
+    for i = #tracked, 1, -1 do
+        local part = tracked[i]
+        if not part or not part.Parent then
+            table.remove(tracked, i)
+        else
+            rememberState(part)
+            local isCharacterPart = part:IsDescendantOf(char)
+            local isSeatAssemblyPart = seatRoot and part.AssemblyRootPart == seatRoot
+            if part.CanCollide then part.CanCollide = false end
+            if isCharacterPart then
+                if part.Massless ~= true then part.Massless = true end
+            elseif isSeatAssemblyPart then
+                if part.Massless ~= false then part.Massless = false end
+            end
+            if part.Anchored and part ~= hrp then part.Anchored = false end
+            if shouldAdjustDensity and not isCharacterPart then
+                pcall(function()
+                    if not getgenv().powerOriginalDensities[part] then
+                        local cur = part.CustomPhysicalProperties
+                        getgenv().powerOriginalDensities[part] = cur and cur.Density or 0.7
+                    end
+                    local cur = part.CustomPhysicalProperties
+                    part.CustomPhysicalProperties = PhysicalProperties.new(
+                        density,
+                        cur and cur.Friction or 0.3,
+                        cur and cur.Elasticity or 0.5,
+                        cur and cur.FrictionWeight or 1,
+                        cur and cur.ElasticityWeight or 1
+                    )
+                end)
+            end
+        end
+    end
+end
 
 -- ─────────────────────────────────────────────
 --  NOCLIP CORE
@@ -13,6 +112,24 @@ getgenv().powerOriginalDensities = getgenv().powerOriginalDensities or {}
 local function enableNoclip()
     getgenv().noclipEnabled = true
     if getgenv().noclipConnection then getgenv().noclipConnection:Disconnect() end
+    if getgenv().noclipTrackerConnection then getgenv().noclipTrackerConnection:Disconnect() end
+    getgenv().noclipTrackedParts = {}
+    getgenv().noclipLastRefresh = 0
+
+    getgenv().noclipTrackerConnection = RunService.Heartbeat:Connect(function()
+        if not getgenv().noclipEnabled or not getgenv().scriptEnabled then return end
+        local now = os.clock()
+        if now - (getgenv().noclipLastRefresh or 0) < REFRESH_INTERVAL then return end
+
+        local char = LocalPlayer.Character
+        if not char then return end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if not hrp then return end
+
+        refreshTrackedParts(char, hrp, hum)
+    end)
+
     getgenv().noclipConnection = RunService.Stepped:Connect(function()
         if not getgenv().noclipEnabled or not getgenv().scriptEnabled then return end
         local char = LocalPlayer.Character
@@ -20,56 +137,35 @@ local function enableNoclip()
 
         local hrp = char:FindFirstChild("HumanoidRootPart")
         local hum = char:FindFirstChildOfClass("Humanoid")
-
-        local stack = {}
-        local seen  = {}
-
-        for _, p in pairs(char:GetDescendants()) do
-            if p:IsA("BasePart") then table.insert(stack, p) end
+        if not hrp then return end
+        if not getgenv().noclipTrackedParts or #getgenv().noclipTrackedParts == 0 then
+            refreshTrackedParts(char, hrp, hum)
         end
-        if hum and hum.SeatPart then table.insert(stack, hum.SeatPart) end
-
-        local count = 0
-        while #stack > 0 and count < 1500 do
-            count = count + 1
-            local p = table.remove(stack)
-            if p and not seen[p] then
-                seen[p] = true
-                if not getgenv().noclipOriginalStates[p] then
-                    getgenv().noclipOriginalStates[p] = { CanCollide = p.CanCollide, Anchored = p.Anchored }
-                end
-                if p.CanCollide then p.CanCollide = false end
-                if p.Anchored and p ~= hrp and p:IsDescendantOf(char) then
-                    p.Anchored = false
-                    pcall(function() p.AssemblyLinearVelocity = Vector3.new(0, 0.01, 0) end)
-                end
-                for _, conn in pairs(p:GetConnectedParts(true)) do
-                    if not seen[conn] then table.insert(stack, conn) end
-                end
-                for _, child in pairs(p:GetChildren()) do
-                    if child:IsA("Constraint") then
-                        local a0 = child.Attachment0; local a1 = child.Attachment1
-                        if a0 and a0.Parent and a0.Parent:IsA("BasePart") and not seen[a0.Parent] then table.insert(stack, a0.Parent) end
-                        if a1 and a1.Parent and a1.Parent:IsA("BasePart") and not seen[a1.Parent] then table.insert(stack, a1.Parent) end
-                    end
-                end
+        applyNoclipToTrackedParts(char, hrp, hum)
+        pcall(function()
+            if getgenv().flying and getgenv().flyVelocity then
+                hrp.AssemblyLinearVelocity = getgenv().flyVelocity.Velocity
             end
-        end
+        end)
     end)
 end
 
 local function disableNoclip()
     getgenv().noclipEnabled = false
     if getgenv().noclipConnection then getgenv().noclipConnection:Disconnect(); getgenv().noclipConnection = nil end
+    if getgenv().noclipTrackerConnection then getgenv().noclipTrackerConnection:Disconnect(); getgenv().noclipTrackerConnection = nil end
     for part, state in pairs(getgenv().noclipOriginalStates) do
         pcall(function()
             if part and part.Parent then
                 part.CanCollide = state.CanCollide
                 part.Anchored   = state.Anchored
+                part.Massless   = state.Massless
             end
         end)
     end
     getgenv().noclipOriginalStates = {}
+    getgenv().noclipTrackedParts = {}
+    getgenv().noclipLastRefresh = 0
 end
 
 -- ─────────────────────────────────────────────

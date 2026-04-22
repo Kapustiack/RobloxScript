@@ -3,6 +3,17 @@ local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
+local lastCtrlTeleportAt = 0
+
+local function tryCtrlClickTeleport()
+    local ctrlDown = UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or UserInputService:IsKeyDown(Enum.KeyCode.RightControl)
+    if not ctrlDown or not getgenv().Utils or not getgenv().scriptEnabled then return false end
+    local now = os.clock()
+    if now - lastCtrlTeleportAt < 0.12 then return true end
+    lastCtrlTeleportAt = now
+    getgenv().Utils:TeleportToMouse()
+    return true
+end
 
 local function updateSlider(slider, label, labelText, min, max, valKey, isFloat)
     local mousePos = UserInputService:GetMouseLocation()
@@ -161,14 +172,20 @@ end)
 
 -- ── Ctrl+Click teleport & Click Check ────────────────────────────
 getgenv().mouseBtn1DownConn = Mouse.Button1Down:Connect(function()
-    local ctrlDown = UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or UserInputService:IsKeyDown(Enum.KeyCode.RightControl)
-    if ctrlDown and getgenv().Utils then
-        getgenv().Utils:TeleportToMouse()
+    if tryCtrlClickTeleport() then
         return
     end
     if getgenv().clickCheckEnabled and getgenv().followEnabled and getgenv().followTarget then
         getgenv().leftMouseClicked = true
         getgenv().clickLingerUntil = 0
+    end
+end)
+
+getgenv().ctrlClickInputBeganConn = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+    if gameProcessed then return end
+    if tryCtrlClickTeleport() then
+        return
     end
 end)
 
