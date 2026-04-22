@@ -185,7 +185,8 @@ if getgenv().PowerSliderBtn then
 end
 
 if getgenv().PowerSliderBg then
-    getgenv().PowerSliderBg.MouseButton1Down:Connect(function()
+    getgenv().PowerSliderBg.InputBegan:Connect(function(input)
+        if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
         dragging = true
         local sliderBg = getgenv().PowerSliderBg
         local mouseX = UserInputService:GetMouseLocation().X
