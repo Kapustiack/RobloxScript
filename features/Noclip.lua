@@ -224,16 +224,28 @@ end)
 -- ─────────────────────────────────────────────
 --  BUTTON WIRING
 -- ─────────────────────────────────────────────
-getgenv().NoclipButton.MouseButton1Click:Connect(function()
+
+-- Ensure we don't have multiple connections if script is re-run
+if getgenv().NoclipBtnConn then getgenv().NoclipBtnConn:Disconnect() end
+getgenv().NoclipBtnConn = getgenv().NoclipButton.MouseButton1Click:Connect(function()
     if not getgenv().scriptEnabled then return end
     getgenv().noclipEnabled = not getgenv().noclipEnabled
+    
+    -- Visual update
     getgenv().NoclipButton.Text = "Noclip: " .. (getgenv().noclipEnabled and "ON" or "OFF")
     getgenv().NoclipButton.BackgroundColor3 = getgenv().noclipEnabled and getgenv().COL_ON or getgenv().COL_OFF
-    if getgenv().noclipEnabled then enableNoclip() else disableNoclip() end
+    
+    -- Logic update
+    if getgenv().noclipEnabled then 
+        enableNoclip() 
+    else 
+        disableNoclip() 
+    end
 end)
 
 -- RIGHT-CLICK: toggle power panel
-getgenv().NoclipButton.MouseButton2Click:Connect(function()
+if getgenv().NoclipBtnRightConn then getgenv().NoclipBtnRightConn:Disconnect() end
+getgenv().NoclipBtnRightConn = getgenv().NoclipButton.MouseButton2Click:Connect(function()
     if not getgenv().scriptEnabled then return end
     if getgenv().TogglePanel and getgenv().PowerPanel then
         getgenv().TogglePanel(getgenv().PowerPanel)
