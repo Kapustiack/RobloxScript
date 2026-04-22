@@ -3,16 +3,17 @@ local LocalPlayer = Players.LocalPlayer
 
 local Hooks = {}
 
-function Hooks:InstallHitboxHook(config)
-    print("[Hooks] Installing Hitbox Namecall Hook...")
+function Hooks:InstallMainHook(config)
+    print("[Hooks] Installing Metatable Hooks...")
     local ok, mt = pcall(getrawmetatable, game)
     if not ok or not mt then return nil end
     local okSet = pcall(setreadonly, mt, false)
     if not okSet then return nil end
     
-    local old_nc = rawget(mt, "__namecall")
-    if not old_nc then pcall(setreadonly, mt, true); return nil end
-
+    local old_nc  = rawget(mt, "__namecall")
+    local old_idx = rawget(mt, "__index")
+    
+    -- [[ 1. NAMECALL HOOK (Hitbox/Reach) ]]
     local function hookedNamecall(self, ...)
         if config.GetHitboxEnabled() and config.GetScriptEnabled() then
             local method = getnamecallmethod()
@@ -48,9 +49,7 @@ function Hooks:InstallHitboxHook(config)
                                         end
                                     end
                                 end
-                                if changed then
-                                    return old_nc(self, table.unpack(args))
-                                end
+                                if changed then return old_nc(self, table.unpack(args)) end
                             end
                         end
                     end
@@ -60,8 +59,26 @@ function Hooks:InstallHitboxHook(config)
         return old_nc(self, ...)
     end
 
-    local final = (newcclosure and newcclosure(hookedNamecall)) or hookedNamecall
-    rawset(mt, "__namecall", final)
+    -- [[ 2. INDEX HOOK (Speed/Jump Anti-Cheat Bypass) ]]
+    local function hookedIndex(self, key)
+        if not checkcaller() and config.GetScriptEnabled() then
+            if typeof(self) == "Instance" and self:IsA("Humanoid") then
+                if key == "WalkSpeed" and config.GetSpeedhackEnabled() then
+                    return config.GetWalkSpeed() or 16
+                elseif key == "JumpPower" and config.GetSpeedhackEnabled() then
+                    return config.GetJumpPower() or 50
+                end
+            end
+        end
+        return old_idx(self, key)
+    end
+
+    local finalNC  = (newcclosure and newcclosure(hookedNamecall)) or hookedNamecall
+    local finalIDX = (newcclosure and newcclosure(hookedIndex))    or hookedIndex
+    
+    rawset(mt, "__namecall", finalNC)
+    rawset(mt, "__index",    finalIDX)
+    
     pcall(setreadonly, mt, true)
 
     return function()
@@ -69,6 +86,7 @@ function Hooks:InstallHitboxHook(config)
         if ok2 and mt2 then
             pcall(setreadonly, mt2, false)
             rawset(mt2, "__namecall", old_nc)
+            rawset(mt2, "__index",    old_idx)
             pcall(setreadonly, mt2, true)
         end
     end

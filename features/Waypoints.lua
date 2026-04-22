@@ -47,12 +47,13 @@ local function renderWaypoints()
         delBtn.MouseButton1Click:Connect(function()
             for idx, wp2 in ipairs(getgenv().savedWaypoints) do
                 if wp2.name == wp.name and wp2.cf == wp.cf then
-                    table.remove(getgenv().savedWaypoints, idx)
-                    break
-                end
-            end
-            renderWaypoints()
-        end)
+            table.remove(getgenv().savedWaypoints, idx)
+            if getgenv().saveSettings then getgenv().saveSettings() end
+            break
+        end
+    end
+    renderWaypoints()
+end)
     end
 
     local ll = list:FindFirstChildOfClass("UIListLayout")
@@ -84,5 +85,6 @@ getgenv().WaypointSaveBtn.MouseButton1Click:Connect(function()
     if getgenv().Utils then 
         getgenv().Utils:Notify("Waypoints", "Saved " .. wpName, Color3.fromRGB(80,200,120)) 
     end
+    if getgenv().saveSettings then getgenv().saveSettings() end
     renderWaypoints()
 end)

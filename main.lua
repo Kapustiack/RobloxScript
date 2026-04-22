@@ -138,8 +138,9 @@ getgenv().destroyScript = function()
     if getgenv().infiniteJumpConnection then getgenv().infiniteJumpConnection:Disconnect(); getgenv().infiniteJumpConnection = nil end
     if getgenv().hitboxRestoreFunc    then pcall(getgenv().hitboxRestoreFunc);          getgenv().hitboxRestoreFunc = nil end
     if getgenv().noDamageRestoreFunc  then pcall(getgenv().noDamageRestoreFunc);        getgenv().noDamageRestoreFunc = nil end
-    if getgenv().ESPContainer         then pcall(function() getgenv().ESPContainer:Destroy() end); getgenv().ESPContainer = nil end
     if getgenv().ScreenGui            then pcall(function() getgenv().ScreenGui:Destroy()    end); getgenv().ScreenGui    = nil end
+    if getgenv().mainHookUninstall    then pcall(getgenv().mainHookUninstall); getgenv().mainHookUninstall = nil end
+    if getgenv().ESPContainer         then pcall(function() getgenv().ESPContainer:Destroy() end); getgenv().ESPContainer = nil end
 
     -- Disconnect main.lua background connections
     if getgenv().mainHeartbeatConn      then getgenv().mainHeartbeatConn:Disconnect();      getgenv().mainHeartbeatConn = nil end
@@ -179,6 +180,20 @@ if getgenv().CloseButton then
     end)
 end
 
+-- Initialize Hooks
+if getgenv().Hooks and getgenv().Hooks.InstallMainHook then
+    local config = {
+        GetScriptEnabled    = function() return getgenv().scriptEnabled end,
+        GetHitboxEnabled    = function() return getgenv().hitboxEnabled end,
+        GetHitboxSize       = function() return getgenv().hitboxSize    end,
+        GetSpeedhackEnabled = function() return getgenv().speedhackEnabled end,
+        GetWalkSpeed        = function() return 16 end,
+        GetJumpPower        = function() return 50 end,
+        FindNearestAlivePlayer = function() return (getgenv().Utils and getgenv().Utils.FindNearestAlivePlayer) and getgenv().Utils:FindNearestAlivePlayer() or nil end
+    }
+    getgenv().mainHookUninstall = getgenv().Hooks:InstallMainHook(config)
+end
+
 -- Background Loops
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
@@ -186,36 +201,45 @@ local LocalPlayer = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 local StarterGui = game:GetService("StarterGui")
 
+local lastLogicUpdate = 0
 getgenv().mainHeartbeatConn = RunService.Heartbeat:Connect(function()
     if not getgenv().scriptEnabled then return end
-    if getgenv().updateSpeedLoop then getgenv().updateSpeedLoop() end
+    
+    -- High Frequency (Smoothness critical)
     if getgenv().updateESP then getgenv().updateESP() end
-    if getgenv().applyHitboxExpansion then getgenv().applyHitboxExpansion() end
     if getgenv().updateFlight then getgenv().updateFlight() end
 
-    if getgenv().deathCheckEnabled and getgenv().followEnabled and getgenv().followTarget then
-        local targetDead = false
-        if not getgenv().followTarget.Character then targetDead = true
-        else local hum = getgenv().followTarget.Character:FindFirstChildOfClass("Humanoid")
-             if not hum or hum.Health <= 0 then targetDead = true end end
-        if targetDead then
-            if getgenv().autoSwitchEnabled then
-                local deadTarget = getgenv().followTarget
-                if typeof(getgenv().pushHistory) == "function" then getgenv().pushHistory(deadTarget) end
-                local nextTarget = nil
-                if getgenv().Utils and typeof(getgenv().Utils.FindNearestAlivePlayer) == "function" then
-                    nextTarget = getgenv().Utils:FindNearestAlivePlayer(deadTarget)
-                end
-                if nextTarget then
-                    getgenv().followTarget = nextTarget
-                    pcall(function() StarterGui:SetCore("ChatMakeSystemMessage", {Text = "[Follow] Target died - switching to " .. nextTarget.Name; Color = Color3.fromRGB(255, 160, 0); Font = Enum.Font.GothamBold;}) end)
+    -- Throttled Frequency (20Hz - Logic only)
+    local now = os.clock()
+    if now - lastLogicUpdate >= 0.05 then
+        lastLogicUpdate = now
+        if getgenv().updateSpeedLoop then getgenv().updateSpeedLoop() end
+        if getgenv().applyHitboxExpansion then getgenv().applyHitboxExpansion() end
+
+        if getgenv().deathCheckEnabled and getgenv().followEnabled and getgenv().followTarget then
+            local targetDead = false
+            if not getgenv().followTarget.Character then targetDead = true
+            else local hum = getgenv().followTarget.Character:FindFirstChildOfClass("Humanoid")
+                 if not hum or hum.Health <= 0 then targetDead = true end end
+            if targetDead then
+                if getgenv().autoSwitchEnabled then
+                    local deadTarget = getgenv().followTarget
+                    if typeof(getgenv().pushHistory) == "function" then getgenv().pushHistory(deadTarget) end
+                    local nextTarget = nil
+                    if getgenv().Utils and typeof(getgenv().Utils.FindNearestAlivePlayer) == "function" then
+                        nextTarget = getgenv().Utils:FindNearestAlivePlayer(deadTarget)
+                    end
+                    if nextTarget then
+                        getgenv().followTarget = nextTarget
+                        pcall(function() StarterGui:SetCore("ChatMakeSystemMessage", {Text = "[Follow] Target died - switching to " .. nextTarget.Name; Color = Color3.fromRGB(255, 160, 0); Font = Enum.Font.GothamBold;}) end)
+                    else
+                        if getgenv().stopFollow then getgenv().stopFollow() end
+                        pcall(function() StarterGui:SetCore("ChatMakeSystemMessage", {Text = "[Follow] Target died - no other players found."; Color = Color3.fromRGB(255, 80, 80); Font = Enum.Font.GothamBold;}) end)
+                    end
                 else
                     if getgenv().stopFollow then getgenv().stopFollow() end
-                    pcall(function() StarterGui:SetCore("ChatMakeSystemMessage", {Text = "[Follow] Target died - no other players found."; Color = Color3.fromRGB(255, 80, 80); Font = Enum.Font.GothamBold;}) end)
+                    pcall(function() StarterGui:SetCore("ChatMakeSystemMessage", {Text = "[Follow] Target died - follow stopped."; Color = Color3.fromRGB(255, 80, 80); Font = Enum.Font.GothamBold;}) end)
                 end
-            else
-                if getgenv().stopFollow then getgenv().stopFollow() end
-                pcall(function() StarterGui:SetCore("ChatMakeSystemMessage", {Text = "[Follow] Target died - follow stopped."; Color = Color3.fromRGB(255, 80, 80); Font = Enum.Font.GothamBold;}) end)
             end
         end
     end

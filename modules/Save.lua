@@ -83,6 +83,9 @@ local function serializeSettings()
         clickCheckEnabled   = getgenv().clickCheckEnabled,
         deathCheckEnabled   = getgenv().deathCheckEnabled,
         autoSwitchEnabled   = getgenv().autoSwitchEnabled,
+        -- NEW: Density & Waypoints
+        noclipDensity       = getgenv().noclipDensity,
+        savedWaypoints      = getgenv().savedWaypoints,
     }
     return HttpService:JSONEncode(t)
 end
@@ -119,6 +122,11 @@ local function applySettings(t)
     apply("clickCheckEnabled",    t.clickCheckEnabled)
     apply("deathCheckEnabled",    t.deathCheckEnabled)
     apply("autoSwitchEnabled",    t.autoSwitchEnabled)
+    -- NEW: Density & Waypoints
+    apply("noclipDensity",        t.noclipDensity)
+    if type(t.savedWaypoints) == "table" then
+        getgenv().savedWaypoints = t.savedWaypoints
+    end
 end
 
 -- ── Public API ────────────────────────────────────────────────────
