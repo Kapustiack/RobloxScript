@@ -47,10 +47,23 @@ end
 
 local function loadRemote(path, index)
     updateLoader(path, index)
-    local cacheBypass = "?t=" .. tostring(os.time()) .. tostring(math.random(1, 100000))
-    local success, content = pcall(function() return game:HttpGet(baseUrl .. path .. cacheBypass) end)
+    local content = nil
+    if typeof(isfile) == "function" and typeof(readfile) == "function" then
+        if isfile(path) then
+            pcall(function() content = readfile(path) end)
+        elseif isfile("RobloxScript/" .. path) then
+            pcall(function() content = readfile("RobloxScript/" .. path) end)
+        end
+    end
+    if not content or content == "" then
+        local cacheBypass = "?t=" .. tostring(os.time()) .. tostring(math.random(1, 100000))
+        local success, res = pcall(function() return game:HttpGet(baseUrl .. path .. cacheBypass) end)
+        if success and res and res ~= "" then
+            content = res
+        end
+    end
     
-    if not success or not content or content == "" then 
+    if not content or content == "" then 
         warn("[RB Hub] Download Error: " .. path)
         updateLoader(path, index, true)
         return nil 
