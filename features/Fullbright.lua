@@ -1,0 +1,1 @@
+-- This file is kept as a stub so loadRemote("features/Fullbright.lua") doesn't fail.

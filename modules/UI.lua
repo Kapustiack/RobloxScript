@@ -1,0 +1,566 @@
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+
+
+getgenv().ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "CheatGUI"; ScreenGui.Parent = CoreGui; ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling; ScreenGui.IgnoreGuiInset = true
+
+local HudFrame = Instance.new("Frame")
+HudFrame.Name = "FPSPingHUD"; HudFrame.Parent = ScreenGui; HudFrame.Size = UDim2.new(0, 145, 0, 24); HudFrame.Position = UDim2.new(1, -153, 0, 8); HudFrame.BackgroundColor3 = Color3.fromRGB(9, 9, 15); HudFrame.BackgroundTransparency = 0.3; HudFrame.BorderSizePixel = 0
+Instance.new("UICorner", HudFrame).CornerRadius = UDim.new(1, 0)
+local HudStroke = Instance.new("UIStroke", HudFrame); HudStroke.Color = Color3.fromRGB(40, 40, 60); HudStroke.Thickness = 1
+getgenv().HudLabel = Instance.new("TextLabel"); HudLabel.Parent = HudFrame; HudLabel.BackgroundTransparency = 1; HudLabel.Size = UDim2.new(1, 0, 1, 0); HudLabel.Font = Enum.Font.GothamBold; HudLabel.TextSize = 11; HudLabel.TextColor3 = getgenv().COL_TXT; HudLabel.RichText = true; HudLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+getgenv().MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"; MainFrame.Parent = ScreenGui; MainFrame.BackgroundColor3 = getgenv().COL_BG; MainFrame.BorderSizePixel = 0; MainFrame.Position = UDim2.new(0, 18, 0.5, -190); MainFrame.Size = UDim2.new(0, 380, 0, 226); MainFrame.Active = true; MainFrame.Draggable = true
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
+local MStroke = Instance.new("UIStroke", MainFrame); MStroke.Color = Color3.fromRGB(40, 40, 56); MStroke.Thickness = 1
+
+local Title = Instance.new("Frame")
+Title.Name = "Title"; Title.Parent = MainFrame; Title.BackgroundColor3 = getgenv().COL_BAR; Title.BorderSizePixel = 0; Title.Size = UDim2.new(1, 0, 0, 32); Title.ZIndex = 500; Instance.new("UICorner", Title).CornerRadius = UDim.new(0, 10)
+local TitleLabel = Instance.new("TextLabel"); TitleLabel.Parent = Title; TitleLabel.BackgroundTransparency = 1; TitleLabel.Size = UDim2.new(1, -58, 1, 0); TitleLabel.Position = UDim2.new(0, 10, 0, 0); TitleLabel.Font = Enum.Font.GothamBold; TitleLabel.Text = "RB Cheat · right-click = settings"; TitleLabel.TextColor3 = getgenv().COL_TXT; TitleLabel.TextSize = 11; TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+getgenv().HideButton = Instance.new("TextButton")
+HideButton.Name = "HideButton"; HideButton.Parent = Title; HideButton.BackgroundColor3 = Color3.fromRGB(50, 50, 68); HideButton.BorderSizePixel = 0; HideButton.Position = UDim2.new(1, -50, 0.5, -9); HideButton.Size = UDim2.new(0, 18, 0, 18); HideButton.Font = Enum.Font.GothamBold; HideButton.Text = "-"; HideButton.TextColor3 = Color3.fromRGB(200, 200, 220); HideButton.TextSize = 16; Instance.new("UICorner", HideButton).CornerRadius = UDim.new(0, 4)
+
+getgenv().CloseButton = Instance.new("TextButton")
+CloseButton.Name = "CloseButton"; CloseButton.Parent = Title; CloseButton.BackgroundColor3 = getgenv().COL_CLO; CloseButton.BorderSizePixel = 0; CloseButton.Position = UDim2.new(1, -26, 0.5, -9); CloseButton.Size = UDim2.new(0, 18, 0, 18); CloseButton.Font = Enum.Font.GothamBold; CloseButton.Text = "X"; CloseButton.TextColor3 = Color3.new(1,1,1); CloseButton.TextSize = 11; CloseButton.ZIndex = 501; Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(0, 4)
+
+-- Search bar sits between the title and the scrolling feature list.
+local SearchBar = Instance.new("Frame")
+SearchBar.Name = "SearchBar"; SearchBar.Parent = MainFrame; SearchBar.BackgroundColor3 = getgenv().COL_BAR; SearchBar.BorderSizePixel = 0; SearchBar.Position = UDim2.new(0, 0, 0, 32); SearchBar.Size = UDim2.new(1, 0, 0, 28)
+
+getgenv().SearchBox = Instance.new("TextBox")
+SearchBox.Name = "SearchBox"; SearchBox.Parent = SearchBar; SearchBox.BackgroundColor3 = Color3.fromRGB(24, 24, 34); SearchBox.BorderSizePixel = 0
+SearchBox.Position = UDim2.new(0, 8, 0, 3); SearchBox.Size = UDim2.new(1, -16, 0, 22)
+SearchBox.Font = Enum.Font.Gotham; SearchBox.TextSize = 11; SearchBox.TextColor3 = getgenv().COL_TXT
+SearchBox.PlaceholderText = "Search features..."; SearchBox.Text = ""; SearchBox.ClearTextOnFocus = false
+SearchBox.TextXAlignment = Enum.TextXAlignment.Left
+Instance.new("UICorner", SearchBox).CornerRadius = UDim.new(0, 5)
+
+getgenv().ContentScroll = Instance.new("ScrollingFrame")
+ContentScroll.Name = "ContentScroll"; ContentScroll.Parent = MainFrame; ContentScroll.BackgroundTransparency = 1; ContentScroll.BorderSizePixel = 0; ContentScroll.Position = UDim2.new(0, 0, 0, 60); ContentScroll.Size = UDim2.new(1, 0, 1, -60); ContentScroll.ScrollBarThickness = 3; ContentScroll.ScrollBarImageColor3 = getgenv().COL_MUTE; ContentScroll.ScrollingDirection = Enum.ScrollingDirection.Y; ContentScroll.CanvasSize = UDim2.new(0, 0, 0, 0); ContentScroll.AutomaticCanvasSize = Enum.AutomaticCanvasSize.Y
+
+local mainPadding = Instance.new("UIPadding", ContentScroll)
+mainPadding.PaddingLeft = UDim.new(0, 12); mainPadding.PaddingRight = UDim.new(0, 12)
+mainPadding.PaddingTop = UDim.new(0, 8); mainPadding.PaddingBottom = UDim.new(0, 8)
+
+local mainListLayout = Instance.new("UIListLayout", ContentScroll)
+mainListLayout.Padding = UDim.new(0, 8)
+mainListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- Collapsible category system: each category is a header (click to
+-- expand/collapse) plus a body Frame using a UIGridLayout for its buttons.
+-- Buttons register into featureRegistry so the search box can filter them
+-- by label, auto-expanding any category that has a live match.
+local categoryList = {}
+local featureRegistry = {}
+local CAT_CELL_W, CAT_CELL_H, CAT_CELL_GAP = 172, 28, 8
+local CAT_BODY_WIDTH = CAT_CELL_W * 2 + CAT_CELL_GAP
+
+local function makeCategory(title)
+    local order = #categoryList * 2
+
+    local header = Instance.new("TextButton")
+    header.Name = title .. "Header"; header.Parent = ContentScroll
+    header.Size = UDim2.new(0, CAT_BODY_WIDTH, 0, 24)
+    header.BackgroundColor3 = getgenv().COL_BAR; header.BorderSizePixel = 0
+    header.Font = Enum.Font.GothamBold; header.TextSize = 11; header.TextColor3 = getgenv().COL_TXT
+    header.TextXAlignment = Enum.TextXAlignment.Left
+    header.Text = "  ▼ " .. title
+    header.LayoutOrder = order
+    Instance.new("UICorner", header).CornerRadius = UDim.new(0, 5)
+
+    local body = Instance.new("Frame")
+    body.Name = title .. "Body"; body.Parent = ContentScroll
+    body.BackgroundTransparency = 1
+    body.Size = UDim2.new(0, CAT_BODY_WIDTH, 0, 0)
+    body.AutomaticSize = Enum.AutomaticSize.Y
+    body.LayoutOrder = order + 1
+    local grid = Instance.new("UIGridLayout", body)
+    grid.CellSize = UDim2.new(0, CAT_CELL_W, 0, CAT_CELL_H)
+    grid.CellPadding = UDim2.new(0, CAT_CELL_GAP, 0, CAT_CELL_GAP)
+    grid.SortOrder = Enum.SortOrder.LayoutOrder
+
+    local cat = {header = header, body = body, expanded = true}
+    table.insert(categoryList, cat)
+
+    header.MouseButton1Click:Connect(function()
+        cat.expanded = not cat.expanded
+        body.Visible = cat.expanded
+        header.Text = "  " .. (cat.expanded and "▼ " or "▶ ") .. title
+    end)
+
+    return body
+end
+
+local function catBtn(body, n, t)
+    local b = Instance.new("TextButton"); b.Name = n; b.Parent = body; b.BackgroundColor3 = getgenv().COL_OFF; b.BorderSizePixel = 0; b.Font = Enum.Font.Gotham; b.Text = t; b.TextColor3 = getgenv().COL_TXT; b.TextSize = 12
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
+    b.MouseEnter:Connect(function() if b.BackgroundColor3 ~= getgenv().COL_ON then TweenService:Create(b, TweenInfo.new(0.12), {BackgroundColor3 = Color3.fromRGB(46,46,62)}):Play() end end)
+    b.MouseLeave:Connect(function() if b.BackgroundColor3 ~= getgenv().COL_ON then TweenService:Create(b, TweenInfo.new(0.12), {BackgroundColor3 = getgenv().COL_OFF}):Play() end end)
+    table.insert(featureRegistry, {btn = b, label = t})
+    return b
+end
+
+local catMovement = makeCategory("Movement")
+getgenv().FlightButton       = catBtn(catMovement, "FlightButton",       "Flight: OFF")
+getgenv().SpeedButton        = catBtn(catMovement, "SpeedButton",        "Speed: OFF")
+getgenv().NoclipButton       = catBtn(catMovement, "NoclipButton",       "Noclip: OFF")
+getgenv().InfiniteJumpButton = catBtn(catMovement, "InfiniteJumpButton", "Inf Jump: OFF")
+getgenv().LowGravityButton   = catBtn(catMovement, "LowGravityButton",   "Low Gravity: OFF")
+getgenv().FreezeSelfButton   = catBtn(catMovement, "FreezeSelfButton",   "Freeze Self: OFF")
+
+local catCombat = makeCategory("Combat")
+getgenv().HitboxButton   = catBtn(catCombat, "HitboxButton",   "Hitbox: OFF")
+getgenv().ReachButton    = catBtn(catCombat, "ReachButton",    "Reach: OFF")
+getgenv().NoDamageButton = catBtn(catCombat, "NoDamageButton", "No Fall: OFF")
+
+local catVisual = makeCategory("Visual")
+getgenv().WallhackButton   = catBtn(catVisual, "WallhackButton",   "Wallhack: OFF")
+getgenv().ESPButton        = catBtn(catVisual, "ESPButton",        "ESP: OFF")
+getgenv().FullbrightButton = catBtn(catVisual, "FullbrightButton", "Fullbright: OFF")
+getgenv().FOVButton        = catBtn(catVisual, "FOVButton",        "FOV: OFF")
+
+local catLocks = makeCategory("Locks")
+getgenv().ShiftLockButton = catBtn(catLocks, "ShiftLockButton", "Shift Lock: OFF")
+getgenv().CtrlLockButton  = catBtn(catLocks, "CtrlLockButton",  "Ctrl Lock (R): OFF")
+
+local catUtility = makeCategory("Utility")
+getgenv().FollowButton       = catBtn(catUtility, "FollowButton",       "Follow: OFF")
+getgenv().FreeCameraButton   = catBtn(catUtility, "FreeCameraButton",   "FreeCam: OFF")
+getgenv().TeleportButton     = catBtn(catUtility, "TeleportButton",     "Teleport To...")
+getgenv().WaypointsButton    = catBtn(catUtility, "WaypointsButton",    "Waypoints")
+getgenv().SaveButton         = catBtn(catUtility, "SaveButton",         "Save Settings")
+getgenv().ExportButton       = catBtn(catUtility, "ExportButton",       "Export Config")
+getgenv().ImportButton       = catBtn(catUtility, "ImportButton",       "Import Config")
+getgenv().RejoinButton       = catBtn(catUtility, "RejoinButton",       "Rejoin Server")
+getgenv().JoinInstanceButton = catBtn(catUtility, "JoinInstanceButton", "Join Instance")
+
+getgenv().TipLabel = Instance.new("TextLabel")
+TipLabel.Parent = ContentScroll; TipLabel.BackgroundTransparency = 1
+TipLabel.Size = UDim2.new(0, CAT_BODY_WIDTH, 0, 20)
+TipLabel.Font = Enum.Font.Gotham; TipLabel.Text = "Left Ctrl+Click = Teleport | Right-click = Settings | Shift+C = Hide | P = FreeCam"
+TipLabel.TextColor3 = getgenv().COL_MUTE; TipLabel.TextSize = 10; TipLabel.TextXAlignment = Enum.TextXAlignment.Center
+TipLabel.LayoutOrder = 1000
+
+local function applySearchFilter()
+    local query = string.lower(getgenv().SearchBox.Text or "")
+    for _, entry in ipairs(featureRegistry) do
+        entry.btn.Visible = (query == "") or (string.find(string.lower(entry.label), query, 1, true) ~= nil)
+    end
+    for _, cat in ipairs(categoryList) do
+        if query ~= "" then
+            local anyVisible = false
+            for _, c in ipairs(cat.body:GetChildren()) do
+                if c:IsA("TextButton") and c.Visible then anyVisible = true; break end
+            end
+            cat.header.Visible = anyVisible
+            cat.body.Visible = anyVisible
+        else
+            cat.header.Visible = true
+            cat.body.Visible = cat.expanded
+        end
+    end
+end
+
+getgenv().SearchBox:GetPropertyChangedSignal("Text"):Connect(applySearchFilter)
+
+
+
+local function makePanel(name, title, w, h)
+    local f = Instance.new("Frame"); f.Name = name; f.Parent = ScreenGui; f.BackgroundColor3 = Color3.fromRGB(16, 16, 23); f.BorderSizePixel = 0; f.Position = UDim2.new(0.5, -w/2, 0.5, -h/2); f.Size = UDim2.new(0, w, 0, h); f.Visible = false; f.Active = true; f.Draggable = true; Instance.new("UICorner", f).CornerRadius = UDim.new(0, 8); local s = Instance.new("UIStroke", f); s.Color = Color3.fromRGB(38, 38, 54); s.Thickness = 1
+    local tb = Instance.new("Frame"); tb.Parent = f; tb.BackgroundColor3 = Color3.fromRGB(10, 10, 16); tb.BorderSizePixel = 0; tb.Size = UDim2.new(1, 0, 0, 30); Instance.new("UICorner", tb).CornerRadius = UDim.new(0, 8)
+    local tl = Instance.new("TextLabel"); tl.Parent = tb; tl.BackgroundTransparency = 1; tl.Size = UDim2.new(1, -34, 1, 0); tl.Position = UDim2.new(0, 10, 0, 0); tl.Font = Enum.Font.GothamBold; tl.Text = title; tl.TextColor3 = getgenv().COL_TXT; tl.TextSize = 11; tl.TextXAlignment = Enum.TextXAlignment.Left
+    local cb = Instance.new("TextButton"); cb.Parent = tb; cb.BackgroundColor3 = getgenv().COL_CLO; cb.BorderSizePixel = 0; cb.Position = UDim2.new(1, -24, 0.5, -8); cb.Size = UDim2.new(0, 16, 0, 16); cb.Font = Enum.Font.GothamBold; cb.Text = "X"; cb.TextColor3 = Color3.new(1,1,1); cb.TextSize = 11; Instance.new("UICorner", cb).CornerRadius = UDim.new(0, 4); cb.MouseButton1Click:Connect(function() f.Visible = false end)
+    return f
+end
+local function pBtn(par, name, text, x, y, w, h)
+    local b = Instance.new("TextButton"); b.Name = name; b.Parent = par; b.BackgroundColor3 = getgenv().COL_OFF; b.BorderSizePixel = 0; b.Position = UDim2.new(0, x, 0, y); b.Size = UDim2.new(0, w, 0, h or 26); b.Font = Enum.Font.Gotham; b.Text = text; b.TextColor3 = getgenv().COL_TXT; b.TextSize = 11; Instance.new("UICorner", b).CornerRadius = UDim.new(0, 5)
+    return b
+end
+local function pLabel(par, name, text, x, y, w, h)
+    local l = Instance.new("TextLabel"); l.Name = name; l.Parent = par; l.BackgroundColor3 = Color3.fromRGB(22, 22, 32); l.BorderSizePixel = 0; l.Position = UDim2.new(0, x, 0, y); l.Size = UDim2.new(0, w, 0, h or 24); l.Font = Enum.Font.Gotham; l.Text = text; l.TextColor3 = getgenv().COL_TXT; l.TextSize = 11; Instance.new("UICorner", l).CornerRadius = UDim.new(0, 5)
+    return l
+end
+local function pSlider(par, name, x, y, w)
+    local s = Instance.new("TextButton"); s.Name = name; s.Parent = par; s.BackgroundColor3 = Color3.fromRGB(38, 38, 54); s.BorderSizePixel = 0; s.Position = UDim2.new(0, x, 0, y); s.Size = UDim2.new(0, w, 0, 14); s.Font = Enum.Font.Gotham; s.Text = ""; Instance.new("UICorner", s).CornerRadius = UDim.new(0, 7)
+    return s
+end
+local function pTextBox(par, name, text, x, y, w, h)
+    local t = Instance.new("TextBox"); t.Name = name; t.Parent = par; t.BackgroundColor3 = Color3.fromRGB(22, 22, 32); t.BorderSizePixel = 0; t.Position = UDim2.new(0, x, 0, y); t.Size = UDim2.new(0, w, 0, h or 26); t.Font = Enum.Font.Gotham; t.Text = text; t.PlaceholderText = ""; t.TextColor3 = getgenv().COL_TXT; t.TextSize = 11; t.ClearTextOnFocus = false; Instance.new("UICorner", t).CornerRadius = UDim.new(0, 5)
+    return t
+end
+
+getgenv().ESPSettingsFrame    = makePanel("ESPSettingsFrame", "ESP Settings", 300, 248)
+getgenv().ESPShowNamesBtn     = pBtn(ESPSettingsFrame, "ESPShowNamesBtn",    "Names: ON",       12,  40, 130, 26)
+getgenv().ESPShowDistBtn      = pBtn(ESPSettingsFrame, "ESPShowDistBtn",     "Distance: ON",   158,  40, 130, 26)
+getgenv().ESPShowBoxesBtn     = pBtn(ESPSettingsFrame, "ESPShowBoxesBtn",    "3D Boxes: ON",    12,  76, 130, 26)
+getgenv().ESP2DBoxesBtn       = pBtn(ESPSettingsFrame, "ESP2DBoxesBtn",      "2D Boxes: OFF",  158,  76, 130, 26)
+getgenv().ESPTracersBtn       = pBtn(ESPSettingsFrame, "ESPTracersBtn",      "Tracers: OFF",    12, 112, 130, 26)
+getgenv().ESPSkeletonBtn      = pBtn(ESPSettingsFrame, "ESPSkeletonBtn",     "Skeleton: OFF",  158, 112, 130, 26)
+getgenv().ESPHealthBarsBtn    = pBtn(ESPSettingsFrame, "ESPHealthBarsBtn",   "Health Bars: OFF",12, 148, 276, 26)
+getgenv().ESPDistanceLabel    = pLabel(ESPSettingsFrame, "ESPDistanceLabel", "Distance: 1000",  12, 184, 276, 24)
+getgenv().ESPDistanceSlider   = pSlider(ESPSettingsFrame, "ESPDistanceSlider",                  12, 218, 276)
+
+
+
+
+getgenv().SpeedSettingsFrame  = makePanel("SpeedSettingsFrame", "Speed Settings", 300, 100)
+getgenv().SpeedLabel          = pLabel(SpeedSettingsFrame, "SpeedLabel", "Speed Multiplier: 1.0x", 12, 40, 276, 24)
+getgenv().SpeedSlider         = pSlider(SpeedSettingsFrame, "SpeedSlider", 12, 74, 276)
+
+getgenv().FOVSettingsFrame    = makePanel("FOVSettingsFrame", "FOV Settings", 300, 100)
+getgenv().FOVLabel            = pLabel(FOVSettingsFrame, "FOVLabel", "FOV: 70°", 12, 40, 276, 24)
+getgenv().FOVSlider           = pSlider(FOVSettingsFrame, "FOVSlider", 12, 74, 276)
+
+getgenv().FollowSettingsFrame = makePanel("FollowSettingsFrame", "Follow Settings", 300, 236)
+getgenv().FollowDistanceLabel = pLabel(FollowSettingsFrame, "FollowDistLabel",   "Distance: 5",  12,  40, 130, 24)
+getgenv().FollowHeightLabel   = pLabel(FollowSettingsFrame, "FollowHeightLabel", "Height: 0",    158, 40, 130, 24)
+getgenv().FollowDistanceSlider= pSlider(FollowSettingsFrame, "FollowDistSlider",  12,  74, 130)
+getgenv().FollowHeightSlider  = pSlider(FollowSettingsFrame, "FollowHeightSlider",158, 74, 130)
+getgenv().ClickCheckBtn       = pBtn(FollowSettingsFrame, "ClickCheckBtn",   "Click Check: OFF",  12, 98,  276, 26)
+getgenv().DeathCheckBtn       = pBtn(FollowSettingsFrame, "DeathCheckBtn",   "Death Check: OFF",  12, 132, 130, 26)
+getgenv().AutoSwitchBtn       = pBtn(FollowSettingsFrame, "AutoSwitchBtn",   "Auto Switch: OFF",  158, 132, 130, 26)
+getgenv().SwitchTargetBtn     = pBtn(FollowSettingsFrame, "SwitchTargetBtn", "Switch Target",     12, 166, 276, 26)
+getgenv().PathfindBtn         = pBtn(FollowSettingsFrame, "PathfindBtn", "Pathfind Around Obstacles: OFF", 12, 200, 276, 26)
+
+getgenv().ReachSettingsFrame  = makePanel("ReachSettingsFrame", "Reach Settings", 300, 128)
+getgenv().ReachDistLabel      = pLabel(ReachSettingsFrame, "ReachDistLabel",  "Reach Distance: 15", 12, 40, 276, 24)
+getgenv().ReachDistSlider     = pSlider(ReachSettingsFrame, "ReachDistSlider", 12, 72, 276)
+getgenv().ReachVisualBtn      = pBtn(ReachSettingsFrame, "ReachVisualBtn", "Visual: ON", 12, 92, 130, 26)
+
+getgenv().HitboxSettingsFrame = makePanel("HitboxSettingsFrame", "Hitbox Settings", 300, 134)
+getgenv().HitboxSizeLabel     = pLabel(HitboxSettingsFrame, "HitboxSizeLabel",  "Hitbox Size: 10", 12, 40, 276, 24)
+getgenv().HitboxSizeSlider    = pSlider(HitboxSettingsFrame, "HitboxSizeSlider", 12, 72, 276)
+getgenv().HitboxVisualBtn     = pBtn(HitboxSettingsFrame, "HitboxVisualBtn", "Visual: ON",  12, 98, 130, 26)
+
+getgenv().FlightSettingsFrame = makePanel("FlightSettingsFrame", "Flight Settings", 300, 134)
+getgenv().FlightSpeedLabel    = pLabel(FlightSettingsFrame, "FlightSpeedLabel", "Flight Speed: 50", 12, 40, 276, 24)
+getgenv().FlightSpeedSlider   = pSlider(FlightSettingsFrame, "FlightSpeedSlider", 12, 74, 276)
+getgenv().FlightModeBtn       = pBtn(FlightSettingsFrame, "FlightModeBtn", "Mode: Hard (Noclip-like)", 12, 94, 276, 26)
+
+getgenv().InfiniteJumpSettingsFrame = makePanel("InfiniteJumpSettingsFrame", "Inf Jump Settings", 300, 100)
+getgenv().InfJumpModeBtn     = pBtn(InfiniteJumpSettingsFrame, "InfJumpModeBtn", "Mode: Instant", 12, 40, 276, 26)
+getgenv().InfJumpModeInfo    = pLabel(InfiniteJumpSettingsFrame, "InfJumpModeInfo", "Instant = every jump | Hold = hold Space", 12, 72, 276, 22)
+
+getgenv().WallhackSettingsFrame   = makePanel("WallhackSettingsFrame", "Wallhack Settings", 300, 134)
+getgenv().WallhackTranspLabel     = pLabel(WallhackSettingsFrame, "WallhackTranspLabel", "Transparency: 50%", 12, 40, 276, 24)
+getgenv().WallhackTranspSlider    = pSlider(WallhackSettingsFrame, "WallhackTranspSlider", 12, 72, 276)
+getgenv().WallhackTeamCheckBtn    = pBtn(WallhackSettingsFrame, "WallhackTeamCheckBtn", "Skip Teammates: OFF", 12, 98, 276, 26)
+
+getgenv().NoDamageSettingsFrame = makePanel("NoDamageSettingsFrame", "No Fall Damage Settings", 300, 150)
+local ndInfo = pLabel(NoDamageSettingsFrame, "NoDamageInfo", "Disable scripts whose name contains (comma-separated):", 12, 40, 276, 32)
+ndInfo.TextWrapped = true
+getgenv().NoDamagePatternsBox = pTextBox(NoDamageSettingsFrame, "NoDamagePatternsBox", table.concat(getgenv().noDamageFallPatterns or {"fall","land","ragdoll","impact","damage","velocity"}, ", "), 12, 78, 276, 26)
+getgenv().NoDamageApplyBtn    = pBtn(NoDamageSettingsFrame, "NoDamageApplyBtn", "Apply", 12, 110, 276, 26)
+
+getgenv().FreeCameraSettingsFrame = makePanel("FreeCameraSettingsFrame", "Free Camera Settings", 320, 386)
+local fcf = getgenv().FreeCameraSettingsFrame
+
+getgenv().FreeCamFlyBtn      = pBtn(fcf, "FreeCamFlyBtn",      "Free Fly",   12,  40, 88,  26)
+getgenv().FreeCamSpectateBtn = pBtn(fcf, "FreeCamSpectateBtn", "Spectate",  112,  40, 88,  26)
+getgenv().FreeCamMinimapBtn  = pBtn(fcf, "FreeCamMinimapBtn",  "Minimap",   212,  40, 88,  26)
+getgenv().FreeCamFlyBtn.BackgroundColor3 = getgenv().COL_ON
+
+getgenv().FreeCamSpeedLabel  = pLabel(fcf,  "FreeCamSpeedLabel",  "Fly Speed: 50",  12,  74, 296, 24)
+getgenv().FreeCamSpeedSlider = pSlider(fcf, "FreeCamSpeedSlider",               12, 106, 296)
+
+getgenv().FreeCamFOVLabel    = pLabel(fcf,  "FreeCamFOVLabel",    "FreeCam FOV: 70°", 12, 128, 296, 24)
+getgenv().FreeCamFOVSlider   = pSlider(fcf, "FreeCamFOVSlider",                  12, 160, 296)
+
+getgenv().FreeCamCrosshairBtn = pBtn(fcf, "FreeCamCrosshairBtn", "Crosshair: ON",  12, 182, 140, 26)
+getgenv().FreeCamRefreshBtn   = pBtn(fcf, "FreeCamRefreshBtn",   "↻ Refresh List", 164, 182, 144, 26)
+getgenv().FreeCamCrosshairBtn.BackgroundColor3 = getgenv().COL_ON  -- default ON
+
+getgenv().FreeCamCollisionBtn = pBtn(fcf, "FreeCamCollisionBtn", "Collision: OFF", 12, 216, 296, 26)
+
+local playerListLabel = pLabel(fcf, "PlayerListLbl", "— Target Player (Spectate) —", 12, 250, 296, 18)
+playerListLabel.TextColor3 = getgenv().COL_MUTE
+
+local playerScroll = Instance.new("ScrollingFrame")
+playerScroll.Name = "FreeCamPlayerList"
+playerScroll.Parent = fcf
+playerScroll.Position = UDim2.new(0, 12, 0, 272)
+playerScroll.Size = UDim2.new(0, 296, 0, 80)
+playerScroll.BackgroundColor3 = Color3.fromRGB(12, 12, 18)
+playerScroll.BorderSizePixel = 0
+playerScroll.ScrollBarThickness = 3
+playerScroll.ScrollBarImageColor3 = getgenv().COL_MUTE
+playerScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+playerScroll.Visible = true  -- FreeCamera.lua controls visibility
+Instance.new("UICorner", playerScroll).CornerRadius = UDim.new(0, 6)
+local listLayout = Instance.new("UIListLayout", playerScroll)
+listLayout.Padding = UDim.new(0, 3)
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+local fcTip = pLabel(fcf, "FreeCamTip", "[P] = quick toggle  |  Hold Shift = fly down  |  Scroll = fly speed", 12, 360, 296, 18)
+fcTip.BackgroundTransparency = 1; fcTip.TextColor3 = getgenv().COL_MUTE; fcTip.TextSize = 9
+
+getgenv().FreeCamPlayerList = playerScroll
+
+getgenv().LowGravitySettingsFrame = makePanel("LowGravitySettingsFrame", "Low Gravity Settings", 300, 100)
+getgenv().LowGravityLabel  = pLabel(LowGravitySettingsFrame, "LowGravityLabel",  "Gravity: 50",  12, 40, 276, 24)
+getgenv().LowGravitySlider = pSlider(LowGravitySettingsFrame, "LowGravitySlider", 12, 74, 276)
+
+getgenv().TeleportSettingsFrame = makePanel("TeleportSettingsFrame", "Teleport To Player", 300, 200)
+local teleportRefreshBtn = pBtn(TeleportSettingsFrame, "TeleportRefreshBtn", "Refresh List", 12, 40, 276, 26)
+getgenv().TeleportRefreshBtn = teleportRefreshBtn
+
+local tpScroll = Instance.new("ScrollingFrame")
+tpScroll.Name = "TeleportPlayerList"; tpScroll.Parent = TeleportSettingsFrame
+tpScroll.Position = UDim2.new(0, 12, 0, 74); tpScroll.Size = UDim2.new(0, 276, 0, 116)
+tpScroll.BackgroundColor3 = Color3.fromRGB(12, 12, 18); tpScroll.BorderSizePixel = 0
+tpScroll.ScrollBarThickness = 3; tpScroll.ScrollBarImageColor3 = getgenv().COL_MUTE
+tpScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+Instance.new("UICorner", tpScroll).CornerRadius = UDim.new(0, 6)
+local tpLayout = Instance.new("UIListLayout", tpScroll)
+tpLayout.Padding = UDim.new(0, 3); tpLayout.SortOrder = Enum.SortOrder.LayoutOrder
+getgenv().TeleportPlayerList = tpScroll
+
+getgenv().WaypointsSettingsFrame = makePanel("WaypointsSettingsFrame", "Saved Locations", 300, 200)
+getgenv().WaypointSaveBtn = pBtn(WaypointsSettingsFrame, "WaypointSaveBtn", "+ Save Position", 12, 40, 134, 26)
+getgenv().WaypointUndoBtn = pBtn(WaypointsSettingsFrame, "WaypointUndoBtn", "Undo Delete", 158, 40, 130, 26)
+
+local wpScroll = Instance.new("ScrollingFrame")
+wpScroll.Name = "WaypointsList"; wpScroll.Parent = WaypointsSettingsFrame
+wpScroll.Position = UDim2.new(0, 12, 0, 74); wpScroll.Size = UDim2.new(0, 276, 0, 116)
+wpScroll.BackgroundColor3 = Color3.fromRGB(12, 12, 18); wpScroll.BorderSizePixel = 0
+wpScroll.ScrollBarThickness = 3; wpScroll.ScrollBarImageColor3 = getgenv().COL_MUTE
+wpScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+Instance.new("UICorner", wpScroll).CornerRadius = UDim.new(0, 6)
+local wpLayout = Instance.new("UIListLayout", wpScroll)
+wpLayout.Padding = UDim.new(0, 3); wpLayout.SortOrder = Enum.SortOrder.LayoutOrder
+getgenv().WaypointsList = wpScroll
+
+getgenv().PowerPanel = makePanel("PowerPanel", "Weight", 200, 178)
+local pp = getgenv().PowerPanel
+getgenv().PowerValLabel = pLabel(pp, "PowerValLabel", "Density: 0.7 (Normal)", 12, 40, 176, 20)
+
+local psb = Instance.new("Frame")
+psb.Name = "PowerSliderBg"; psb.Parent = pp
+psb.BackgroundColor3 = getgenv().COL_BAR; psb.BorderSizePixel = 0
+psb.Position = UDim2.new(0, 12, 0, 70); psb.Size = UDim2.new(0, 176, 0, 6)
+Instance.new("UICorner", psb).CornerRadius = UDim.new(0, 3)
+getgenv().PowerSliderBg = psb
+
+local psf = Instance.new("Frame")
+psf.Name = "PowerSliderFill"; psf.Parent = psb
+psf.BackgroundColor3 = getgenv().COL_ON; psf.BorderSizePixel = 0
+psf.Size = UDim2.new(0.7, 0, 1, 0)
+Instance.new("UICorner", psf).CornerRadius = UDim.new(0, 3)
+getgenv().PowerSliderFill = psf
+
+local psbt = Instance.new("TextButton")
+psbt.Name = "PowerSliderBtn"; psbt.Parent = psb
+psbt.BackgroundColor3 = Color3.new(1,1,1); psbt.BorderSizePixel = 0
+psbt.Size = UDim2.new(0, 14, 0, 18); psbt.Position = UDim2.new(0.7, -7, 0.5, -9)
+psbt.Text = ""; psbt.ZIndex = 2
+Instance.new("UICorner", psbt).CornerRadius = UDim.new(0, 7)
+getgenv().PowerSliderBtn = psbt
+
+getgenv().PowerResetBtn = pBtn(pp, "PowerResetBtn", "Reset", 12, 95, 176, 30)
+getgenv().NoclipPresetBtn = pBtn(pp, "NoclipPresetBtn", "Preset: Both", 12, 133, 176, 30)
+
+getgenv().HideAllPanels = function()
+    local panels = {
+        getgenv().ESPSettingsFrame, getgenv().SpeedSettingsFrame, getgenv().FOVSettingsFrame,
+        getgenv().FollowSettingsFrame, getgenv().ReachSettingsFrame, getgenv().HitboxSettingsFrame,
+        getgenv().FlightSettingsFrame, getgenv().InfiniteJumpSettingsFrame, getgenv().WallhackSettingsFrame,
+        getgenv().FreeCameraSettingsFrame, getgenv().LowGravitySettingsFrame,
+        getgenv().TeleportSettingsFrame, getgenv().WaypointsSettingsFrame, getgenv().PowerPanel,
+        getgenv().NoDamageSettingsFrame
+    }
+    for _, p in pairs(panels) do
+        if p and typeof(p) == "Instance" and p:IsA("Frame") then
+            p.Visible = false
+        end
+    end
+end
+
+getgenv().TogglePanel = function(target)
+    if not target or typeof(target) ~= "Instance" then return end
+    local newState = not target.Visible
+    getgenv().HideAllPanels()
+    target.Visible = newState
+end
+
+getgenv().ToggleUI = function()
+    if not getgenv().MainFrame then return end
+    getgenv().MainFrame.Visible = not getgenv().MainFrame.Visible
+    if not getgenv().MainFrame.Visible then
+        getgenv().HideAllPanels()
+    end
+end
+
+local function setToggleButton(button, label, enabled)
+    if not button then return end
+    button.Text = label .. (enabled and "ON" or "OFF")
+    button.BackgroundColor3 = enabled and getgenv().COL_ON or getgenv().COL_OFF
+end
+
+local function ensureSliderFill(slider)
+    if not slider then return nil end
+    local fill = slider:FindFirstChild("Fill")
+    if not fill then
+        fill = Instance.new("Frame")
+        fill.Name = "Fill"
+        fill.Parent = slider
+        fill.BackgroundColor3 = Color3.fromRGB(80, 200, 120)
+        fill.BorderSizePixel = 0
+        Instance.new("UICorner", fill).CornerRadius = UDim.new(0, 10)
+    end
+    return fill
+end
+
+local function setSliderVisual(slider, ratio)
+    local fill = ensureSliderFill(slider)
+    if fill then
+        fill.Size = UDim2.new(math.clamp(ratio or 0, 0, 1), 0, 1, 0)
+    end
+end
+
+getgenv().UpdatePowerPanelVisual = function(density)
+    local value = math.clamp(tonumber(density) or 0.7, 0, 50)
+    getgenv().noclipDensity = value
+    if getgenv().PowerSliderFill then
+        getgenv().PowerSliderFill.Size = UDim2.new(value / 50, 0, 1, 0)
+    end
+    if getgenv().PowerSliderBtn then
+        getgenv().PowerSliderBtn.Position = UDim2.new(value / 50, -7, 0.5, -9)
+    end
+    if getgenv().PowerValLabel then
+        if value <= 0.1 then
+            getgenv().PowerValLabel.Text = "Density: 0 (Reset)"
+        elseif value < 1 then
+            getgenv().PowerValLabel.Text = string.format("Density: %.2f", value)
+        else
+            getgenv().PowerValLabel.Text = "Density: " .. tostring(math.floor(value + 0.5))
+        end
+    end
+end
+
+getgenv().BindPanelButton = function(button, panel)
+    if not button or not panel then return end
+    local lastOpenAt = 0
+    local function openPanel()
+        local now = os.clock()
+        if now - lastOpenAt < 0.12 then return end
+        lastOpenAt = now
+        if getgenv().scriptEnabled and getgenv().TogglePanel then
+            getgenv().TogglePanel(panel)
+        end
+    end
+    button.MouseButton2Click:Connect(openPanel)
+    button.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton2 then
+            openPanel()
+        end
+    end)
+end
+
+getgenv().RefreshUIState = function()
+    setToggleButton(getgenv().FlightButton, "Flight: ", getgenv().flightEnabled)
+    setToggleButton(getgenv().WallhackButton, "Wallhack: ", getgenv().wallhackEnabled)
+    setToggleButton(getgenv().ESPButton, "ESP: ", getgenv().espEnabled)
+    setToggleButton(getgenv().SpeedButton, "Speed: ", getgenv().speedhackEnabled)
+    setToggleButton(getgenv().NoclipButton, "Noclip: ", getgenv().noclipEnabled)
+    setToggleButton(getgenv().InfiniteJumpButton, "Inf Jump: ", getgenv().infiniteJumpEnabled)
+    setToggleButton(getgenv().FullbrightButton, "Fullbright: ", getgenv().fullbrightEnabled)
+    setToggleButton(getgenv().FOVButton, "FOV: ", getgenv().fovChangerEnabled)
+    setToggleButton(getgenv().ShiftLockButton, "Shift Lock: ", getgenv().shiftLockDisabled)
+    setToggleButton(getgenv().CtrlLockButton, "Ctrl Lock (R): ", getgenv().ctrlLockDisabled)
+    setToggleButton(getgenv().FollowButton, "Follow: ", getgenv().followEnabled)
+    setToggleButton(getgenv().HitboxButton, "Hitbox: ", getgenv().hitboxEnabled)
+    setToggleButton(getgenv().ReachButton, "Reach: ", getgenv().reachEnabled)
+    setToggleButton(getgenv().NoDamageButton, "No Fall: ", getgenv().noDamageEnabled)
+    setToggleButton(getgenv().FreeCameraButton, "FreeCam: ", getgenv().freeCamEnabled)
+    setToggleButton(getgenv().LowGravityButton, "Low Gravity: ", getgenv().lowGravityEnabled)
+    setToggleButton(getgenv().FreezeSelfButton, "Freeze Self: ", getgenv().freezeSelfEnabled)
+
+    setToggleButton(getgenv().DeathCheckBtn, "Death Check: ", getgenv().deathCheckEnabled)
+    setToggleButton(getgenv().AutoSwitchBtn, "Auto Switch: ", getgenv().autoSwitchEnabled)
+    setToggleButton(getgenv().ClickCheckBtn, "Click Check: ", getgenv().clickCheckEnabled)
+    setToggleButton(getgenv().PathfindBtn, "Pathfind Around Obstacles: ", getgenv().followUsePathfinding)
+    setToggleButton(getgenv().ReachVisualBtn, "Visual: ", getgenv().reachVisual)
+    setToggleButton(getgenv().HitboxVisualBtn, "Visual: ", getgenv().hitboxVisual)
+    setToggleButton(getgenv().WallhackTeamCheckBtn, "Skip Teammates: ", getgenv().wallhackTeamCheck)
+    setToggleButton(getgenv().ESPShowNamesBtn, "Names: ", getgenv().espShowNames)
+    setToggleButton(getgenv().ESPShowDistBtn, "Distance: ", getgenv().espShowDistance)
+    setToggleButton(getgenv().ESPShowBoxesBtn, "3D Boxes: ", getgenv().espShowBoxes)
+    setToggleButton(getgenv().ESP2DBoxesBtn, "2D Boxes: ", getgenv().espUse2DBoxes)
+    setToggleButton(getgenv().ESPTracersBtn, "Tracers: ", getgenv().espShowTracers)
+    setToggleButton(getgenv().ESPSkeletonBtn, "Skeleton: ", getgenv().espShowSkeleton)
+    setToggleButton(getgenv().ESPHealthBarsBtn, "Health Bars: ", getgenv().espShowHealthBars)
+    setToggleButton(getgenv().FreeCamCollisionBtn, "Collision: ", getgenv().freeCamCollision)
+
+    if getgenv().InfJumpModeBtn then
+        local modeText = getgenv().infJumpHoldMode and "Hold" or "Instant"
+        getgenv().InfJumpModeBtn.Text = "Mode: " .. modeText
+        getgenv().InfJumpModeBtn.BackgroundColor3 = getgenv().infJumpHoldMode and getgenv().COL_ON or getgenv().COL_OFF
+    end
+    if getgenv().FlightModeBtn then
+        getgenv().FlightModeBtn.Text = "Mode: " .. (getgenv().flightSoftMode and "Soft (Collides)" or "Hard (Noclip-like)")
+        getgenv().FlightModeBtn.BackgroundColor3 = getgenv().flightSoftMode and getgenv().COL_ON or getgenv().COL_OFF
+    end
+    if getgenv().FreeCamCrosshairBtn then
+        getgenv().FreeCamCrosshairBtn.Text = "Crosshair: " .. (getgenv().freeCamShowCrosshair and "ON" or "OFF")
+        getgenv().FreeCamCrosshairBtn.BackgroundColor3 = getgenv().freeCamShowCrosshair and getgenv().COL_ON or getgenv().COL_OFF
+    end
+    if getgenv().FreeCamFlyBtn and getgenv().FreeCamSpectateBtn and getgenv().FreeCamMinimapBtn then
+        getgenv().FreeCamFlyBtn.BackgroundColor3 = getgenv().freeCamMode == "fly" and getgenv().COL_ON or getgenv().COL_OFF
+        getgenv().FreeCamSpectateBtn.BackgroundColor3 = getgenv().freeCamMode == "spectate" and getgenv().COL_ON or getgenv().COL_OFF
+        getgenv().FreeCamMinimapBtn.BackgroundColor3 = getgenv().freeCamMode == "minimap" and getgenv().COL_ON or getgenv().COL_OFF
+    end
+
+    if getgenv().SpeedLabel then
+        getgenv().SpeedLabel.Text = string.format("Speed Multiplier: %.1fx", getgenv().speedMultiplier or 1)
+    end
+    if getgenv().FOVLabel then
+        getgenv().FOVLabel.Text = "FOV: " .. tostring(math.floor((getgenv().currentFOV or 70) + 0.5)) .. "°"
+    end
+    if getgenv().FollowDistanceLabel then
+        getgenv().FollowDistanceLabel.Text = "Distance: " .. tostring(math.floor((getgenv().followDistance or 5) + 0.5))
+    end
+    if getgenv().FollowHeightLabel then
+        getgenv().FollowHeightLabel.Text = string.format("Height: %.1f", getgenv().followHeight or 0)
+    end
+    if getgenv().ReachDistLabel then
+        getgenv().ReachDistLabel.Text = "Reach Distance: " .. tostring(math.floor((getgenv().reachDistance or 15) + 0.5))
+    end
+    if getgenv().HitboxSizeLabel then
+        getgenv().HitboxSizeLabel.Text = "Hitbox Size: " .. tostring(math.floor((getgenv().hitboxSize or 10) + 0.5))
+    end
+    if getgenv().FlightSpeedLabel then
+        getgenv().FlightSpeedLabel.Text = "Flight Speed: " .. tostring(math.floor((getgenv().flightSpeed or 50) + 0.5))
+    end
+    if getgenv().ESPDistanceLabel then
+        getgenv().ESPDistanceLabel.Text = "Distance: " .. tostring(math.floor((getgenv().espDrawDistance or 1000) + 0.5))
+    end
+    if getgenv().WallhackTranspLabel then
+        getgenv().WallhackTranspLabel.Text = "Transparency: " .. tostring(math.floor((getgenv().wallhackTransparency or 0.5) * 100 + 0.5)) .. "%"
+    end
+    if getgenv().FreeCamSpeedLabel then
+        getgenv().FreeCamSpeedLabel.Text = "Fly Speed: " .. tostring(math.floor((getgenv().freeCamSpeed or 50) + 0.5))
+    end
+    if getgenv().FreeCamFOVLabel then
+        getgenv().FreeCamFOVLabel.Text = "FreeCam FOV: " .. tostring(math.floor((getgenv().freeCamFOV or 70) + 0.5)) .. "°"
+    end
+    if getgenv().LowGravityLabel then
+        getgenv().LowGravityLabel.Text = "Gravity: " .. tostring(math.floor((getgenv().lowGravityValue or 50) + 0.5))
+    end
+
+    setSliderVisual(getgenv().SpeedSlider, ((getgenv().speedMultiplier or 1) - 0.5) / 9.5)
+    setSliderVisual(getgenv().FOVSlider, ((getgenv().currentFOV or 70) - 20) / 100)
+    setSliderVisual(getgenv().FollowDistanceSlider, ((getgenv().followDistance or 5) - 1) / 20)
+    setSliderVisual(getgenv().FollowHeightSlider, ((getgenv().followHeight or 0) + 5) / 10)
+    setSliderVisual(getgenv().ReachDistSlider, ((getgenv().reachDistance or 15) - 5) / 45)
+    setSliderVisual(getgenv().HitboxSizeSlider, ((getgenv().hitboxSize or 10) - 4) / 26)
+    setSliderVisual(getgenv().FlightSpeedSlider, ((getgenv().flightSpeed or 50) - 10) / 1490)
+    setSliderVisual(getgenv().ESPDistanceSlider, ((getgenv().espDrawDistance or 1000) - 100) / 29900)
+    setSliderVisual(getgenv().WallhackTranspSlider, ((getgenv().wallhackTransparency or 0.5) - 0.1) / 0.8)
+    setSliderVisual(getgenv().FreeCamSpeedSlider, ((getgenv().freeCamSpeed or 50) - 5) / 295)
+    setSliderVisual(getgenv().FreeCamFOVSlider, ((getgenv().freeCamFOV or 70) - 20) / 100)
+    setSliderVisual(getgenv().LowGravitySlider, ((getgenv().lowGravityValue or 50) - 5) / 195)
+    getgenv().UpdatePowerPanelVisual(getgenv().noclipDensity or 0.7)
+end
