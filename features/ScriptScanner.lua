@@ -153,6 +153,32 @@ local function scanScripts()
                     toggle.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
                 end
             end)
+
+            local decompBtn = Instance.new("TextButton")
+            decompBtn.Parent = row
+            decompBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 54)
+            decompBtn.BorderSizePixel = 0
+            decompBtn.Position = UDim2.new(1, -112, 0.5, -10)
+            decompBtn.Size = UDim2.new(0, 50, 0, 20)
+            decompBtn.Font = Enum.Font.GothamBold
+            decompBtn.Text = "Copy"
+            decompBtn.TextColor3 = Color3.new(1,1,1)
+            decompBtn.TextSize = 10
+            Instance.new("UICorner", decompBtn).CornerRadius = UDim.new(0, 4)
+
+            decompBtn.MouseButton1Click:Connect(function()
+                if typeof(decompile) == "function" and typeof(setclipboard) == "function" then
+                    local success, source = pcall(decompile, scr)
+                    if success and type(source) == "string" then
+                        setclipboard(source)
+                        if getgenv().Utils then getgenv().Utils:Notify("Scanner", "Copied source to clipboard!", Color3.fromRGB(80, 200, 120)) end
+                    else
+                        if getgenv().Utils then getgenv().Utils:Notify("Scanner", "Decompile failed/protected.", Color3.fromRGB(200, 50, 50)) end
+                    end
+                else
+                    if getgenv().Utils then getgenv().Utils:Notify("Scanner", "Your executor doesn't support decompiling.", Color3.fromRGB(200, 50, 50)) end
+                end
+            end)
         end
 
         -- Update scrolling frame size
