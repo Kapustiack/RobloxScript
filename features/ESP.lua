@@ -142,6 +142,12 @@ local function updateESP()
                     else
                         local nameL = env.ScreenGui:FindFirstChild(p.Name.."_Name")
                         if nameL then nameL.Visible = false end
+                        local distL = env.ScreenGui:FindFirstChild(p.Name.."_Distance")
+                        if distL then distL.Visible = false end
+                        local b2d = env.ScreenGui:FindFirstChild(p.Name.."_2DBox")
+                        if b2d then b2d.Visible = false end
+                        local b3d = env.ESPContainer:FindFirstChild(p.Name.."_Box")
+                        if b3d then b3d.Visible = false end
                         local d = drawObjects[p.Name]; if d then if d.tracer then d.tracer.Visible = false end; if d.hpBg then d.hpBg.Visible = false end; if d.hpFill then d.hpFill.Visible = false end; if d.skeleton then for _,l in pairs(d.skeleton) do l.Visible=false end end end
                     end
                 else clearESPForPlayer(p) end

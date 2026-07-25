@@ -191,12 +191,15 @@ local function scanScripts()
             end
         end
 
-        -- Normal scan (LocalPlayer Roots only as requested)
-        local roots = {LocalPlayer:FindFirstChild("PlayerScripts"), LocalPlayer:FindFirstChild("PlayerGui"), LocalPlayer:FindFirstChild("Backpack"), LocalPlayer.Character}
+        -- Normal scan
+        local roots = {LocalPlayer, LocalPlayer.Character, workspace, game:GetService("ReplicatedStorage"), game:GetService("ReplicatedFirst")}
         for _, root in ipairs(roots) do
             if root then
-                for _, desc in ipairs(root:GetDescendants()) do
-                    checkAndAdd(desc)
+                local success, descs = pcall(function() return root:GetDescendants() end)
+                if success then
+                    for _, desc in ipairs(descs) do
+                        checkAndAdd(desc)
+                    end
                 end
             end
         end
@@ -225,91 +228,83 @@ local function scanScripts()
         for i, scr in ipairs(scriptsFound) do
             if i % 15 == 0 then task.wait() end -- Yield during UI creation
             
-            local row = Instance.new("Frame")
-            row.Name = "Row_" .. scr.Name
-            row.Parent = listFrame
-            row.BackgroundColor3 = Color3.fromRGB(16, 16, 24)
-            row.BorderSizePixel = 0
-            row.Size = UDim2.new(1, 0, 0, 42)
-            Instance.new("UICorner", row).CornerRadius = UDim.new(0, 5)
+            pcall(function()
+                local row = Instance.new("Frame")
+                row.Name = "Row_" .. scr.Name
+                row.BackgroundColor3 = Color3.fromRGB(16, 16, 24)
+                row.BorderSizePixel = 0
+                row.Size = UDim2.new(1, 0, 0, 42)
+                Instance.new("UICorner", row).CornerRadius = UDim.new(0, 5)
 
-            local label = Instance.new("TextLabel")
-            label.Parent = row
-            label.BackgroundTransparency = 1
-            label.Position = UDim2.new(0, 8, 0, 4)
-            label.Size = UDim2.new(1, -70, 0, 16)
-            label.Font = Enum.Font.Gotham
-            label.Text = getScriptPath(scr)
-            label.TextColor3 = getgenv().COL_TXT
-            label.TextSize = 11
-            label.TextXAlignment = Enum.TextXAlignment.Left
-            label.TextTruncate = Enum.TextTruncate.AtEnd
-            
-            local catLabel = Instance.new("TextLabel")
-            catLabel.Parent = row
-            catLabel.BackgroundTransparency = 1
-            catLabel.Position = UDim2.new(0, 8, 0, 22)
-            catLabel.Size = UDim2.new(1, -70, 0, 14)
-            catLabel.Font = Enum.Font.Gotham
-            
-            local catStr = guessCategory(scr.Name)
-            if scr.ClassName == "Script" then
-                catStr = "[Server Script] " .. catStr
-            end
-            catLabel.Text = "Category: " .. catStr
-            catLabel.TextColor3 = scr.ClassName == "Script" and Color3.fromRGB(200, 100, 100) or Color3.fromRGB(130, 130, 170)
-            catLabel.TextSize = 10
-            catLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-            local toggle = Instance.new("TextButton")
-            toggle.Parent = row
-            toggle.BackgroundColor3 = scr.Disabled and getgenv().COL_OFF or getgenv().COL_ON
-            toggle.BorderSizePixel = 0
-            toggle.Position = UDim2.new(1, -58, 0.5, -10)
-            toggle.Size = UDim2.new(0, 50, 0, 20)
-            toggle.Font = Enum.Font.GothamBold
-            toggle.Text = scr.Disabled and "OFF" or "ON"
-            toggle.TextColor3 = Color3.new(1,1,1)
-            toggle.TextSize = 10
-            Instance.new("UICorner", toggle).CornerRadius = UDim.new(0, 4)
-
-            toggle.MouseButton1Click:Connect(function()
-                local success = pcall(function()
-                    scr.Disabled = not scr.Disabled
-                    toggle.Text = scr.Disabled and "OFF" or "ON"
-                    toggle.BackgroundColor3 = scr.Disabled and getgenv().COL_OFF or getgenv().COL_ON
-                end)
-                if not success then
-                    toggle.Text = "ERR"
-                    toggle.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+                local label = Instance.new("TextLabel")
+                label.Parent = row
+                label.BackgroundTransparency = 1
+                label.Position = UDim2.new(0, 8, 0, 4)
+                label.Size = UDim2.new(1, -70, 0, 16)
+                label.Font = Enum.Font.Gotham
+                label.Text = getScriptPath(scr)
+                label.TextColor3 = getgenv().COL_TXT
+                label.TextSize = 11
+                label.TextXAlignment = Enum.TextXAlignment.Left
+                label.TextTruncate = Enum.TextTruncate.AtEnd
+                
+                local catLabel = Instance.new("TextLabel")
+                catLabel.Parent = row
+                catLabel.BackgroundTransparency = 1
+                catLabel.Position = UDim2.new(0, 8, 0, 22)
+                catLabel.Size = UDim2.new(1, -70, 0, 14)
+                catLabel.Font = Enum.Font.Gotham
+                
+                local catStr = guessCategory(scr.Name)
+                if scr.ClassName == "Script" then
+                    catStr = "[Server Script] " .. catStr
                 end
-            end)
+                catLabel.Text = "Category: " .. catStr
+                catLabel.TextColor3 = scr.ClassName == "Script" and Color3.fromRGB(200, 100, 100) or Color3.fromRGB(130, 130, 170)
+                catLabel.TextSize = 10
+                catLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-            local hasSettings = false
-            if scr:IsA("ModuleScript") then hasSettings = true end
-            for _, c in ipairs(scr:GetDescendants()) do if c:IsA("ValueBase") then hasSettings = true; break end end
+                local toggle = Instance.new("TextButton")
+                toggle.Parent = row
+                toggle.BackgroundColor3 = scr.Disabled and getgenv().COL_OFF or getgenv().COL_ON
+                toggle.BorderSizePixel = 0
+                toggle.Position = UDim2.new(1, -58, 0.5, -10)
+                toggle.Size = UDim2.new(0, 50, 0, 20)
+                toggle.Font = Enum.Font.GothamBold
+                toggle.Text = scr.Disabled and "OFF" or "ON"
+                toggle.TextColor3 = Color3.new(1,1,1)
+                toggle.TextSize = 10
+                Instance.new("UICorner", toggle).CornerRadius = UDim.new(0, 4)
 
-            if hasSettings then
-                local settingsBtn = Instance.new("TextButton")
-                settingsBtn.Parent = row
-                settingsBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 54)
-                settingsBtn.BorderSizePixel = 0
-                settingsBtn.Position = UDim2.new(1, -120, 0.5, -10)
-                settingsBtn.Size = UDim2.new(0, 58, 0, 20)
-                settingsBtn.Font = Enum.Font.GothamBold
-                settingsBtn.Text = "Settings"
-                settingsBtn.TextColor3 = Color3.new(1,1,1)
-                settingsBtn.TextSize = 10
-                Instance.new("UICorner", settingsBtn).CornerRadius = UDim.new(0, 4)
-
-                settingsBtn.MouseButton1Click:Connect(function()
-                    buildDynamicSettings(scr)
-                    if getgenv().TogglePanel and getgenv().DynamicSettingsPanel then
-                        getgenv().HideAllPanels()
-                        getgenv().DynamicSettingsPanel.Visible = true
+                toggle.MouseButton1Click:Connect(function()
+                    local success = pcall(function()
+                        scr.Disabled = not scr.Disabled
+                        toggle.Text = scr.Disabled and "OFF" or "ON"
+                        toggle.BackgroundColor3 = scr.Disabled and getgenv().COL_OFF or getgenv().COL_ON
+                    end)
+                    if not success then
+                        toggle.Text = "ERR"
+                        toggle.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
                     end
                 end)
-            end
+
+                local hasSettings = false
+                if scr:IsA("ModuleScript") then hasSettings = true end
+                for _, c in ipairs(scr:GetDescendants()) do if c:IsA("ValueBase") then hasSettings = true; break end end
+
+                if hasSettings then
+                    toggle.MouseButton2Click:Connect(function()
+                        pcall(buildDynamicSettings, scr)
+                        if getgenv().TogglePanel and getgenv().DynamicSettingsPanel then
+                            getgenv().HideAllPanels()
+                            getgenv().DynamicSettingsPanel.Visible = true
+                        end
+                    end)
+                end
+                
+                -- Only parent it to the list if everything succeeded without erroring
+                row.Parent = listFrame
+            end)
         end
 
         -- Update scrolling frame size
