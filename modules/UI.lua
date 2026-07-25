@@ -47,7 +47,7 @@ Instance.new("UICorner", SearchBox).CornerRadius = UDim.new(0, 5)
 
 local ContentScroll = Instance.new("ScrollingFrame")
 getgenv().ContentScroll = ContentScroll
-ContentScroll.Name = "ContentScroll"; ContentScroll.Parent = MainFrame; ContentScroll.BackgroundTransparency = 1; ContentScroll.BorderSizePixel = 0; ContentScroll.Position = UDim2.new(0, 0, 0, 60); ContentScroll.Size = UDim2.new(1, 0, 1, -60); ContentScroll.ScrollBarThickness = 3; ContentScroll.ScrollBarImageColor3 = getgenv().COL_MUTE; ContentScroll.ScrollingDirection = Enum.ScrollingDirection.Y; ContentScroll.CanvasSize = UDim2.new(0, 0, 0, 0); ContentScroll.AutomaticCanvasSize = Enum.AutomaticCanvasSize.Y
+ContentScroll.Name = "ContentScroll"; ContentScroll.Parent = MainFrame; ContentScroll.BackgroundTransparency = 1; ContentScroll.BorderSizePixel = 0; ContentScroll.Position = UDim2.new(0, 0, 0, 60); ContentScroll.Size = UDim2.new(1, 0, 1, -60); ContentScroll.ScrollBarThickness = 3; ContentScroll.ScrollBarImageColor3 = getgenv().COL_MUTE; ContentScroll.ScrollingDirection = Enum.ScrollingDirection.Y; ContentScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 
 local mainPadding = Instance.new("UIPadding", ContentScroll)
 mainPadding.PaddingLeft = UDim.new(0, 12); mainPadding.PaddingRight = UDim.new(0, 12)
@@ -57,9 +57,11 @@ local mainListLayout = Instance.new("UIListLayout", ContentScroll)
 mainListLayout.Padding = UDim.new(0, 8)
 mainListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
-mainListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+local function updateMainScroll()
     ContentScroll.CanvasSize = UDim2.new(0, 0, 0, mainListLayout.AbsoluteContentSize.Y + 24)
-end)
+end
+mainListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateMainScroll)
+updateMainScroll()
 
 -- Collapsible category system: each category is a header (click to
 -- expand/collapse) plus a body Frame using a UIGridLayout for its buttons.
@@ -87,16 +89,17 @@ local function makeCategory(title)
     body.Name = title .. "Body"; body.Parent = ContentScroll
     body.BackgroundTransparency = 1
     body.Size = UDim2.new(0, CAT_BODY_WIDTH, 0, 0)
-    body.AutomaticSize = Enum.AutomaticSize.Y
     body.LayoutOrder = order + 1
     local grid = Instance.new("UIGridLayout", body)
     grid.CellSize = UDim2.new(0, CAT_CELL_W, 0, CAT_CELL_H)
     grid.CellPadding = UDim2.new(0, CAT_CELL_GAP, 0, CAT_CELL_GAP)
     grid.SortOrder = Enum.SortOrder.LayoutOrder
 
-    grid:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    local function updateBodySize()
         body.Size = UDim2.new(0, CAT_BODY_WIDTH, 0, grid.AbsoluteContentSize.Y)
-    end)
+    end
+    grid:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateBodySize)
+    updateBodySize()
 
     local cat = {header = header, body = body, expanded = true}
     table.insert(categoryList, cat)
