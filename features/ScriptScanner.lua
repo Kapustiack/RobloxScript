@@ -27,14 +27,65 @@ end
 
 local function guessCategory(name)
     local n = string.lower(name)
-    if string.find(n, "walk") or string.find(n, "run") or string.find(n, "dash") or string.find(n, "speed") or string.find(n, "move") or string.find(n, "stamina") then return "Movement" end
-    if string.find(n, "combat") or string.find(n, "hit") or string.find(n, "punch") or string.find(n, "sword") or string.find(n, "gun") or string.find(n, "shoot") or string.find(n, "damage") then return "Combat" end
+    if string.find(n, "walk") or string.find(n, "run") or string.find(n, "dash") or string.find(n, "speed") or string.find(n, "move") or string.find(n, "stamina") then return "Important" end
+    if string.find(n, "combat") or string.find(n, "hit") or string.find(n, "punch") or string.find(n, "sword") or string.find(n, "gun") or string.find(n, "shoot") or string.find(n, "damage") then return "Important" end
+    if string.find(n, "health") or string.find(n, "hp") or string.find(n, "heal") or string.find(n, "regen") then return "Important" end
+    if string.find(n, "anti") or string.find(n, "cheat") or string.find(n, "kick") or string.find(n, "ban") then return "Security / Anti-Cheat" end
     if string.find(n, "camera") or string.find(n, "cam") or string.find(n, "view") then return "Camera" end
     if string.find(n, "ui") or string.find(n, "gui") or string.find(n, "hud") or string.find(n, "menu") then return "Interface" end
-    if string.find(n, "anti") or string.find(n, "cheat") or string.find(n, "kick") or string.find(n, "ban") then return "Security / Anti-Cheat" end
     if string.find(n, "fall") or string.find(n, "ragdoll") or string.find(n, "physics") then return "Physics" end
-    if string.find(n, "health") or string.find(n, "hp") or string.find(n, "heal") or string.find(n, "regen") then return "Health" end
-    return "Unknown Utility"
+    return "Other Scripts"
+end
+
+local categoryContainers = {}
+local function makeCategoryHeader(title)
+    if categoryContainers[title] then return categoryContainers[title] end
+    
+    local header = Instance.new("TextButton")
+    header.Name = "Header_" .. title
+    header.Parent = listFrame
+    header.BackgroundColor3 = Color3.fromRGB(24, 24, 32)
+    header.BorderSizePixel = 0
+    header.Size = UDim2.new(1, 0, 0, 26)
+    header.Font = Enum.Font.GothamBold
+    header.Text = "  ▼ " .. title
+    header.TextColor3 = getgenv().COL_TXT
+    header.TextSize = 12
+    header.TextXAlignment = Enum.TextXAlignment.Left
+    Instance.new("UICorner", header).CornerRadius = UDim.new(0, 4)
+    
+    local body = Instance.new("Frame")
+    body.Name = "Body_" .. title
+    body.Parent = listFrame
+    body.BackgroundTransparency = 1
+    body.Size = UDim2.new(1, 0, 0, 0)
+    
+    local grid = Instance.new("UIListLayout")
+    grid.Parent = body
+    grid.Padding = UDim.new(0, 3)
+    grid.SortOrder = Enum.SortOrder.LayoutOrder
+    
+    local function updateBodySize()
+        if body.Visible then
+            body.Size = UDim2.new(1, 0, 0, grid.AbsoluteContentSize.Y)
+        else
+            body.Size = UDim2.new(1, 0, 0, 0)
+        end
+        local layout = listFrame:FindFirstChildOfClass("UIListLayout")
+        if layout then listFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10) end
+    end
+    grid:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateBodySize)
+    
+    local expanded = true
+    header.MouseButton1Click:Connect(function()
+        expanded = not expanded
+        body.Visible = expanded
+        header.Text = "  " .. (expanded and "▼ " or "▶ ") .. title
+        updateBodySize()
+    end)
+    
+    categoryContainers[title] = body
+    return body
 end
 
 local function buildDynamicSettings(scr)
@@ -170,10 +221,11 @@ local function scanScripts()
     task.spawn(function()
         -- Clear old list
         for _, child in ipairs(listFrame:GetChildren()) do
-            if child:IsA("Frame") then
+            if child:IsA("Frame") or child:IsA("TextButton") then
                 child:Destroy()
             end
         end
+        categoryContainers = {}
 
         local scriptsFound = {}
         local addedMap = {}
@@ -225,10 +277,17 @@ local function scanScripts()
         scanBtn.Text = "Scanning... (90%)"
 
         -- Populate UI
+        makeCategoryHeader("Important")
+        makeCategoryHeader("Security / Anti-Cheat")
+        makeCategoryHeader("Other Scripts")
+        
         for i, scr in ipairs(scriptsFound) do
             if i % 15 == 0 then task.wait() end -- Yield during UI creation
             
             pcall(function()
+                local catStr = guessCategory(scr.Name)
+                local body = makeCategoryHeader(catStr)
+                
                 local row = Instance.new("Frame")
                 row.Name = "Row_" .. scr.Name
                 row.BackgroundColor3 = Color3.fromRGB(16, 16, 24)
@@ -293,19 +352,29 @@ local function scanScripts()
                 for _, c in ipairs(scr:GetDescendants()) do if c:IsA("ValueBase") then hasSettings = true; break end end
 
                 if hasSettings then
-                    toggle.InputBegan:Connect(function(input)
-                        if input.UserInputType == Enum.UserInputType.MouseButton2 then
-                            pcall(buildDynamicSettings, scr)
-                            if getgenv().TogglePanel and getgenv().DynamicSettingsPanel then
-                                getgenv().HideAllPanels()
-                                getgenv().DynamicSettingsPanel.Visible = true
-                            end
+                    local settingsBtn = Instance.new("TextButton")
+                    settingsBtn.Parent = row
+                    settingsBtn.BackgroundColor3 = Color3.fromRGB(38, 38, 54)
+                    settingsBtn.BorderSizePixel = 0
+                    settingsBtn.Position = UDim2.new(1, -120, 0.5, -10)
+                    settingsBtn.Size = UDim2.new(0, 58, 0, 20)
+                    settingsBtn.Font = Enum.Font.GothamBold
+                    settingsBtn.Text = "Settings"
+                    settingsBtn.TextColor3 = Color3.new(1,1,1)
+                    settingsBtn.TextSize = 10
+                    Instance.new("UICorner", settingsBtn).CornerRadius = UDim.new(0, 4)
+
+                    settingsBtn.MouseButton1Click:Connect(function()
+                        pcall(buildDynamicSettings, scr)
+                        if getgenv().TogglePanel and getgenv().DynamicSettingsPanel then
+                            getgenv().HideAllPanels()
+                            getgenv().DynamicSettingsPanel.Visible = true
                         end
                     end)
                 end
                 
-                -- Only parent it to the list if everything succeeded without erroring
-                row.Parent = listFrame
+                -- Only parent it to the category body if everything succeeded without erroring
+                row.Parent = body
             end)
         end
 
@@ -323,17 +392,27 @@ scanBtn.MouseButton1Click:Connect(scanScripts)
 
 searchBox:GetPropertyChangedSignal("Text"):Connect(function()
     local query = string.lower(searchBox.Text)
-    for _, row in ipairs(listFrame:GetChildren()) do
-        if row:IsA("Frame") then
-            local label = row:FindFirstChildOfClass("TextLabel")
-            if label then
-                if query == "" or string.find(string.lower(label.Text), query, 1, true) then
-                    row.Visible = true
-                else
-                    row.Visible = false
+    for title, body in pairs(categoryContainers) do
+        local anyVisible = false
+        for _, row in ipairs(body:GetChildren()) do
+            if row:IsA("Frame") then
+                local label = row:FindFirstChildOfClass("TextLabel")
+                if label then
+                    if query == "" or string.find(string.lower(label.Text), query, 1, true) then
+                        row.Visible = true
+                        anyVisible = true
+                    else
+                        row.Visible = false
+                    end
                 end
             end
         end
+        -- Hide category completely if search filters everything out
+        local header = listFrame:FindFirstChild("Header_" .. title)
+        if header then
+            header.Visible = (query == "" or anyVisible)
+        end
+        body.Visible = (query == "" and true or anyVisible)
     end
     -- Re-adjust canvas size
     local layout = listFrame:FindFirstChildOfClass("UIListLayout")

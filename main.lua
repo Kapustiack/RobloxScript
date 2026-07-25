@@ -61,6 +61,8 @@ local function loadRemote(path, index)
             pcall(function() content = readfile(path) end)
         elseif isfile("RobloxScript/" .. path) then
             pcall(function() content = readfile("RobloxScript/" .. path) end)
+        elseif isfile("RobloxScript-main/" .. path) then
+            pcall(function() content = readfile("RobloxScript-main/" .. path) end)
         end
     end
     if not content or content == "" then
