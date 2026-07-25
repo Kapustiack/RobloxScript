@@ -27,14 +27,14 @@ end
 
 local function guessCategory(name)
     local n = string.lower(name)
-    if string.find(n, "walk") or string.find(n, "run") or string.find(n, "dash") or string.find(n, "speed") or string.find(n, "move") or string.find(n, "stamina") then return "Important" end
-    if string.find(n, "combat") or string.find(n, "hit") or string.find(n, "punch") or string.find(n, "sword") or string.find(n, "gun") or string.find(n, "shoot") or string.find(n, "damage") then return "Important" end
-    if string.find(n, "health") or string.find(n, "hp") or string.find(n, "heal") or string.find(n, "regen") then return "Important" end
-    if string.find(n, "anti") or string.find(n, "cheat") or string.find(n, "kick") or string.find(n, "ban") then return "Security / Anti-Cheat" end
-    if string.find(n, "camera") or string.find(n, "cam") or string.find(n, "view") then return "Camera" end
-    if string.find(n, "ui") or string.find(n, "gui") or string.find(n, "hud") or string.find(n, "menu") then return "Interface" end
-    if string.find(n, "fall") or string.find(n, "ragdoll") or string.find(n, "physics") then return "Physics" end
-    return "Other Scripts"
+    if string.find(n, "walk") or string.find(n, "run") or string.find(n, "dash") or string.find(n, "speed") or string.find(n, "move") or string.find(n, "stamina") then return "Important", "Movement" end
+    if string.find(n, "combat") or string.find(n, "hit") or string.find(n, "punch") or string.find(n, "sword") or string.find(n, "gun") or string.find(n, "shoot") or string.find(n, "damage") then return "Important", "Combat" end
+    if string.find(n, "health") or string.find(n, "hp") or string.find(n, "heal") or string.find(n, "regen") then return "Important", "Health" end
+    if string.find(n, "anti") or string.find(n, "cheat") or string.find(n, "kick") or string.find(n, "ban") then return "Security / Anti-Cheat", "Security" end
+    if string.find(n, "camera") or string.find(n, "cam") or string.find(n, "view") then return "Camera", "Camera" end
+    if string.find(n, "ui") or string.find(n, "gui") or string.find(n, "hud") or string.find(n, "menu") then return "Interface", "Interface" end
+    if string.find(n, "fall") or string.find(n, "ragdoll") or string.find(n, "physics") then return "Physics", "Physics" end
+    return "Other Scripts", "Unknown Utility"
 end
 
 local categoryContainers = {}
@@ -285,8 +285,8 @@ local function scanScripts()
             if i % 15 == 0 then task.wait() end -- Yield during UI creation
             
             pcall(function()
-                local catStr = guessCategory(scr.Name)
-                local body = makeCategoryHeader(catStr)
+                local catHeader, catSub = guessCategory(scr.Name)
+                local body = makeCategoryHeader(catHeader)
                 
                 local row = Instance.new("Frame")
                 row.Name = "Row_" .. scr.Name
@@ -314,11 +314,10 @@ local function scanScripts()
                 catLabel.Size = UDim2.new(1, -70, 0, 14)
                 catLabel.Font = Enum.Font.Gotham
                 
-                local catStr = guessCategory(scr.Name)
                 if scr.ClassName == "Script" then
-                    catStr = "[Server Script] " .. catStr
+                    catSub = "[Server Script] " .. catSub
                 end
-                catLabel.Text = "Category: " .. catStr
+                catLabel.Text = "Category: " .. catSub
                 catLabel.TextColor3 = scr.ClassName == "Script" and Color3.fromRGB(200, 100, 100) or Color3.fromRGB(130, 130, 170)
                 catLabel.TextSize = 10
                 catLabel.TextXAlignment = Enum.TextXAlignment.Left
