@@ -183,7 +183,7 @@ local function scanScripts()
             checks = checks + 1
             if checks % 100 == 0 then task.wait() end -- Yield to prevent freezing
             
-            if (obj:IsA("LocalScript") or obj:IsA("ModuleScript")) and not obj:IsDescendantOf(game:GetService("CoreGui")) then
+            if (obj:IsA("LocalScript") or obj:IsA("ModuleScript") or obj:IsA("Script")) and not obj:IsDescendantOf(game:GetService("CoreGui")) then
                 if not addedMap[obj] then
                     addedMap[obj] = true
                     table.insert(scriptsFound, obj)
@@ -213,7 +213,7 @@ local function scanScripts()
         pcall(function()
             if typeof(getnilinstances) == "function" then
                 for _, inst in ipairs(getnilinstances()) do
-                    if (inst:IsA("LocalScript") or inst:IsA("ModuleScript")) then
+                    if (inst:IsA("LocalScript") or inst:IsA("ModuleScript") or inst:IsA("Script")) then
                         checkAndAdd(inst)
                     end
                 end
@@ -251,8 +251,13 @@ local function scanScripts()
             catLabel.Position = UDim2.new(0, 8, 0, 22)
             catLabel.Size = UDim2.new(1, -70, 0, 14)
             catLabel.Font = Enum.Font.Gotham
-            catLabel.Text = "Category: " .. guessCategory(scr.Name)
-            catLabel.TextColor3 = Color3.fromRGB(130, 130, 170)
+            
+            local catStr = guessCategory(scr.Name)
+            if scr.ClassName == "Script" then
+                catStr = "[Server Script] " .. catStr
+            end
+            catLabel.Text = "Category: " .. catStr
+            catLabel.TextColor3 = scr.ClassName == "Script" and Color3.fromRGB(200, 100, 100) or Color3.fromRGB(130, 130, 170)
             catLabel.TextSize = 10
             catLabel.TextXAlignment = Enum.TextXAlignment.Left
 
