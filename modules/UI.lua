@@ -412,6 +412,19 @@ local ssLayout = Instance.new("UIListLayout", ssScroll)
 ssLayout.Padding = UDim.new(0, 3); ssLayout.SortOrder = Enum.SortOrder.LayoutOrder
 getgenv().ScriptScannerList = ssScroll
 
+local DynamicSettingsPanel = makePanel("DynamicSettingsPanel", "Script Settings", 340, 300)
+getgenv().DynamicSettingsPanel = DynamicSettingsPanel
+local dsScroll = Instance.new("ScrollingFrame")
+dsScroll.Name = "DynamicSettingsScroll"; dsScroll.Parent = DynamicSettingsPanel
+dsScroll.Position = UDim2.new(0, 12, 0, 40); dsScroll.Size = UDim2.new(0, 316, 0, 248)
+dsScroll.BackgroundColor3 = Color3.fromRGB(12, 12, 18); dsScroll.BorderSizePixel = 0
+dsScroll.ScrollBarThickness = 3; dsScroll.ScrollBarImageColor3 = getgenv().COL_MUTE
+dsScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+Instance.new("UICorner", dsScroll).CornerRadius = UDim.new(0, 6)
+local dsLayout = Instance.new("UIListLayout", dsScroll)
+dsLayout.Padding = UDim.new(0, 6); dsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+getgenv().DynamicSettingsScroll = dsScroll
+
 getgenv().HideAllPanels = function()
     local panels = {
         getgenv().ESPSettingsFrame, getgenv().SpeedSettingsFrame, getgenv().FOVSettingsFrame,
@@ -419,7 +432,7 @@ getgenv().HideAllPanels = function()
         getgenv().FlightSettingsFrame, getgenv().InfiniteJumpSettingsFrame, getgenv().WallhackSettingsFrame,
         getgenv().FreeCameraSettingsFrame, getgenv().LowGravitySettingsFrame,
         getgenv().TeleportSettingsFrame, getgenv().WaypointsSettingsFrame, getgenv().PowerPanel,
-        getgenv().NoDamageSettingsFrame, getgenv().ScriptScannerSettingsFrame
+        getgenv().NoDamageSettingsFrame, getgenv().ScriptScannerSettingsFrame, getgenv().DynamicSettingsPanel
     }
     for _, p in pairs(panels) do
         if p and typeof(p) == "Instance" and p:IsA("Frame") then
