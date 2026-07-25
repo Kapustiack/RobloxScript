@@ -1,3 +1,0 @@
--- [[ FULLBRIGHT — Fully wired, 1:1 from rb.lua ]]
--- Note: Full implementation is in features/Misc.lua which also handles the button connection.
--- This file is kept as a stub so loadRemote("features/Fullbright.lua") doesn't fail.

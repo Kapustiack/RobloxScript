@@ -1,3 +1,0 @@
--- [[ FOV CHANGER — Fully wired, 1:1 from rb.lua ]]
--- Note: FOV button logic is in features/Misc.lua.
--- This file is kept as a stub so loadRemote("features/FOVChanger.lua") doesn't fail.

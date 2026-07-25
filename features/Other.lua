@@ -1,8 +1,0 @@
--- [[ OTHER — Cleaned of duplicates. Contains ONLY what isn't covered elsewhere.
---    Flight -> features/Flight.lua
---    NoDamage -> features/NoDamage.lua
---    Noclip -> features/Noclip.lua
---    InfiniteJump -> features/InfiniteJump.lua
--- ]]
--- This file intentionally left empty after consolidation.
--- All features are now properly implemented in their own files.
