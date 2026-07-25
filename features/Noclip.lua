@@ -389,7 +389,7 @@ local function setNoclipEnabled(enabled)
 end
 
 if getgenv().NoclipBtnConn then getgenv().NoclipBtnConn:Disconnect() end
-getgenv().NoclipBtnConn = getgenv().NoclipButton.MouseButton1Down:Connect(function()
+getgenv().NoclipBtnConn = getgenv().NoclipButton.MouseButton1Click:Connect(function()
     if not getgenv().scriptEnabled then return end
     setNoclipEnabled(not getgenv().noclipEnabled)
 end)

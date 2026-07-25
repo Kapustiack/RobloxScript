@@ -141,7 +141,7 @@ local function startFollow(targetPlayer)
     end)
 end
 
-getgenv().FollowButton.MouseButton1Down:Connect(function()
+getgenv().FollowButton.MouseButton1Click:Connect(function()
     if not getgenv().scriptEnabled then return end
     if getgenv().followEnabled then
         stopFollow()
@@ -164,7 +164,7 @@ getgenv().FollowButton.MouseButton1Down:Connect(function()
         if nearestPlayer then
             getgenv().followEnabled = true
             getgenv().FollowButton.Text = "Follow: ON"
-            getgenv().FollowButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+            getgenv().FollowButton.BackgroundColor3 = getgenv().COL_ON
             startFollow(nearestPlayer)
             if getgenv().Utils and getgenv().Utils.Notify then
                 getgenv().Utils:Notify("Follow", "Now following " .. nearestPlayer.Name, Color3.fromRGB(0, 255, 0))

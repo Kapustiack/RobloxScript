@@ -45,15 +45,13 @@ local function scanScripts()
         end
     end
 
-    -- Normal scan
-    local roots = {LocalPlayer:FindFirstChild("PlayerScripts"), LocalPlayer:FindFirstChild("PlayerGui"), LocalPlayer:FindFirstChild("Backpack"), LocalPlayer.Character}
-    for _, root in ipairs(roots) do
-        if root then
-            for _, desc in ipairs(root:GetDescendants()) do
-                checkAndAdd(desc)
-            end
+    -- Normal scan (Entire Game DataModel)
+    local function scanGame()
+        for _, desc in ipairs(game:GetDescendants()) do
+            checkAndAdd(desc)
         end
     end
+    pcall(scanGame)
 
     -- Advanced exploit scans if available
     pcall(function()
@@ -67,6 +65,13 @@ local function scanScripts()
                 if (inst:IsA("LocalScript") or inst:IsA("ModuleScript")) then
                     checkAndAdd(inst)
                 end
+            end
+        end
+    end)
+    pcall(function()
+        if typeof(getloadedmodules) == "function" then
+            for _, mod in ipairs(getloadedmodules()) do
+                checkAndAdd(mod)
             end
         end
     end)
