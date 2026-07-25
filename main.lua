@@ -40,7 +40,7 @@ local Percent = Instance.new("TextLabel")
 Percent.Name = "Percent"; Percent.Parent = Main; Percent.BackgroundTransparency = 1; Percent.Position = UDim2.new(0, 10, 0, 72); Percent.Size = UDim2.new(1, -20, 0, 18); Percent.Font = Enum.Font.Gotham; Percent.Text = "0%"; Percent.TextColor3 = Color3.fromRGB(120, 120, 130); Percent.TextSize = 10; Percent.TextXAlignment = Enum.TextXAlignment.Right
 
 local baseUrl = "https://raw.githubusercontent.com/Kapustiack/RobloxScript/main/"
-local totalFiles = 21
+local totalFiles = 22
 local loadedCount = 0
 
 local function updateLoader(path, count, isError)
@@ -104,7 +104,8 @@ local files = {
     "features/InfiniteJump.lua", "features/NoDamage.lua", "features/Hitbox.lua",
     "features/Reach.lua", "features/Follow.lua", "features/ESP.lua", "features/Speed.lua",
     "features/Misc.lua", "features/FreeCamera.lua", "features/LowGravity.lua",
-    "features/FreezeSelf.lua", "features/TeleportToPlayer.lua", "features/Waypoints.lua"
+    "features/FreezeSelf.lua", "features/TeleportToPlayer.lua", "features/Waypoints.lua",
+    "features/ScriptScanner.lua"
 }
 
 for i, path in ipairs(files) do

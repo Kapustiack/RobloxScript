@@ -155,6 +155,7 @@ getgenv().ExportButton       = catBtn(catUtility, "ExportButton",       "Export 
 getgenv().ImportButton       = catBtn(catUtility, "ImportButton",       "Import Config")
 getgenv().RejoinButton       = catBtn(catUtility, "RejoinButton",       "Rejoin Server")
 getgenv().JoinInstanceButton = catBtn(catUtility, "JoinInstanceButton", "Join Instance")
+getgenv().ScriptScannerButton  = catBtn(catUtility, "ScriptScannerBtn", "Script Scanner")
 
 local TipLabel = Instance.new("TextLabel")
 getgenv().TipLabel = TipLabel
@@ -392,6 +393,25 @@ getgenv().PowerSliderBtn = psbt
 getgenv().PowerResetBtn = pBtn(pp, "PowerResetBtn", "Reset", 12, 95, 176, 30)
 getgenv().NoclipPresetBtn = pBtn(pp, "NoclipPresetBtn", "Preset: Both", 12, 133, 176, 30)
 
+local ScriptScannerSettingsFrame = makePanel("ScriptScannerSettingsFrame", "Script Scanner", 360, 300)
+getgenv().ScriptScannerSettingsFrame = ScriptScannerSettingsFrame
+
+local ssf = ScriptScannerSettingsFrame
+getgenv().ScriptScannerScanBtn = pBtn(ssf, "ScriptScannerScanBtn", "Scan Scripts", 12, 40, 160, 26)
+getgenv().ScriptScannerSearchBox = pTextBox(ssf, "ScriptScannerSearchBox", "", 184, 40, 164, 26)
+getgenv().ScriptScannerSearchBox.PlaceholderText = "Search scripts..."
+
+local ssScroll = Instance.new("ScrollingFrame")
+ssScroll.Name = "ScriptScannerList"; ssScroll.Parent = ssf
+ssScroll.Position = UDim2.new(0, 12, 0, 74); ssScroll.Size = UDim2.new(0, 336, 0, 214)
+ssScroll.BackgroundColor3 = Color3.fromRGB(12, 12, 18); ssScroll.BorderSizePixel = 0
+ssScroll.ScrollBarThickness = 3; ssScroll.ScrollBarImageColor3 = getgenv().COL_MUTE
+ssScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+Instance.new("UICorner", ssScroll).CornerRadius = UDim.new(0, 6)
+local ssLayout = Instance.new("UIListLayout", ssScroll)
+ssLayout.Padding = UDim.new(0, 3); ssLayout.SortOrder = Enum.SortOrder.LayoutOrder
+getgenv().ScriptScannerList = ssScroll
+
 getgenv().HideAllPanels = function()
     local panels = {
         getgenv().ESPSettingsFrame, getgenv().SpeedSettingsFrame, getgenv().FOVSettingsFrame,
@@ -399,7 +419,7 @@ getgenv().HideAllPanels = function()
         getgenv().FlightSettingsFrame, getgenv().InfiniteJumpSettingsFrame, getgenv().WallhackSettingsFrame,
         getgenv().FreeCameraSettingsFrame, getgenv().LowGravitySettingsFrame,
         getgenv().TeleportSettingsFrame, getgenv().WaypointsSettingsFrame, getgenv().PowerPanel,
-        getgenv().NoDamageSettingsFrame
+        getgenv().NoDamageSettingsFrame, getgenv().ScriptScannerSettingsFrame
     }
     for _, p in pairs(panels) do
         if p and typeof(p) == "Instance" and p:IsA("Frame") then

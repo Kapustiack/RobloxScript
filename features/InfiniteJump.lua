@@ -34,11 +34,14 @@ local function applyInfJump()
             if input.KeyCode == Enum.KeyCode.Space then holding = false end
         end)
     else
-        getgenv().infiniteJumpConnection = UserInputService.JumpRequest:Connect(function()
-            if not getgenv().infiniteJumpEnabled or not getgenv().scriptEnabled then return end
-            local char = LocalPlayer.Character
-            local hum = char and char:FindFirstChildOfClass("Humanoid")
-            if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+        getgenv().infiniteJumpConnection = UserInputService.InputBegan:Connect(function(input, gp)
+            if gp then return end
+            if input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.ButtonA then
+                if not getgenv().infiniteJumpEnabled or not getgenv().scriptEnabled then return end
+                local char = LocalPlayer.Character
+                local hum = char and char:FindFirstChildOfClass("Humanoid")
+                if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+            end
         end)
     end
 end
