@@ -1,3 +1,11 @@
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
+local Players = game:GetService("Players")
+while not Players.LocalPlayer do
+    task.wait(0.1)
+end
+
 local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
 local lastGUI = CoreGui:FindFirstChild("CheatGUI")
