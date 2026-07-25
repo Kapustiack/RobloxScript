@@ -293,11 +293,13 @@ local function scanScripts()
                 for _, c in ipairs(scr:GetDescendants()) do if c:IsA("ValueBase") then hasSettings = true; break end end
 
                 if hasSettings then
-                    toggle.MouseButton2Click:Connect(function()
-                        pcall(buildDynamicSettings, scr)
-                        if getgenv().TogglePanel and getgenv().DynamicSettingsPanel then
-                            getgenv().HideAllPanels()
-                            getgenv().DynamicSettingsPanel.Visible = true
+                    toggle.InputBegan:Connect(function(input)
+                        if input.UserInputType == Enum.UserInputType.MouseButton2 then
+                            pcall(buildDynamicSettings, scr)
+                            if getgenv().TogglePanel and getgenv().DynamicSettingsPanel then
+                                getgenv().HideAllPanels()
+                                getgenv().DynamicSettingsPanel.Visible = true
+                            end
                         end
                     end)
                 end

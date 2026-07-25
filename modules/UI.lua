@@ -514,10 +514,9 @@ getgenv().BindPanelButton = function(button, panel)
             getgenv().TogglePanel(panel)
         end
     end
-    button.MouseButton1Click:Connect(openPanel)
-    button.MouseButton2Click:Connect(openPanel)
+    
     button.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton2 or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if input.UserInputType == Enum.UserInputType.MouseButton2 then
             openPanel()
         end
     end)
