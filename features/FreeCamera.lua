@@ -172,6 +172,13 @@ end
 
 local function startFreeFly()
     savedCamType = Camera.CameraType
+    
+    -- Sync initial position and rotation to the current camera
+    freeCamCF = Camera.CFrame
+    local rx, ry, rz = freeCamCF:ToEulerAnglesYXZ()
+    pitchRad = rx
+    yawRad = ry
+    
     blockMovement(); freezeChar(true); startDeltaAccum()
     Camera.CameraType = Enum.CameraType.Scriptable
     if S("freeCamShowCrosshair") then createCrosshair() end
