@@ -45,7 +45,7 @@ end
 local function getDrawObj(name)
     if not drawObjects[name] then
         local skeletonLines = {}
-        for _ = 1, #SKELETON_BONES do table.insert(skeletonLines, newLine(Color3.fromRGB(60,220,120), 1)) end
+        for _ = 1, #SKELETON_BONES_R15 do table.insert(skeletonLines, newLine(Color3.fromRGB(60,220,120), 1)) end
         drawObjects[name] = {
             tracer = newLine(Color3.fromRGB(220,60,60), 1),
             hpBg = newLine(Color3.fromRGB(30,30,30), 4),
