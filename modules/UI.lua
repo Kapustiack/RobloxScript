@@ -211,7 +211,7 @@ local function pTextBox(par, name, text, x, y, w, h)
     return t
 end
 
-local ESPSettingsFrame = makePanel("ESPSettingsFrame", "ESP Settings", 300, 248)
+local ESPSettingsFrame = makePanel("ESPSettingsFrame", "ESP Settings", 300, 284)
 getgenv().ESPSettingsFrame = ESPSettingsFrame
 getgenv().ESPShowNamesBtn     = pBtn(ESPSettingsFrame, "ESPShowNamesBtn",    "Names: ON",       12,  40, 130, 26)
 getgenv().ESPShowDistBtn      = pBtn(ESPSettingsFrame, "ESPShowDistBtn",     "Distance: ON",   158,  40, 130, 26)
@@ -220,8 +220,10 @@ getgenv().ESP2DBoxesBtn       = pBtn(ESPSettingsFrame, "ESP2DBoxesBtn",      "2D
 getgenv().ESPTracersBtn       = pBtn(ESPSettingsFrame, "ESPTracersBtn",      "Tracers: OFF",    12, 112, 130, 26)
 getgenv().ESPSkeletonBtn      = pBtn(ESPSettingsFrame, "ESPSkeletonBtn",     "Skeleton: OFF",  158, 112, 130, 26)
 getgenv().ESPHealthBarsBtn    = pBtn(ESPSettingsFrame, "ESPHealthBarsBtn",   "Health Bars: OFF",12, 148, 276, 26)
-getgenv().ESPDistanceLabel    = pLabel(ESPSettingsFrame, "ESPDistanceLabel", "Distance: 1000",  12, 184, 276, 24)
-getgenv().ESPDistanceSlider   = pSlider(ESPSettingsFrame, "ESPDistanceSlider",                  12, 218, 276)
+getgenv().ESPTeamCheckBtn     = pBtn(ESPSettingsFrame, "ESPTeamCheckBtn",    "Team Check: OFF", 12, 184, 276, 26)
+getgenv().ESPDistanceLabel    = pLabel(ESPSettingsFrame, "ESPDistanceLabel", "Distance: 1000",  12, 220, 276, 24)
+getgenv().ESPDistanceSlider   = pSlider(ESPSettingsFrame, "ESPDistanceSlider",                  12, 254, 276)
+
 
 local SpeedSettingsFrame = makePanel("SpeedSettingsFrame", "Speed Settings", 300, 100)
 getgenv().SpeedSettingsFrame = SpeedSettingsFrame

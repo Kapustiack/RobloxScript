@@ -22,13 +22,25 @@ local function removeDraw(name)
     drawObjects[name] = nil
 end
 
-local SKELETON_BONES = {
+local SKELETON_BONES_R15 = {
     {"Head", "UpperTorso"}, {"UpperTorso", "LowerTorso"},
     {"UpperTorso", "LeftUpperArm"}, {"LeftUpperArm", "LeftLowerArm"}, {"LeftLowerArm", "LeftHand"},
     {"UpperTorso", "RightUpperArm"}, {"RightUpperArm", "RightLowerArm"}, {"RightLowerArm", "RightHand"},
     {"LowerTorso", "LeftUpperLeg"}, {"LeftUpperLeg", "LeftLowerLeg"}, {"LeftLowerLeg", "LeftFoot"},
     {"LowerTorso", "RightUpperLeg"}, {"RightUpperLeg", "RightLowerLeg"}, {"RightLowerLeg", "RightFoot"},
 }
+local SKELETON_BONES_R6 = {
+    {"Head", "Torso"},
+    {"Torso", "Left Arm"}, {"Torso", "Right Arm"},
+    {"Torso", "Left Leg"}, {"Torso", "Right Leg"},
+}
+
+local function getPlayerColor(p)
+    if getgenv().espTeamCheck and p.Team and LocalPlayer.Team and p.Team == LocalPlayer.Team then
+        return Color3.fromRGB(60, 120, 255)
+    end
+    return Color3.fromRGB(220, 60, 60)
+end
 
 local function getDrawObj(name)
     if not drawObjects[name] then
@@ -53,7 +65,7 @@ local function createESP(player)
     local hrp = char.HumanoidRootPart
 
     local box = getgenv().ESPContainer:FindFirstChild(player.Name.."_Box") or Instance.new("BoxHandleAdornment")
-    box.Name = player.Name.."_Box"; box.Parent = getgenv().ESPContainer; box.Size = Vector3.new(4,5,2); box.Color3 = Color3.fromRGB(220,60,60); box.Transparency = 0.65; box.AlwaysOnTop = true; box.ZIndex = 10; box.Adornee = hrp; box.Visible = getgenv().espShowBoxes and not getgenv().espUse2DBoxes
+    box.Name = player.Name.."_Box"; box.Parent = getgenv().ESPContainer; box.Size = Vector3.new(4,5,2); box.Transparency = 0.65; box.AlwaysOnTop = true; box.ZIndex = 10; box.Adornee = hrp; box.Visible = getgenv().espShowBoxes and not getgenv().espUse2DBoxes
 
     local nameL = getgenv().ScreenGui:FindFirstChild(player.Name.."_Name") or Instance.new("TextLabel")
     nameL.Name = player.Name.."_Name"; nameL.Parent = getgenv().ScreenGui; nameL.BackgroundTransparency = 0.5; nameL.BackgroundColor3 = Color3.new(0,0,0); nameL.TextColor3 = Color3.new(1,1,1); nameL.Font = Enum.Font.GothamBold; nameL.TextSize = 14; nameL.Size = UDim2.new(0,100,0,20); nameL.AnchorPoint = Vector2.new(0.5,1); nameL.Visible = false
@@ -104,24 +116,29 @@ local function updateESP()
                 local dist = (hrp.Position - myHRP.Position).Magnitude
                 if dist <= drawDist then
                     local scrC, onScreen = Camera:WorldToViewportPoint(hrp.Position)
-                    if onScreen then
-                        local hum = char:FindFirstChildOfClass("Humanoid")
-                        local scrH = Camera:WorldToViewportPoint(hrp.Position + Vector3.new(0,3,0))
-                        local scrF = Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0,3,0))
+                    local hum = char:FindFirstChildOfClass("Humanoid")
+                    local scrH = Camera:WorldToViewportPoint(hrp.Position + Vector3.new(0,3,0))
+                    local scrF = Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0,3,0))
+                    
+                    if onScreen and scrH.Z > 0 and scrF.Z > 0 then
                         local boxH = math.abs(scrH.Y - scrF.Y); local boxW = math.max(boxH*0.5, 20)
                         local cX, tY = scrC.X, math.min(scrH.Y, scrF.Y)
                         local nameL = env.ScreenGui:FindFirstChild(p.Name.."_Name")
                         if not nameL and i >= processIndex and i <= pEnd then createESP(p); nameL = env.ScreenGui:FindFirstChild(p.Name.."_Name") end
 
                         if nameL then
+                            local pColor = getPlayerColor(p)
                             local distL = env.ScreenGui:FindFirstChild(p.Name.."_Distance"); local b2d = env.ScreenGui:FindFirstChild(p.Name.."_2DBox"); local b3d = env.ESPContainer:FindFirstChild(p.Name.."_Box")
-                            nameL.Position = UDim2.new(0, cX, 0, tY - 2); nameL.Visible = showNames; if showNames then nameL.Text = p.Name end
-                            if distL then distL.Position = UDim2.new(0, cX, 0, tY + boxH + 2); distL.Visible = showDist; if showDist then distL.Text = math.floor(dist).." studs" end end
-                            if b2d then b2d.Position = UDim2.new(0, cX - boxW/2, 0, tY); b2d.Size = UDim2.new(0, boxW, 0, boxH); b2d.Visible = use2D end
-                            if b3d then b3d.Visible = showBoxes and not use2D end
+                            nameL.Position = UDim2.new(0, cX, 0, tY - 2); nameL.Visible = showNames; if showNames then nameL.Text = p.Name; nameL.TextColor3 = pColor end
+                            if distL then distL.Position = UDim2.new(0, cX, 0, tY + boxH + 2); distL.Visible = showDist; if showDist then distL.Text = math.floor(dist).." studs"; distL.TextColor3 = pColor end end
+                            if b2d then
+                                b2d.Position = UDim2.new(0, cX - boxW/2, 0, tY); b2d.Size = UDim2.new(0, boxW, 0, boxH); b2d.Visible = use2D
+                                for _, c in ipairs(b2d:GetChildren()) do if c:IsA("Frame") then c.BackgroundColor3 = pColor end end
+                            end
+                            if b3d then b3d.Visible = showBoxes and not use2D; b3d.Color3 = pColor end
                             if hasDrawing then
                                 local d = getDrawObj(p.Name)
-                                if showTracer and d.tracer then d.tracer.Visible = true; d.tracer.From = Vector2.new(vp.X/2, vp.Y); d.tracer.To = Vector2.new(cX, tY + boxH) elseif d.tracer then d.tracer.Visible = false end
+                                if showTracer and d.tracer then d.tracer.Visible = true; d.tracer.From = Vector2.new(vp.X/2, vp.Y); d.tracer.To = Vector2.new(cX, tY + boxH); d.tracer.Color = pColor elseif d.tracer then d.tracer.Visible = false end
                                 if showHP and hum and d.hpBg and d.hpFill then
                                     local pct = math.clamp(hum.Health / math.max(hum.MaxHealth, 1), 0, 1)
                                     local barX = cX - boxW/2 - 5
@@ -129,13 +146,16 @@ local function updateESP()
                                     d.hpFill.Visible = true; d.hpFill.Color = healthColor(pct); d.hpFill.From = Vector2.new(barX, tY+boxH); d.hpFill.To = Vector2.new(barX, tY+boxH - (boxH*pct))
                                 elseif d.hpBg then d.hpBg.Visible = false; d.hpFill.Visible = false end
                                 if showSkel and d.skeleton then
-                                    for sIdx, pair in ipairs(SKELETON_BONES) do
+                                    local isR6 = char:FindFirstChild("Torso") ~= nil
+                                    local bones = isR6 and SKELETON_BONES_R6 or SKELETON_BONES_R15
+                                    for sIdx, pair in ipairs(bones) do
                                         local pA, pB = char:FindFirstChild(pair[1]), char:FindFirstChild(pair[2]); local ln = d.skeleton[sIdx]
                                         if ln and pA and pB then
                                             local sA, oA = Camera:WorldToViewportPoint(pA.Position); local sB, oB = Camera:WorldToViewportPoint(pB.Position)
-                                            if oA and oB and sA.Z > 0 and sB.Z > 0 then ln.Visible = true; ln.From = Vector2.new(sA.X, sA.Y); ln.To = Vector2.new(sB.X, sB.Y) else ln.Visible = false end
+                                            if oA and oB and sA.Z > 0 and sB.Z > 0 then ln.Visible = true; ln.From = Vector2.new(sA.X, sA.Y); ln.To = Vector2.new(sB.X, sB.Y); ln.Color = pColor else ln.Visible = false end
                                         elseif ln then ln.Visible = false end
                                     end
+                                    for sIdx = #bones + 1, #d.skeleton do if d.skeleton[sIdx] then d.skeleton[sIdx].Visible = false end end
                                 elseif d.skeleton then for _,l in pairs(d.skeleton) do l.Visible = false end end
                             end
                         end
@@ -172,7 +192,7 @@ local function mkESPToggle(btn, key, label)
         getgenv()[key] = not getgenv()[key]; b.Text = label .. (getgenv()[key] and "ON" or "OFF"); b.BackgroundColor3 = getgenv()[key] and getgenv().COL_ON or getgenv().COL_OFF
     end)
 end
-mkESPToggle("ESPShowNamesBtn", "espShowNames", "Names: "); mkESPToggle("ESPShowDistBtn", "espShowDistance", "Distance: "); mkESPToggle("ESPShowBoxesBtn", "espShowBoxes", "3D Boxes: "); mkESPToggle("ESP2DBoxesBtn", "espUse2DBoxes", "2D Boxes: "); mkESPToggle("ESPTracersBtn", "espShowTracers", "Tracers: "); mkESPToggle("ESPSkeletonBtn", "espShowSkeleton", "Skeleton: "); mkESPToggle("ESPHealthBarsBtn", "espShowHealthBars", "Health Bars: ")
+mkESPToggle("ESPShowNamesBtn", "espShowNames", "Names: "); mkESPToggle("ESPShowDistBtn", "espShowDistance", "Distance: "); mkESPToggle("ESPShowBoxesBtn", "espShowBoxes", "3D Boxes: "); mkESPToggle("ESP2DBoxesBtn", "espUse2DBoxes", "2D Boxes: "); mkESPToggle("ESPTracersBtn", "espShowTracers", "Tracers: "); mkESPToggle("ESPSkeletonBtn", "espShowSkeleton", "Skeleton: "); mkESPToggle("ESPHealthBarsBtn", "espShowHealthBars", "Health Bars: "); mkESPToggle("ESPTeamCheckBtn", "espTeamCheck", "Team Check: ")
 
 -- Expose the Drawing-object cleanup so main.lua's PlayerRemoving handler can
 -- reach it. Drawing.new() objects aren't Instances parented to ScreenGui, so
