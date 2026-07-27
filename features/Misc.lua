@@ -125,15 +125,24 @@ end)
 local function applyTinySize()
     local char = LocalPlayer.Character
     if not char then return end
-    local hum = char:FindFirstChildOfClass("Humanoid")
-    if not hum then return end
     
-    local vals = {"BodyHeightScale", "BodyWidthScale", "BodyDepthScale", "HeadScale"}
-    for _, vName in ipairs(vals) do
-        local val = hum:FindFirstChild(vName)
-        if val and val:IsA("NumberValue") then
-            val.Value = 0.02
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    local scaledValues = false
+    
+    if hum then
+        local vals = {"BodyHeightScale", "BodyWidthScale", "BodyDepthScale", "HeadScale"}
+        for _, vName in ipairs(vals) do
+            local val = hum:FindFirstChild(vName)
+            if val and val:IsA("NumberValue") then
+                val.Value = 0.02
+                scaledValues = true
+            end
         end
+    end
+    
+    -- Fallback/Alternative method if NumberValues aren't working or missing
+    if not scaledValues and typeof(char.ScaleTo) == "function" then
+        pcall(function() char:ScaleTo(0.02) end)
     end
 end
 
@@ -147,17 +156,24 @@ end
 local function disableTinySize()
     if getgenv().tinySizeLoop then getgenv().tinySizeLoop:Disconnect(); getgenv().tinySizeLoop = nil end
     local char = LocalPlayer.Character
-    if char then
-        local hum = char:FindFirstChildOfClass("Humanoid")
-        if hum then
-            local vals = {"BodyHeightScale", "BodyWidthScale", "BodyDepthScale", "HeadScale"}
-            for _, vName in ipairs(vals) do
-                local val = hum:FindFirstChild(vName)
-                if val and val:IsA("NumberValue") then
-                    val.Value = 1
-                end
+    if not char then return end
+    
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    local scaledValues = false
+    
+    if hum then
+        local vals = {"BodyHeightScale", "BodyWidthScale", "BodyDepthScale", "HeadScale"}
+        for _, vName in ipairs(vals) do
+            local val = hum:FindFirstChild(vName)
+            if val and val:IsA("NumberValue") then
+                val.Value = 1
+                scaledValues = true
             end
         end
+    end
+    
+    if not scaledValues and typeof(char.ScaleTo) == "function" then
+        pcall(function() char:ScaleTo(1) end)
     end
 end
 
