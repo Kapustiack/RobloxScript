@@ -93,7 +93,17 @@ local function startFollow(targetPlayer)
         end
         lastTargetVel = targetVel
 
-        local desiredCF = targetHRP.CFrame * CFrame.new(0, getgenv().followHeight, getgenv().followDistance)
+        local isUnder = getgenv().followUnderneath
+        local desiredCF
+        if isUnder then
+            desiredCF = CFrame.new(targetHRP.Position - Vector3.new(0, getgenv().followDistance, 0))
+            desiredCF = CFrame.new(desiredCF.Position, desiredCF.Position + targetHRP.CFrame.LookVector)
+            for _, p in ipairs(char:GetDescendants()) do
+                if p:IsA("BasePart") then p.CanCollide = false end
+            end
+        else
+            desiredCF = targetHRP.CFrame * CFrame.new(0, getgenv().followHeight, getgenv().followDistance)
+        end
         local desiredPos = desiredCF.Position; local toTarget = desiredPos - myHRP.Position
         local movingAway = targetSpeed > 3 and toTarget.Magnitude > 0.1 and targetVel:Dot(toTarget.Unit) > 2
         if movingAway then
@@ -101,7 +111,11 @@ local function startFollow(targetPlayer)
             local pred = math.min(targetSpeed * predT, 5)
             local accelPred = accel * (0.5 * predT * predT)
             desiredPos = desiredPos + targetVel.Unit * pred + accelPred
-            desiredCF = CFrame.new(desiredPos, desiredPos - targetHRP.CFrame.LookVector)
+            if isUnder then
+                desiredCF = CFrame.new(desiredPos, desiredPos + targetHRP.CFrame.LookVector)
+            else
+                desiredCF = CFrame.new(desiredPos, desiredPos - targetHRP.CFrame.LookVector)
+            end
         end
 
         -- Pathfinding around obstacles: only kick in when the direct line to
@@ -208,6 +222,14 @@ if getgenv().PathfindBtn then
         getgenv().followUsePathfinding = not getgenv().followUsePathfinding
         getgenv().PathfindBtn.Text = "Pathfind Around Obstacles: " .. (getgenv().followUsePathfinding and "ON" or "OFF")
         getgenv().PathfindBtn.BackgroundColor3 = getgenv().followUsePathfinding and getgenv().COL_ON or getgenv().COL_OFF
+    end)
+end
+
+if getgenv().FollowPositionBtn then
+    getgenv().FollowPositionBtn.MouseButton1Click:Connect(function()
+        getgenv().followUnderneath = not getgenv().followUnderneath
+        getgenv().FollowPositionBtn.Text = "Position: " .. (getgenv().followUnderneath and "Underneath" or "Behind")
+        getgenv().FollowPositionBtn.BackgroundColor3 = getgenv().followUnderneath and getgenv().COL_ON or getgenv().COL_OFF
     end)
 end
 

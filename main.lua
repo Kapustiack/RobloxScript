@@ -148,6 +148,7 @@ getgenv().destroyScript = function()
     if getgenv().fullbrightLoop       then getgenv().fullbrightLoop:Disconnect();       getgenv().fullbrightLoop = nil end
     if getgenv().noDamageLoop         then getgenv().noDamageLoop:Disconnect();         getgenv().noDamageLoop = nil end
     if getgenv().lowGravityLoop       then getgenv().lowGravityLoop:Disconnect();       getgenv().lowGravityLoop = nil end
+    if getgenv().tinySizeLoop         then getgenv().tinySizeLoop:Disconnect();         getgenv().tinySizeLoop = nil end
     if getgenv().followConnection     then getgenv().followConnection:Disconnect();     getgenv().followConnection = nil end
     if getgenv().noclipConnection     then getgenv().noclipConnection:Disconnect();     getgenv().noclipConnection = nil end
     if getgenv().noclipTrackerConnection then getgenv().noclipTrackerConnection:Disconnect(); getgenv().noclipTrackerConnection = nil end

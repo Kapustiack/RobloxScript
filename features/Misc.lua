@@ -121,6 +121,57 @@ getgenv().FullbrightButton.MouseButton1Click:Connect(function()
     end
 end)
 
+-- 1.5 Tiny Character
+local function applyTinySize()
+    local char = LocalPlayer.Character
+    if not char then return end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hum then return end
+    
+    local vals = {"BodyHeightScale", "BodyWidthScale", "BodyDepthScale", "HeadScale"}
+    for _, vName in ipairs(vals) do
+        local val = hum:FindFirstChild(vName)
+        if val and val:IsA("NumberValue") then
+            val.Value = 0.02
+        end
+    end
+end
+
+local function enableTinySize()
+    if getgenv().tinySizeLoop then getgenv().tinySizeLoop:Disconnect() end
+    getgenv().tinySizeLoop = RunService.Heartbeat:Connect(function()
+        if getgenv().tinySizeEnabled and getgenv().scriptEnabled then applyTinySize() end
+    end)
+end
+
+local function disableTinySize()
+    if getgenv().tinySizeLoop then getgenv().tinySizeLoop:Disconnect(); getgenv().tinySizeLoop = nil end
+    local char = LocalPlayer.Character
+    if char then
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if hum then
+            local vals = {"BodyHeightScale", "BodyWidthScale", "BodyDepthScale", "HeadScale"}
+            for _, vName in ipairs(vals) do
+                local val = hum:FindFirstChild(vName)
+                if val and val:IsA("NumberValue") then
+                    val.Value = 1
+                end
+            end
+        end
+    end
+end
+
+if getgenv().TinySizeBtn then
+    getgenv().TinySizeBtn.MouseButton1Click:Connect(function()
+        getgenv().tinySizeEnabled = not getgenv().tinySizeEnabled
+        if getgenv().tinySizeEnabled then
+            getgenv().TinySizeBtn.Text = "Tiny Size (1cm): ON"; getgenv().TinySizeBtn.BackgroundColor3 = getgenv().COL_ON; enableTinySize()
+        else
+            getgenv().TinySizeBtn.Text = "Tiny Size (1cm): OFF"; getgenv().TinySizeBtn.BackgroundColor3 = getgenv().COL_OFF; disableTinySize()
+        end
+    end)
+end
+
 -- 2. LOCKS
 getgenv().ShiftLockButton.MouseButton1Click:Connect(function()
     getgenv().shiftLockDisabled = not getgenv().shiftLockDisabled

@@ -235,7 +235,7 @@ getgenv().FOVSettingsFrame = FOVSettingsFrame
 getgenv().FOVLabel            = pLabel(FOVSettingsFrame, "FOVLabel", "FOV: 70°", 12, 40, 276, 24)
 getgenv().FOVSlider           = pSlider(FOVSettingsFrame, "FOVSlider", 12, 74, 276)
 
-local FollowSettingsFrame = makePanel("FollowSettingsFrame", "Follow Settings", 300, 236)
+local FollowSettingsFrame = makePanel("FollowSettingsFrame", "Follow Settings", 300, 270)
 getgenv().FollowSettingsFrame = FollowSettingsFrame
 getgenv().FollowDistanceLabel = pLabel(FollowSettingsFrame, "FollowDistLabel",   "Distance: 5",  12,  40, 130, 24)
 getgenv().FollowHeightLabel   = pLabel(FollowSettingsFrame, "FollowHeightLabel", "Height: 0",    158, 40, 130, 24)
@@ -246,6 +246,12 @@ getgenv().DeathCheckBtn       = pBtn(FollowSettingsFrame, "DeathCheckBtn",   "De
 getgenv().AutoSwitchBtn       = pBtn(FollowSettingsFrame, "AutoSwitchBtn",   "Auto Switch: OFF",  158, 132, 130, 26)
 getgenv().SwitchTargetBtn     = pBtn(FollowSettingsFrame, "SwitchTargetBtn", "Switch Target",     12, 166, 276, 26)
 getgenv().PathfindBtn         = pBtn(FollowSettingsFrame, "PathfindBtn", "Pathfind Around Obstacles: OFF", 12, 200, 276, 26)
+getgenv().FollowPositionBtn   = pBtn(FollowSettingsFrame, "FollowPositionBtn", "Position: Behind", 12, 234, 276, 26)
+
+local CharacterSettingsFrame = makePanel("CharacterSettingsFrame", "Character Settings", 300, 92)
+getgenv().CharacterSettingsFrame = CharacterSettingsFrame
+getgenv().TinySizeBtn = pBtn(CharacterSettingsFrame, "TinySizeBtn", "Tiny Size (1cm): OFF", 12, 40, 276, 26)
+
 
 local ReachSettingsFrame = makePanel("ReachSettingsFrame", "Reach Settings", 300, 128)
 getgenv().ReachSettingsFrame = ReachSettingsFrame

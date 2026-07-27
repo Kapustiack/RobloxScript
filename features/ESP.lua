@@ -36,8 +36,20 @@ local SKELETON_BONES_R6 = {
 }
 
 local function getPlayerColor(p)
-    if getgenv().espTeamCheck and p.Team and LocalPlayer.Team and p.Team == LocalPlayer.Team then
-        return Color3.fromRGB(60, 120, 255)
+    local lp = Players.LocalPlayer
+    if not lp then return Color3.fromRGB(220, 60, 60) end
+    if getgenv().espTeamCheck then
+        if p.Team ~= nil and lp.Team ~= nil and p.Team == lp.Team then
+            return Color3.fromRGB(60, 120, 255)
+        end
+        if p.TeamColor ~= nil and lp.TeamColor ~= nil and p.TeamColor == lp.TeamColor and tostring(p.TeamColor) ~= "White" then
+            return Color3.fromRGB(60, 120, 255)
+        end
+        local pVal = p:FindFirstChild("Team") or p:FindFirstChild("team")
+        local lVal = lp:FindFirstChild("Team") or lp:FindFirstChild("team")
+        if pVal and lVal and pVal:IsA("StringValue") and lVal:IsA("StringValue") and pVal.Value == lVal.Value and pVal.Value ~= "" then
+            return Color3.fromRGB(60, 120, 255)
+        end
     end
     return Color3.fromRGB(220, 60, 60)
 end
