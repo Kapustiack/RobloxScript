@@ -180,13 +180,13 @@ local function disableTinySize()
     end
 end
 
-if getgenv().TinySizeBtn then
-    getgenv().TinySizeBtn.MouseButton1Click:Connect(function()
+if getgenv().CustomSizeBtn then
+    getgenv().CustomSizeBtn.MouseButton1Click:Connect(function()
         getgenv().tinySizeEnabled = not getgenv().tinySizeEnabled
         if getgenv().tinySizeEnabled then
-            getgenv().TinySizeBtn.Text = "Tiny Size (1cm): ON"; getgenv().TinySizeBtn.BackgroundColor3 = getgenv().COL_ON; enableTinySize()
+            getgenv().CustomSizeBtn.Text = "Custom Size: ON"; getgenv().CustomSizeBtn.BackgroundColor3 = getgenv().COL_ON; enableTinySize()
         else
-            getgenv().TinySizeBtn.Text = "Tiny Size (1cm): OFF"; getgenv().TinySizeBtn.BackgroundColor3 = getgenv().COL_OFF; disableTinySize()
+            getgenv().CustomSizeBtn.Text = "Custom Size: OFF"; getgenv().CustomSizeBtn.BackgroundColor3 = getgenv().COL_OFF; disableTinySize()
         end
     end)
 end
