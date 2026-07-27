@@ -180,15 +180,30 @@ local function disableTinySize()
     end
 end
 
+local function toggleCustomSize()
+    if not getgenv().scriptEnabled then return end
+    getgenv().tinySizeEnabled = not getgenv().tinySizeEnabled
+    if getgenv().CustomSizeBtn then
+        getgenv().CustomSizeBtn.Text = "Custom Size: " .. (getgenv().tinySizeEnabled and "ON" or "OFF")
+        getgenv().CustomSizeBtn.BackgroundColor3 = getgenv().tinySizeEnabled and getgenv().COL_ON or getgenv().COL_OFF
+    end
+    if getgenv().CharacterButton then
+        getgenv().CharacterButton.Text = "Custom Size: " .. (getgenv().tinySizeEnabled and "ON" or "OFF")
+        getgenv().CharacterButton.BackgroundColor3 = getgenv().tinySizeEnabled and getgenv().COL_ON or getgenv().COL_OFF
+    end
+    if getgenv().tinySizeEnabled then
+        enableTinySize()
+    else
+        disableTinySize()
+    end
+end
+
 if getgenv().CustomSizeBtn then
-    getgenv().CustomSizeBtn.MouseButton1Click:Connect(function()
-        getgenv().tinySizeEnabled = not getgenv().tinySizeEnabled
-        if getgenv().tinySizeEnabled then
-            getgenv().CustomSizeBtn.Text = "Custom Size: ON"; getgenv().CustomSizeBtn.BackgroundColor3 = getgenv().COL_ON; enableTinySize()
-        else
-            getgenv().CustomSizeBtn.Text = "Custom Size: OFF"; getgenv().CustomSizeBtn.BackgroundColor3 = getgenv().COL_OFF; disableTinySize()
-        end
-    end)
+    getgenv().CustomSizeBtn.MouseButton1Click:Connect(toggleCustomSize)
+end
+
+if getgenv().CharacterButton then
+    getgenv().CharacterButton.MouseButton1Click:Connect(toggleCustomSize)
 end
 
 if getgenv().BindPanelButton and getgenv().CharacterButton and getgenv().CharacterSettingsFrame then
