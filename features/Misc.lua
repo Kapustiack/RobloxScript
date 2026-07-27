@@ -172,6 +172,10 @@ if getgenv().TinySizeBtn then
     end)
 end
 
+if getgenv().BindPanelButton and getgenv().CharacterButton and getgenv().CharacterSettingsFrame then
+    getgenv().BindPanelButton(getgenv().CharacterButton, getgenv().CharacterSettingsFrame)
+end
+
 -- 2. LOCKS
 getgenv().ShiftLockButton.MouseButton1Click:Connect(function()
     getgenv().shiftLockDisabled = not getgenv().shiftLockDisabled

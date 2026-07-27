@@ -148,6 +148,7 @@ getgenv().CtrlLockButton  = catBtn(catLocks, "CtrlLockButton",  "Ctrl Lock (R): 
 local catUtility = makeCategory("Utility")
 getgenv().FollowButton       = catBtn(catUtility, "FollowButton",       "Follow: OFF")
 getgenv().FreeCameraButton   = catBtn(catUtility, "FreeCameraButton",   "FreeCam: OFF")
+getgenv().CharacterButton    = catBtn(catUtility, "CharacterButton",    "Character Settings")
 getgenv().TeleportButton     = catBtn(catUtility, "TeleportButton",     "Teleport To...")
 getgenv().WaypointsButton    = catBtn(catUtility, "WaypointsButton",    "Waypoints")
 getgenv().SaveButton         = catBtn(catUtility, "SaveButton",         "Save Settings")
@@ -440,7 +441,8 @@ getgenv().HideAllPanels = function()
         getgenv().FlightSettingsFrame, getgenv().InfiniteJumpSettingsFrame, getgenv().WallhackSettingsFrame,
         getgenv().FreeCameraSettingsFrame, getgenv().LowGravitySettingsFrame,
         getgenv().TeleportSettingsFrame, getgenv().WaypointsSettingsFrame, getgenv().PowerPanel,
-        getgenv().NoDamageSettingsFrame, getgenv().ScriptScannerSettingsFrame, getgenv().DynamicSettingsPanel
+        getgenv().NoDamageSettingsFrame, getgenv().ScriptScannerSettingsFrame, getgenv().DynamicSettingsPanel,
+        getgenv().CharacterSettingsFrame
     }
     for _, p in pairs(panels) do
         if p and typeof(p) == "Instance" and p:IsA("Frame") then
