@@ -129,12 +129,13 @@ local function applyTinySize()
     local hum = char:FindFirstChildOfClass("Humanoid")
     local scaledValues = false
     
+    local sizeVal = getgenv().characterSizeValue or 0.02
     if hum then
         local vals = {"BodyHeightScale", "BodyWidthScale", "BodyDepthScale", "HeadScale"}
         for _, vName in ipairs(vals) do
             local val = hum:FindFirstChild(vName)
             if val and val:IsA("NumberValue") then
-                val.Value = 0.02
+                val.Value = sizeVal
                 scaledValues = true
             end
         end
@@ -142,9 +143,11 @@ local function applyTinySize()
     
     -- Fallback/Alternative method if NumberValues aren't working or missing
     if not scaledValues and typeof(char.ScaleTo) == "function" then
-        pcall(function() char:ScaleTo(0.02) end)
+        pcall(function() char:ScaleTo(sizeVal) end)
     end
 end
+
+getgenv().applyTinySize_Global = applyTinySize
 
 local function enableTinySize()
     if getgenv().tinySizeLoop then getgenv().tinySizeLoop:Disconnect() end

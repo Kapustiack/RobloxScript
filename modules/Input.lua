@@ -66,6 +66,7 @@ getgenv().WallhackTranspSlider.MouseButton1Down:Connect(function() getgenv().dra
 getgenv().FreeCamSpeedSlider.MouseButton1Down:Connect(function()   getgenv().draggingFreeCamSpeed   = true end)
 getgenv().FreeCamFOVSlider.MouseButton1Down:Connect(function()     getgenv().draggingFreeCamFOV     = true end)
 getgenv().LowGravitySlider.MouseButton1Down:Connect(function()     getgenv().draggingLowGravity     = true end)
+getgenv().CharacterSizeSlider.MouseButton1Down:Connect(function()  getgenv().draggingCharacterSize  = true end)
 
 
 
@@ -84,6 +85,7 @@ getgenv().inputEndedConn = UserInputService.InputEnded:Connect(function(input)
         getgenv().draggingFreeCamSpeed   = false
         getgenv().draggingFreeCamFOV     = false
         getgenv().draggingLowGravity     = false
+        getgenv().draggingCharacterSize  = false
     end
 end)
 
@@ -145,6 +147,35 @@ getgenv().inputChangedConn = UserInputService.InputChanged:Connect(function(inpu
     if getgenv().draggingLowGravity then
         updateSlider(getgenv().LowGravitySlider, getgenv().LowGravityLabel, "Gravity: ", 5, 200, "lowGravityValue")
         if getgenv().lowGravityEnabled then workspace.Gravity = getgenv().lowGravityValue end
+    end
+    if getgenv().draggingCharacterSize then
+        local mousePos = UserInputService:GetMouseLocation()
+        local sl = getgenv().CharacterSizeSlider
+        local relX = math.clamp((mousePos.X - sl.AbsolutePosition.X) / sl.AbsoluteSize.X, 0, 1)
+        
+        -- Log scale from 0.01 to 10
+        -- 0.01 * (10000 ^ relX)
+        local val = 0.01 * (10000 ^ relX)
+        -- Snap to 1.0 if it's very close to middle
+        if math.abs(val - 1) < 0.1 then val = 1 end
+        -- Round to 2 decimals
+        val = math.floor(val * 100 + 0.5) / 100
+        
+        getgenv().characterSizeValue = val
+        getgenv().CharacterSizeLabel.Text = string.format("Size Multiplier: %.2fx", val)
+        
+        local fill = sl:FindFirstChild("Fill")
+        if not fill then
+            fill = Instance.new("Frame"); fill.Name = "Fill"; fill.Parent = sl
+            fill.BackgroundColor3 = Color3.fromRGB(80, 200, 120); fill.BorderSizePixel = 0
+            Instance.new("UICorner", fill).CornerRadius = UDim.new(0, 10)
+        end
+        fill.Size = UDim2.new(relX, 0, 1, 0)
+        
+        -- Apply instantly if enabled
+        if getgenv().tinySizeEnabled and getgenv().applyTinySize_Global then
+            getgenv().applyTinySize_Global()
+        end
     end
 end)
 

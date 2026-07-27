@@ -249,9 +249,11 @@ getgenv().SwitchTargetBtn     = pBtn(FollowSettingsFrame, "SwitchTargetBtn", "Sw
 getgenv().PathfindBtn         = pBtn(FollowSettingsFrame, "PathfindBtn", "Pathfind Around Obstacles: OFF", 12, 200, 276, 26)
 getgenv().FollowPositionBtn   = pBtn(FollowSettingsFrame, "FollowPositionBtn", "Position: Behind", 12, 234, 276, 26)
 
-local CharacterSettingsFrame = makePanel("CharacterSettingsFrame", "Character Settings", 300, 92)
+local CharacterSettingsFrame = makePanel("CharacterSettingsFrame", "Character Settings", 300, 126)
 getgenv().CharacterSettingsFrame = CharacterSettingsFrame
-getgenv().TinySizeBtn = pBtn(CharacterSettingsFrame, "TinySizeBtn", "Tiny Size (1cm): OFF", 12, 40, 276, 26)
+getgenv().CustomSizeBtn = pBtn(CharacterSettingsFrame, "CustomSizeBtn", "Custom Size: OFF", 12, 40, 276, 26)
+getgenv().CharacterSizeLabel = pLabel(CharacterSettingsFrame, "CharacterSizeLabel", "Size Multiplier: 1.0x", 12, 70, 276, 24)
+getgenv().CharacterSizeSlider = pSlider(CharacterSettingsFrame, "CharacterSizeSlider", 12, 102, 276)
 
 
 local ReachSettingsFrame = makePanel("ReachSettingsFrame", "Reach Settings", 300, 128)
@@ -622,6 +624,9 @@ getgenv().RefreshUIState = function()
     if getgenv().LowGravityLabel then
         getgenv().LowGravityLabel.Text = "Gravity: " .. tostring(math.floor((getgenv().lowGravityValue or 50) + 0.5))
     end
+    if getgenv().CharacterSizeLabel then
+        getgenv().CharacterSizeLabel.Text = string.format("Size Multiplier: %.2fx", getgenv().characterSizeValue or 1)
+    end
 
     setSliderVisual(getgenv().SpeedSlider, ((getgenv().speedMultiplier or 1) - 0.5) / 9.5)
     setSliderVisual(getgenv().FOVSlider, ((getgenv().currentFOV or 70) - 20) / 100)
@@ -635,5 +640,10 @@ getgenv().RefreshUIState = function()
     setSliderVisual(getgenv().FreeCamSpeedSlider, ((getgenv().freeCamSpeed or 50) - 5) / 295)
     setSliderVisual(getgenv().FreeCamFOVSlider, ((getgenv().freeCamFOV or 70) - 20) / 100)
     setSliderVisual(getgenv().LowGravitySlider, ((getgenv().lowGravityValue or 50) - 5) / 195)
+    setSliderVisual(getgenv().CharacterSizeSlider, math.log10(getgenv().characterSizeValue or 1) / 2 + 0.5)
     getgenv().UpdatePowerPanelVisual(getgenv().noclipDensity or 0.7)
+    
+    setToggleButton(getgenv().CustomSizeBtn, "Custom Size: ", getgenv().tinySizeEnabled)
 end
+
+getgenv().RefreshUIState()
